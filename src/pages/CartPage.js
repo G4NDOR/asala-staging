@@ -1,16 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../styles/CartPage.css";
-import Payment from "../components/js/Payment";
 import CheckOutItemsList from "../components/js/CheckOutItemsList";
 
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { CART } from "../constants/stateKeys";
 import GoHomeBtn from "../components/js/GoHomeBtn";
 import OrderButton from "../components/js/OrderButton";
-import Paths from "../constants/navigationPages";
+import { resetLoading, triggerLoading } from "../redux/ducks/appVars";
+import LoadingAnimation from "../components/js/LoadingAnimation";
 
 const CartPage = () => {
+  const dispatch = useDispatch();
   const cartIsEmpty = useSelector((state) => state.orderManager.cartIsEmpty);
+
+  useEffect(() => {
+    dispatch(resetLoading());
+  
+    return () => {
+      dispatch(triggerLoading());
+    }
+  }, [])
+
   const products = [
     {
       id: 1,
@@ -61,6 +71,7 @@ const CartPage = () => {
 
   return (
     <div className="container" style={{}}>
+      <LoadingAnimation/>
       <GoHomeBtn/>
       
       <div className="cart-items-wrapper" style={{
@@ -74,7 +85,7 @@ const CartPage = () => {
           )
         }
       </div>
-      <OrderButton location={Paths.CART} />
+      <OrderButton />
       {
         //<Payment/> when payment is integrated into the website
       }

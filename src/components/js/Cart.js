@@ -1,6 +1,6 @@
 // src/components/Cart.js
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 //import CSS
 import "../css/Cart.css";
 //import Components
@@ -15,9 +15,11 @@ import { resetUnseenChanges, setCartIsOpen } from "../../redux/ducks/orderManage
 import { CART } from "../../constants/stateKeys";
 import Paths from "../../constants/navigationPages";
 import GoToCartPageBtn from "./GoToCartPageBtn";
+import { setScreenWidthIsLessThan480 } from "../../redux/ducks/appVars";
 
 const Cart = () => {
   const dispatch = useDispatch();
+  const adjustedForPhone = useSelector(state => state.appVars.screenWidthIsLessThan480);
   const isOpen = useSelector((state) => state.orderManager.cartIsOpen); // Accessing the count from the Redux store
   const cartIsEmpty = useSelector((state) => state.orderManager.cartIsEmpty);
   const unseenChanges = useSelector(state => state.orderManager.unseenChanges);
@@ -31,6 +33,19 @@ const Cart = () => {
     }
     dispatch(setCartIsOpen(!isOpen));
   };
+
+  const handleResize = () => {
+    if (window.innerWidth <= 480) {
+      dispatch(setScreenWidthIsLessThan480(true));
+    } else {
+      dispatch(setScreenWidthIsLessThan480(false));
+    }    
+  }
+
+  // create an event listener
+  useEffect(() => {
+    window.addEventListener("resize", handleResize)
+  })
 
 
 
@@ -54,7 +69,11 @@ const Cart = () => {
               <p className="cart-empty-text">Your cart is empty</p>
             )
           }
-          <GoToCartPageBtn/>
+          {
+            adjustedForPhone?
+            <OrderButton/>:
+            <GoToCartPageBtn/>
+          }
         </div>
       )}
     </div>

@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import Paths from '../../constants/navigationPages';
 import { resetIntentToPay, resetIntentToPayConfirmed, triggerIntentToPay, triggerIntentToPayConfirmed } from "../../redux/ducks/orderManager";
 
-const OrderButton = ({ location }) => {
+const OrderButton = () => {
   // Retrieve cart from Redux state
   const dispatch = useDispatch();
   const cart = useSelector(state => state.orderManager.cart);

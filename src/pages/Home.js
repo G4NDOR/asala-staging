@@ -1,6 +1,6 @@
 // src/App.js
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Cart from "../components/js/Cart";
 import "../styles/Home.css";
 import ImageSlider from "../components/js/ImageSlider";
@@ -12,9 +12,7 @@ import { setItems } from "../redux/ducks/homePageManager";
 import LoadMoreBtn from "../components/js/LoadMoreBtn";
 import DEFAULT_VALUES from "../constants/defaultValues";
 import LoadingAnimation from "../components/js/LoadingAnimation";
-import L1 from "../components/js/L1";
-import L2 from "../components/js/L2";
-//import L3 from "../components/js/L3";
+import { resetLoading, triggerLoading } from "../redux/ducks/appVars";
 
 
 
@@ -31,6 +29,15 @@ const Home = () => {
   .then(response => response.json())
   .then(data => console.log(data.ip))
   .catch(error => console.error('Error:', error));
+
+  useEffect(() => {
+    dispatch(resetLoading());
+  
+    return () => {
+      dispatch(triggerLoading());
+    }
+  }, [])
+  
 
 
   const loadMore = ()=>{
@@ -65,8 +72,8 @@ const Home = () => {
   return (
     <div style={appStyle}>
       {
-        //<LoadingAnimation/>
-        <L2/>
+        <LoadingAnimation/>
+        //<L2/>
       }
       <div style={containerStyle}>
         <Cart products={products} />
@@ -74,7 +81,7 @@ const Home = () => {
           <ImageSlider images={images} />
           <div className="welcome-text">
             <h1>Welcome to Our Store</h1>
-            <p>Discover the best products just for you!</p>
+            <p>Discover the best products just for you! {DEFAULT_VALUES.COMMIT_NUMBER}</p>
           </div>
         </div>
         {

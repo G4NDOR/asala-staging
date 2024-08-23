@@ -3,11 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import Paths from '../constants/navigationPages';
 import '../styles/ConfirmationPage.css';
+import { useDispatch } from 'react-redux';
+import { resetLoading, triggerLoading } from '../redux/ducks/appVars';
+import LoadingAnimation from '../components/js/LoadingAnimation';
 
 const ConfirmationPage = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(10); // Set the timer to 10 seconds
   const success = false;
+
+  useEffect(() => {
+    dispatch(resetLoading());
+  
+    return () => {
+      dispatch(triggerLoading());
+    }
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -25,6 +37,7 @@ const ConfirmationPage = () => {
 
   return (
     <div className="confirmation-page">
+      <LoadingAnimation/>
       <div className="confirmation-content">
         {success ? (
           <div className="success-message">

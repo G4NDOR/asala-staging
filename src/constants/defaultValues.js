@@ -107,7 +107,8 @@ const DEFAULT_VALUES = {
           quantity: 15,
           discount: 50,
         },
-      ]
+      ],
+    COMMIT_NUMBER: 2,
   };
   
   export default DEFAULT_VALUES;

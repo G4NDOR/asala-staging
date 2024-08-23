@@ -1,16 +1,16 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import '../css/LoadingAnimation.css';
 
 const LoadingAnimation = () => {
+  const loading = useSelector(state => state.appVars.loading);
+
   return (
-    <div className="loading-page">
-      <div className="animation-container">
-        <div className="character">
-          <div className="character-body"></div>
-          <div className="character-eyes"></div>
-          <div className="character-mouth"></div>
-        </div>
-        <p className="loading-text">Loading, please wait...</p>
+    <div className={`loading-page ${loading?'':'hidden'}`}>
+      <div className="loading-animation">
+        <div className="circle"></div>
+        <div className="circle"></div>
+        <div className="circle"></div>
       </div>
     </div>
   );

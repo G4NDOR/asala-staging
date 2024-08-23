@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "../styles/ProductPage.css";
 import ImageSlider from "../components/js/ImageSlider";
 import CheckOutItemsList from "../components/js/CheckOutItemsList";
-import Payment from "../components/js/Payment";
 import AddressSelector from "../components/js/AddressSelector";
 import { ONE_ITEM_CHECKOUT } from "../constants/stateKeys";
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,6 +12,8 @@ import GoHomeBtn from "../components/js/GoHomeBtn";
 import UpSell from "../components/js/UpSell";
 import { addOneItemCheckout, clearOneItemCheckout } from "../redux/ducks/orderManager";
 import OrderButton from "../components/js/OrderButton";
+import { resetLoading, triggerLoading } from "../redux/ducks/appVars";
+import LoadingAnimation from "../components/js/LoadingAnimation";
 
 const ProductPage = () => {
   const dispatch = useDispatch();
@@ -29,7 +30,9 @@ const ProductPage = () => {
 
   useEffect(() => {
     dispatch(addOneItemCheckout(product));
+    dispatch(resetLoading());
     return () => {
+      dispatch(triggerLoading());
       dispatch(clearOneItemCheckout());
     }
   }, [])
@@ -59,6 +62,7 @@ const ProductPage = () => {
 
   return (
     <div className="product-page">
+      <LoadingAnimation/>
       <GoHomeBtn/>
       <AddressSelector/>
       <div className="image-slider-wrapper">
@@ -98,7 +102,7 @@ const ProductPage = () => {
       <div className="order-summary" >
         <h2 style={{marginLeft:'15px'}}>Order Summary</h2>
         <CheckOutItemsList listIdentifier={ONE_ITEM_CHECKOUT}/>
-        <OrderButton location={Paths.PRODUCT} />
+        <OrderButton />
         {
           //<Payment/> when payment is integrated into the website
         }
