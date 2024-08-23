@@ -1,4 +1,34 @@
+# ChatGpt promts
+here's html :
+      <div className="cart-icon" onClick={toggleCart}>
+        🛒
+      </div>
+
+and here's css:
+
+.cart-icon {
+  font-size: 24px;
+  cursor: pointer;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 50%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.cart-icon:hover {
+  transform: scale(1.1);
+}
+
+make a nice animation so that when I add something to cart, it will kind of get bigger and smaller, and show a litle red dot to the top left meaning that something has changed. make everything nice and responsive and smooth  and give me only the stuff that I need to do , not the whole files
+
 # Getting Started with Create React App
+
+
+
+
+
+
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

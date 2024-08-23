@@ -1,0 +1,24 @@
+/* Start AddressSelector.css */
+
+.address-selector {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+  }
+  
+  .address-notes {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.9rem;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .address-notes {
+      font-size: 0.85rem;
+    }
+  }
+  
+  /* End AddressSelector.css */
+  

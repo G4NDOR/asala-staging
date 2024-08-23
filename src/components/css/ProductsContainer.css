@@ -1,0 +1,50 @@
+.products-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around; /* Ensure space between cards */
+  gap: 20px; /* Increased spacing for better separation */
+  /*padding: 30px;*/
+  background-color: #f7f7f7; /* Light background color for contrast */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+
+
+.product-card:hover {
+  transform: translateY(-5px); /* Slight lift on hover */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover */
+}
+
+.products-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 20px; /* Adjusts the spacing between cards */
+  padding: 20px;
+}
+
+@media (max-width: 1024px) {
+  .product-card {
+      flex: 1 1 calc(50% - 40px); /* Two cards per row on medium screens */
+      max-width: calc(50% - 40px);
+  }
+}
+
+  /* Adjustments for medium screens (tablets) */
+@media (max-width: 768px) {
+  .products-container{
+    flex-direction: column;
+    align-items: center;
+  }
+
+}
+
+
+
+
+  
+
+  
+
+  

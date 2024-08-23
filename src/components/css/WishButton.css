@@ -1,0 +1,31 @@
+/* src/css/WishButton.css */
+
+.product-button {
+    flex: 1;
+    padding: 10px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.wish-button {
+    background-color: #3fc8da;
+    color: rgb(0, 0, 0);
+    margin: 0 auto; /* Center the button horizontally */
+    display: block; /* Ensure the button is treated as a block element for centering */
+    text-align: center;
+}
+
+.wish-button:hover {
+    background-color: #05a1b6;
+}
+
+.already-wished{
+    background-color: #005964;
+}
+
+.already-wished:hover {
+    background-color: #005964;
+}

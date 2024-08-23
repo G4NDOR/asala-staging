@@ -1,0 +1,41 @@
+.load-more-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  
+  .load-more-btn:hover {
+    transform: scale(1.1);
+  }
+  
+  .arrow-icon {
+    font-size: 24px;
+    color: #007bff;
+  }
+  
+  .loading-icon {
+    font-size: 24px;
+    color: #007bff;
+    animation: spin 1s linear infinite;
+  }
+  
+  .no-more-items {
+    font-size: 16px;
+    color: #999;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .no-more-items{
+    cursor:default;
+  }
+
+  .no-more-items:hover{
+    transform: none;
+  }

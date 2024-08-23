@@ -1,0 +1,99 @@
+/* src/components/CartItem.css */
+.cart-item-wrapper{
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  width:auto;
+}
+
+.cart-item-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.cart-item-details {
+  flex-grow: 1;
+  margin-left: 10px;
+}
+
+.cart-item-name {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.cart-item-price {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.cart-item-total {
+  text-align: right;
+}
+
+.cart-item-total-before-discounts {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.cart-item-discount-total {
+  font-size: 1rem;
+  color: #e91e63;
+}
+
+.cart-item-discount {
+  font-size: 0.8rem; /* Small font size */
+  color: #f39c12; /* A contrasting color to make it stand out */
+  margin-left: 5px; /* Slight space from the price */
+  white-space: nowrap; /* Prevents wrapping */
+}
+
+.cart-item-total-before-discounts {
+  display: inline-block; /* Allows the discount to be shown next to it */
+  margin-right: 5px; /* Adds some space between original price and discount */
+}
+
+.before-discounts-text{
+  text-decoration: line-through; /* Adds a line through the text */
+}
+
+@media (max-width: 480px) {
+
+  .cart-item-name{
+    font-size: 0.8rem;
+  }
+
+  .cart-item-price {
+    font-size: 0.8rem;
+  }
+
+  .cart-item-discount-total {
+    font-size: 0.8rem;
+  }
+
+  .cart-item-wrapper{
+    padding-bottom: 5px;
+  }
+/*
+  .cart-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cart-item-total {
+    text-align: left;
+    margin-top: 5px;
+  }
+*/
+}
+

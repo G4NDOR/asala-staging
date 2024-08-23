@@ -1,0 +1,33 @@
+/* src/components/OrderButton.css */
+
+.order-button {
+  display: block;
+  width: 80%;
+  padding: 15px;
+  margin: 20px auto;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  background-color: #28a745;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.order-button:hover {
+  background-color: #218838;
+}
+
+.disabled{
+  background-color: #218838;
+  color: rgb(84 76 76);
+}
+
+@media (max-width: 480px) {
+  .order-button {
+    padding: 10px;
+    font-size: 1rem;
+  }
+}

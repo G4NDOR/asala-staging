@@ -1,0 +1,14 @@
+import { combineReducers, createStore } from "redux";
+import homePageManager from "./ducks/homePageManager";
+import orderManager from "./ducks/orderManager";
+import productPageManager from "./ducks/productPageManager";
+
+const reducer = combineReducers({
+    orderManager: orderManager,
+    productPageManager: productPageManager,
+    homePageManager: homePageManager,
+})
+
+
+const store = createStore(reducer)
+export default store;

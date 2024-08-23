@@ -1,0 +1,9 @@
+.items-list{
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 5px;
+  max-width: 100%;
+  padding-top: 40px;
+}

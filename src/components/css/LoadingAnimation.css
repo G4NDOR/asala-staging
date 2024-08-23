@@ -1,0 +1,81 @@
+.loading-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  
+  .animation-container {
+    text-align: center;
+    animation: bounce 2s infinite;
+  }
+  
+  .character {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    background-color: #ffcc00;
+    border-radius: 50%;
+  }
+  
+  .character-body {
+    width: 50px;
+    height: 30px;
+    background-color: #ffcc00;
+    border-radius: 50% 50% 0 0;
+    position: absolute;
+    bottom: 0;
+  }
+  
+  .character-eyes {
+    width: 10px;
+    height: 10px;
+    background-color: #333;
+    border-radius: 50%;
+    position: absolute;
+    top: 15px;
+    left: 15px;
+  }
+  
+  .character-eyes::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: #333;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    right: 15px;
+  }
+  
+  .character-mouth {
+    width: 20px;
+    height: 5px;
+    background-color: #333;
+    border-radius: 0 0 10px 10px;
+    position: absolute;
+    bottom: 10px;
+    left: 15px;
+  }
+  
+  .loading-text {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    color: #333;
+  }
+  
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  

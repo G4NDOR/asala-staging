@@ -1,0 +1,147 @@
+/* Start ProductPage.css */
+
+.product-page {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.address-bar {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.address-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.address-notes {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+.image-slider-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}
+
+.product-details {
+  margin-top: 20px;
+}
+
+.product-name {
+  font-size: 2rem;
+  color: #333;
+}
+
+.producer-info {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.producer-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.producer-name {
+  font-size: 1rem;
+  color: #777;
+}
+
+.product-description {
+  margin-top: 20px;
+}
+
+.description-text {
+  font-size: 1rem;
+  color: #555;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.description-text.collapsed {
+  max-height: 80px;
+}
+
+.description-text.expanded {
+  max-height: none;
+}
+
+.toggle-description {
+  background: none;
+  border: none;
+  color: #6a7179;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 10px 0;
+  text-align: left;
+}
+
+.toggle-description:hover {
+  text-decoration: underline;
+  color: #323538;
+}
+
+.order-summary{
+  max-width: 600px;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  border-radius: 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .product-name {
+    font-size: 1.5rem;
+  }
+
+  .producer-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .producer-image {
+    margin-bottom: 5px;
+  }
+
+  .product-description {
+    font-size: 0.9rem;
+  }
+
+  .description-text {
+    font-size: 0.9rem;
+  }
+
+  .toggle-description {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .order-summary{
+    width: 100%;
+  }
+}
+
+
+
+/* End ProductPage.css */

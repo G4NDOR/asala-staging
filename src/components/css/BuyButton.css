@@ -1,0 +1,21 @@
+/* src/css/BuyButton.css */
+
+.product-button {
+    flex: 1;
+    padding: 10px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.buy-button {
+    background-color: #28a745;
+    color: white;
+    font-weight:600;
+}
+
+.buy-button:hover {
+    background-color: #218838;
+}
