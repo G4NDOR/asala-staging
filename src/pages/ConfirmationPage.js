@@ -11,7 +11,7 @@ const ConfirmationPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(10); // Set the timer to 10 seconds
-  const success = false;
+  const success = true;
 
   useEffect(() => {
     dispatch(resetLoading());

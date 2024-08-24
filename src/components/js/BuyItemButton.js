@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Paths from '../../constants/navigationPages';
 import { setProduct } from '../../redux/ducks/productPageManager';
+import { triggerLoading } from '../../redux/ducks/appVars';
 
 const BuyItemButton = ({ product }) => {
     const dispatch = useDispatch();
@@ -12,6 +13,7 @@ const BuyItemButton = ({ product }) => {
     const available = product.available;
 
     const handleBuyBtnClick = ()=>{
+        dispatch(triggerLoading());
         dispatch(setProduct(product));
         navigate(Paths.PRODUCT);
     }

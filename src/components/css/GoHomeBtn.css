@@ -75,14 +75,14 @@
   /* Responsive design */
 @media (max-width: 768px) {
     .go-home-btn {
-      font-size: 25px;
+      font-size: 30px;
       padding: 8px;
     }
   }
   
   @media (max-width: 480px) {
     .go-home-btn {
-      font-size: 20px;
+      font-size: 28px;
       padding: 6px;
     }
   }

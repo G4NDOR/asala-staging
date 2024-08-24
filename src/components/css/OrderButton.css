@@ -25,6 +25,26 @@
   color: rgb(84 76 76);
 }
 
+.cash{
+  background-color: #5cadc5;
+}
+
+.cash .disabled{
+  background-color: #206275;
+}
+
+.cash:hover {
+  background-color: #3056bd;
+}
+
+.confirm-stage{
+  background-color: #e3a10c;
+}
+
+.confirm-stage:hover{
+  background-color: #b98d05;
+}
+
 @media (max-width: 480px) {
   .order-button {
     padding: 10px;

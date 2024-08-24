@@ -1,0 +1,637 @@
+ONLY give me what I need to add not the whole file.
+
+great now make it read collections if there's no doc arguments, make it create or overwrite a single document (setDoc ()) if specified intent in arguments. If the document does not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data, unless you specify that the data should be merged into the existing document, (setDoc(cityRef, { capital: true }, { merge: true });), if there's any date needs to be written use (Timestamp from "firebase/firestore", dateExample: Timestamp.fromDate(new Date("December 10, 1815")), ),    Using Map or Dictionary objects to represent your documents is often inconvenient, so Cloud Firestore supports writing documents with custom classes. Cloud Firestore converts the objects to supported data types.
+
+Using custom classes, you can rewrite the initial example in the following way:  
+
+//start
+class City {
+    constructor (name, state, country ) {
+        this.name = name;
+        this.state = state;
+        this.country = country;
+    }
+    toString() {
+        return this.name + ', ' + this.state + ', ' + this.country;
+    }
+}
+
+// Firestore data converter
+const cityConverter = {
+    toFirestore: (city) => {
+        return {
+            name: city.name,
+            state: city.state,
+            country: city.country
+            };
+    },
+    fromFirestore: (snapshot, options) => {
+        const data = snapshot.data(options);
+        return new City(data.name, data.state, data.country);
+    }
+};
+//end
+//start
+import { doc, setDoc } from "firebase/firestore"; 
+
+// Set with cityConverter
+const ref = doc(db, "cities", "LA").withConverter(cityConverter);
+await setDoc(ref, new City("Los Angeles", "CA", "USA"));
+//end
+
+In some cases, it can be useful to create a document reference with an auto-generated ID, then use the reference later. For this use case, you can call doc() in the following way:
+
+//start
+import { collection, doc, setDoc } from "firebase/firestore"; 
+
+// Add a new document with a generated id
+const newCityRef = doc(collection(db, "cities"));
+
+// later...
+await setDoc(newCityRef, data);
+//end
+
+To update some fields of a document without overwriting the entire document
+
+//start
+import { doc, updateDoc } from "firebase/firestore";
+
+const washingtonRef = doc(db, "cities", "DC");
+
+// Set the "capital" field of the city 'DC'
+await updateDoc(washingtonRef, {
+  capital: true
+});
+//end
+
+You can set a field in your document to a server timestamp which tracks when the server receives the update.
+
+//start
+import { updateDoc, serverTimestamp } from "firebase/firestore";
+
+const docRef = doc(db, 'objects', 'some-id');
+
+// Update the timestamp field with the value from the server
+const updateTimestamp = await updateDoc(docRef, {
+    timestamp: serverTimestamp()
+});
+//end
+
+If your document contains nested objects, you can use the dot notation to reference nested fields within the document
+
+//start
+import { doc, setDoc, updateDoc } from "firebase/firestore"; 
+
+// Create an initial document to update.
+const frankDocRef = doc(db, "users", "frank");
+await setDoc(frankDocRef, {
+    name: "Frank",
+    favorites: { food: "Pizza", color: "Blue", subject: "recess" },
+    age: 12
+});
+
+// To update age and favorite color:
+await updateDoc(frankDocRef, {
+    "age": 13,
+    "favorites.color": "Red"
+});
+//end
+
+Dot notation allows you to update a single nested field without overwriting other nested fields. If you update a nested field without dot notation, you will overwrite the entire map field, as shown in the following example:
+
+//start
+
+// Create our initial doc
+db.collection("users").doc("frank").set({
+  name: "Frank",
+  favorites: {
+    food: "Pizza",
+    color: "Blue",
+    subject: "Recess"
+  },
+  age: 12
+}).then(function() {
+  console.log("Frank created");
+});
+
+// Update the doc without using dot notation.
+// Notice the map value for favorites.
+db.collection("users").doc("frank").update({
+  favorites: {
+    food: "Ice Cream"
+  }
+}).then(function() {
+  console.log("Frank food updated");
+});
+
+/*
+Ending State, favorite.color and favorite.subject are no longer present:
+/users
+    /frank
+        {
+            name: "Frank",
+            favorites: {
+                food: "Ice Cream",
+            },
+            age: 12
+        }
+ */
+//end
+
+If your document contains an array field, you can use arrayUnion() and arrayRemove() to add and remove elements. arrayUnion() adds elements to an array but only elements not already present. arrayRemove() removes all instances of each given element.
+
+//start
+import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+
+const washingtonRef = doc(db, "cities", "DC");
+
+// Atomically add a new region to the "regions" array field.
+await updateDoc(washingtonRef, {
+    regions: arrayUnion("greater_virginia")
+});
+
+// Atomically remove a region from the "regions" array field.
+await updateDoc(washingtonRef, {
+    regions: arrayRemove("east_coast")
+});
+//end
+
+You can increment or decrement a numeric field value as shown in the following example. An increment operation increases or decreases the current value of a field by the given amount.
+
+
+//start
+import { doc, updateDoc, increment } from "firebase/firestore";
+
+const washingtonRef = doc(db, "cities", "DC");
+
+// Atomically increment the population of the city by 50.
+await updateDoc(washingtonRef, {
+    population: increment(50)
+});
+//end
+
+To delete a document, use the following language-specific delete() methods:
+
+//start
+import { doc, deleteDoc } from "firebase/firestore";
+
+await deleteDoc(doc(db, "cities", "DC"));
+//end
+
+To delete specific fields from a document, use the following language-specific FieldValue.delete() methods when you update a document:
+
+//start
+import { doc, updateDoc, deleteField } from "firebase/firestore";
+
+const cityRef = doc(db, 'cities', 'BJ');
+
+// Remove the 'capital' field from the document
+await updateDoc(cityRef, {
+    capital: deleteField()
+});
+//end
+
+The following example shows how to retrieve the contents of a single document using get():
+
+//start
+import { doc, getDoc } from "firebase/firestore";
+
+const docRef = doc(db, "cities", "SF");
+const docSnap = await getDoc(docRef);
+
+if (docSnap.exists()) {
+  console.log("Document data:", docSnap.data());
+} else {
+  // docSnap.data() will be undefined in this case
+  console.log("No such document!");
+}
+//end
+
+For platforms with offline support, you can set the source option to control how a get call uses the offline cache.
+
+By default, a get call will attempt to fetch the latest document snapshot from your database. On platforms with offline support, the client library will use the offline cache if the network is unavailable or if the request times out.
+
+You can specify the source option in a get() call to change the default behavior. You can fetch from only the database and ignore the offline cache, or you can fetch from only the offline cache. For example:
+
+//start
+For platforms with offline support, you can set the source option to control how a get call uses the offline cache.
+
+By default, a get call will attempt to fetch the latest document snapshot from your database. On platforms with offline support, the client library will use the offline cache if the network is unavailable or if the request times out.
+
+You can specify the source option in a get() call to change the default behavior. You can fetch from only the database and ignore the offline cache, or you can fetch from only the offline cache. For example:
+//end
+
+The previous example retrieved the contents of the document as a map, but in some languages it's often more convenient to use a custom object type. In Add Data, you defined a City class that you used to define each city. You can turn your document back into a City object:
+
+//start
+The previous example retrieved the contents of the document as a map, but in some languages it's often more convenient to use a custom object type. In Add Data, you defined a City class that you used to define each city. You can turn your document back into a City object:
+//end
+
+You can also retrieve multiple documents with one request by querying documents in a collection. For example, you can use where() to query for all of the documents that meet a certain condition, then use get() to retrieve the results:
+
+//start
+import { collection, query, where, getDocs } from "firebase/firestore";
+
+const q = query(collection(db, "cities"), where("capital", "==", true));
+
+const querySnapshot = await getDocs(q);
+querySnapshot.forEach((doc) => {
+  // doc.data() is never undefined for query doc snapshots
+  console.log(doc.id, " => ", doc.data());
+});
+//end
+
+In addition, you can retrieve all documents in a collection by omitting the where() filter entirely:
+//start
+import { collection, getDocs } from "firebase/firestore";
+
+const querySnapshot = await getDocs(collection(db, "cities"));
+querySnapshot.forEach((doc) => {
+  // doc.data() is never undefined for query doc snapshots
+  console.log(doc.id, " => ", doc.data());
+});
+//end
+
+To retrieve all the documents from a subcollection, create a reference with the complete path to that subcollection:
+
+//start
+const { collection, getDocs } = require("firebase/firestore");
+// Query a reference to a subcollection
+const querySnapshot = await getDocs(collection(db, "cities", "SF", "landmarks"));
+querySnapshot.forEach((doc) => {
+  // doc.data() is never undefined for query doc snapshots
+  console.log(doc.id, " => ", doc.data());
+});
+//end
+
+You can listen to a document with the onSnapshot() method. An initial call using the callback you provide creates a document snapshot immediately with the current contents of the single document. Then, each time the contents change, another call updates the document snapshot.
+
+//start
+import { doc, onSnapshot } from "firebase/firestore";
+
+const unsub = onSnapshot(doc(db, "cities", "SF"), (doc) => {
+    console.log("Current data: ", doc.data());
+});
+//end
+
+Local writes in your app will invoke snapshot listeners immediately. This is because of an important feature called "latency compensation." When you perform a write, your listeners will be notified with the new data before the data is sent to the backend.
+
+Retrieved documents have a metadata.hasPendingWrites property that indicates whether the document has local changes that haven't been written to the backend yet. You can use this property to determine the source of events received by your snapshot listener:
+
+//start
+import { doc, onSnapshot } from "firebase/firestore";
+
+const unsub = onSnapshot(doc(db, "cities", "SF"), (doc) => {
+  const source = doc.metadata.hasPendingWrites ? "Local" : "Server";
+  console.log(source, " data: ", doc.data());
+});
+//end
+
+When listening for changes to a document, collection, or query, you can pass options to control the granularity of events that your listener will receive.
+
+By default, listeners are not notified of changes that only affect metadata. Consider what happens when your app writes a new document:
+
+A change event is immediately fired with the new data. The document has not yet been written to the backend so the "pending writes" flag is true.
+The document is written to the backend.
+The backend notifies the client of the successful write. There is no change to the document data, but there is a metadata change because the "pending writes" flag is now false.
+If you want to receive snapshot events when the document or query metadata changes, pass a listen options object when attaching your listener.
+
+//start
+import { doc, onSnapshot } from "firebase/firestore";
+
+const unsub = onSnapshot(
+  doc(db, "cities", "SF"), 
+  { includeMetadataChanges: true }, 
+  (doc) => {
+    // ...
+  });
+//end
+
+Cloud Firestore snapshot listeners take an initial snapshot from the local cache and concurrently fetch corresponding data from the server.
+
+In some cases, you may not want follow-up fetches from the server. Client SDKs allow you to configure listeners to fire only with respect to data in the local cache. This helps you avoid unnecessary server calls and their costs, and leverage the client-side cache, which reflects local data and mutations.
+
+Here, snapshot options are set in client code to allow listening for local changes only.
+
+//start
+const unsubscribe = onSnapshot(
+   doc(db, "cities", "SF"),
+    { 
+      includeMetadataChanges: true,
+      source:'cache'
+     },
+    (documentSnapshot) => {//…}
+  );
+//end
+
+As with documents, you can use onSnapshot() instead of get() to listen to the results of a query. This creates a query snapshot. For example, to listen to the documents with state CA:
+
+//start
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+
+const q = query(collection(db, "cities"), where("state", "==", "CA"));
+const unsubscribe = onSnapshot(q, (querySnapshot) => {
+  const cities = [];
+  querySnapshot.forEach((doc) => {
+      cities.push(doc.data().name);
+  });
+  console.log("Current cities in CA: ", cities.join(", "));
+});
+//end
+
+It is often useful to see the actual changes to query results between query snapshots, instead of simply using the entire query snapshot. For example, you may want to maintain a cache as individual documents are added, removed, and modified.
+
+//start
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+
+const q = query(collection(db, "cities"), where("state", "==", "CA"));
+const unsubscribe = onSnapshot(q, (snapshot) => {
+  snapshot.docChanges().forEach((change) => {
+    if (change.type === "added") {
+        console.log("New city: ", change.doc.data());
+    }
+    if (change.type === "modified") {
+        console.log("Modified city: ", change.doc.data());
+    }
+    if (change.type === "removed") {
+        console.log("Removed city: ", change.doc.data());
+    }
+  });
+});
+//end
+
+When you are no longer interested in listening to your data, you must detach your listener so that your event callbacks stop getting called. This allows the client to stop using bandwidth to receive updates. For example:
+
+//start
+import { collection, onSnapshot } from "firebase/firestore";
+
+const unsubscribe = onSnapshot(collection(db, "cities"), () => {
+  // Respond to data
+  // ...
+});
+
+// Later ...
+
+// Stop listening to changes
+unsubscribe();
+//end
+
+A listen may occasionally fail — for example, due to security permissions, or if you tried to listen on an invalid query. (Learn more about valid and invalid queries.) To handle these failures, you can provide an error callback when you attach your snapshot listener. After an error, the listener will not receive any more events, and there is no need to detach your listener.
+
+//start
+import { collection, onSnapshot } from "firebase/firestore";
+
+const unsubscribe = onSnapshot(
+  collection(db, "cities"), 
+  (snapshot) => {
+    // ...
+  },
+  (error) => {
+    // ...
+  });
+//end
+
+Cloud Firestore provides powerful query functionality for specifying which documents you want to retrieve from a collection or collection group. These queries can also be used with either get() or addSnapshotListener(), as described in Get Data and Get Realtime Updates.
+To get started, write some data about cities so we can look at different ways to read it back:
+
+//start
+import { collection, doc, setDoc } from "firebase/firestore"; 
+
+const citiesRef = collection(db, "cities");
+
+await setDoc(doc(citiesRef, "SF"), {
+    name: "San Francisco", state: "CA", country: "USA",
+    capital: false, population: 860000,
+    regions: ["west_coast", "norcal"] });
+await setDoc(doc(citiesRef, "LA"), {
+    name: "Los Angeles", state: "CA", country: "USA",
+    capital: false, population: 3900000,
+    regions: ["west_coast", "socal"] });
+await setDoc(doc(citiesRef, "DC"), {
+    name: "Washington, D.C.", state: null, country: "USA",
+    capital: true, population: 680000,
+    regions: ["east_coast"] });
+await setDoc(doc(citiesRef, "TOK"), {
+    name: "Tokyo", state: null, country: "Japan",
+    capital: true, population: 9000000,
+    regions: ["kanto", "honshu"] });
+await setDoc(doc(citiesRef, "BJ"), {
+    name: "Beijing", state: null, country: "China",
+    capital: true, population: 21500000,
+    regions: ["jingjinji", "hebei"] });
+//end
+
+The following query returns all cities with state CA:
+
+//start
+// Create a reference to the cities collection
+import { collection, query, where } from "firebase/firestore";
+const citiesRef = collection(db, "cities");
+
+// Create a query against the collection.
+const q = query(citiesRef, where("state", "==", "CA"));
+//end
+
+The following query returns all the capital cities:
+
+//start
+import { collection, query, where } from "firebase/firestore";
+const citiesRef = collection(db, "cities");
+
+const q = query(citiesRef, where("capital", "==", true));
+//end
+
+//start
+After creating a query object, use the get() function to retrieve the results:
+//end
+
+The where() method takes three parameters: a field to filter on, a comparison operator, and a value. Cloud Firestore supports the following comparison operators:
+
+< less than
+<= less than or equal to
+== equal to
+> greater than
+>= greater than or equal to
+!= not equal to
+array-contains
+array-contains-any
+in
+not-in
+
+//start
+const stateQuery = query(citiesRef, where("state", "==", "CA"));
+const populationQuery = query(citiesRef, where("population", "<", 100000));
+const nameQuery = query(citiesRef, where("name", ">=", "San Francisco"));
+//end
+
+Use the not equal (!=) operator to return documents where the given field exists and does not match the comparison value. For example:
+
+//start
+const notCapitalQuery = query(citiesRef, where("capital", "!=", false));
+//end
+
+This query returns every city document where the capital field exists with a value other than false or null. This includes city documents where the capital field value equals true or any non-boolean value besides null.
+
+This query does not return city documents where the capital field does not exist. Not-equal (!=) and not-in queries exclude documents where the given field does not exist.
+
+A field exists when it's set to any value, including an empty string (""), null, and NaN (not a number). Note that null field values do not match != clauses, because x != null evaluates to undefined.
+
+Warning: A != query clause might match many documents in a collection. To control the number of results returned, use a limit clause or paginate your query.
+
+By default, a query retrieves all documents that satisfy the query in ascending order by document ID. You can specify the sort order for your data using orderBy(), and you can limit the number of documents retrieved using limit(). If you specify a limit(), the value must be greater than or equal to zero.
+
+//start
+import { query, orderBy, limit } from "firebase/firestore";  
+
+const q = query(citiesRef, orderBy("name"), limit(3));
+//end
+
+You could also sort in descending order to get the last 3 cities:
+
+//start
+import { query, orderBy, limit } from "firebase/firestore";  
+
+const q = query(citiesRef, orderBy("name", "desc"), limit(3));
+//end
+
+You can also order by multiple fields. For example, if you wanted to order by state, and within each state order by population in descending order:
+
+//start
+import { query, orderBy } from "firebase/firestore";  
+
+const q = query(citiesRef, orderBy("state"), orderBy("population", "desc"));
+//end
+
+You can combine where() filters with orderBy() and limit(). In the following example, the queries define a population threshold, sort by population in ascending order, and return only the first few results that exceed the threshold:
+
+//start
+import { query, where, orderBy, limit } from "firebase/firestore";  
+
+const q = query(citiesRef, where("population", ">", 100000), orderBy("population"), limit(2));
+//end
+
+Limitations
+Note the following restriction for orderBy() clauses:
+
+An orderBy() clause also filters for existence of the given fields. The result set will not include documents that do not contain the given fields.
+
+orderBy and existence
+When you order a query by a given field, the query can return only the documents where the order-by field exists.
+
+For example, the following query would not return any documents where the population field is not set, even if they otherwise meet the query filters.
+
+//start
+db.collection("cities").whereEqualTo("country", “USA”).orderBy(“population”);
+//end
+
+A related effect applies to inequalities. A query with an inequality filter on a field also implies ordering by that field. The following query does not return documents without a population field even if country = USA in that document . As a workaround, you can execute separate queries for each ordering or you can assign a value for all fields that you order by.
+
+//start
+db.collection(“cities”).where(or(“country”, USA”), greaterThan(“population”, 250000));
+//end
+
+The query above includes an implied order-by on the inequality and is equivalent to the following:
+
+//start
+db.collection(“cities”).where(or(“country”, USA”), greaterThan(“population”, 250000)).orderBy(“population”);
+//end
+
+Add a simple cursor to a query
+Use the startAt() or startAfter() methods to define the start point for a query. The startAt() method includes the start point, while the startAfter() method excludes it.
+
+For example, if you use startAt(A) in a query, it returns the entire alphabet. If you use startAfter(A) instead, it returns B-Z.
+
+//start
+import { query, orderBy, startAt } from "firebase/firestore";  
+
+const q = query(citiesRef, orderBy("population"), startAt(1000000));
+//end
+
+Similarly, use the endAt() or endBefore() methods to define an end point for your query results.
+//start
+import { query, orderBy, endAt } from "firebase/firestore";  
+
+const q = query(citiesRef, orderBy("population"), endAt(1000000));
+//end
+
+Use a document snapshot to define the query cursor
+You can also pass a document snapshot to the cursor clause as the start or end point of the query cursor. The values in the document snapshot serve as the values in the query cursor.
+
+For example, take a snapshot of a "San Francisco" document in your data set of cities and populations. Then, use that document snapshot as the start point for your population query cursor. Your query will return all the cities with a population larger than or equal to San Francisco's, as defined in the document snapshot.
+
+//start
+import { collection, doc, getDoc, query, orderBy, startAt } from "firebase/firestore";  
+const citiesRef = collection(db, "cities");
+
+const docSnap = await getDoc(doc(citiesRef, "SF"));
+
+// Get all cities with a population bigger than San Francisco
+const biggerThanSf = query(citiesRef, orderBy("population"), startAt(docSnap));
+// ...
+//end
+
+Paginate a query
+Paginate queries by combining query cursors with the limit() method. For example, use the last document in a batch as the start of a cursor for the next batch.
+
+//start
+import { collection, query, orderBy, startAfter, limit, getDocs } from "firebase/firestore";  
+
+// Query the first page of docs
+const first = query(collection(db, "cities"), orderBy("population"), limit(25));
+const documentSnapshots = await getDocs(first);
+
+// Get the last visible document
+const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length-1];
+console.log("last", lastVisible);
+
+// Construct a new query starting at this document,
+// get the next 25 cities.
+const next = query(collection(db, "cities"),
+    orderBy("population"),
+    startAfter(lastVisible),
+    limit(25));
+//end
+
+Set cursor based on multiple fields
+When using a cursor based on a field value (not a DocumentSnapshot), you can make the cursor position more precise by adding additional fields. This is particularly useful if your data set includes multiple documents that all have the same value for your cursor field, making the cursor's position ambiguous. You can add additional field values to your cursor to further specify the start or end point and reduce ambiguity.
+
+For example, in a data set containing all the cities named "Springfield" in the United States, there would be multiple start points for a query set to start at "Springfield":
+
+Cities
+Name
+State
+Springfield
+Massachusetts
+Springfield
+Missouri
+Springfield
+Wisconsin
+To start at a specific Springfield, you could add the state as a secondary condition in your cursor clause.
+
+//start
+// Will return all Springfields
+import { collection, query, orderBy, startAt } from "firebase/firestore";  
+const q1 = query(collection(db, "cities"),
+   orderBy("name"),
+   orderBy("state"),
+   startAt("Springfield"));
+
+// Will return "Springfield, Missouri" and "Springfield, Wisconsin"
+const q2 = query(collection(db, "cities"),
+   orderBy("name"),
+   orderBy("state"),
+   startAt("Springfield", "Missouri"));
+//end
+
+
+
+great here's the set of sstuff that I need
+make them all in nice well handled function in a file that import the firebase stuff
+I only use the exported functions from that file.
+the functions should handle all errors so that I  don't need to do that in a component.
+you should choose how many functions there are and the appropriate names of the functions and their parameters.
+if there's functions that have different use or very distant use, make them seperate functions. but if you can combine them, and if make sense and makes stuff easier then do it, for example a write function to a doc that will write into the doc if there's an argument, but will instead read if there's none.
+if there are functions that are distinct but both use a common process in their body, make sure to make that common process a function and call it the those two functions, and make it only a local function to the file so that I don't use it in the components, because I don't need it.
+the functions should be well documented so that I remeber the use case and what it does and what it accepts.
+if there's anything that you need to specify, (like an intent whether to overwrite or merge) or something like that, make them in a constants file so that I just use them from there wihtout hardcosing them to make updating them easier and not make any mistakes.
+any names that I have given are just examples so use what you think is appropriate

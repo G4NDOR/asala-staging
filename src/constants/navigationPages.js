@@ -4,7 +4,8 @@ const Paths = {
     HOME: '/',
     CART: '/cart',
     PRODUCT: '/product',
-    CONFIRMATION:'/confirmation'
+    CONFIRMATION:'/confirmation',
+    SEARCH: '/search',
     // Add more paths as needed
   };
   

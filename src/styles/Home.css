@@ -69,6 +69,27 @@ ul {
   margin: 0;
 }
 
+/* Styles for the title */
+.welcome-text .title {
+  color: white; /* Text color stands out over the image */
+  font-size: 2.5rem; /* Large, responsive font size */
+  font-weight: bold;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow for better readability */
+  margin-bottom: 10px;
+  text-align: center;
+  padding: 0 20px; /* Some padding for better readability on small screens */
+}
+
+/* Styles for the paragraph */
+.welcome-text .paragraph {
+  color: white;
+  font-size: 1.2rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Subtle shadow for readability */
+  line-height: 1.6;
+  text-align: center;
+  padding: 0 20px;
+}
+
 /* Adjustments for smaller screens */
 @media (max-width: 768px) {
   .welcome-text {
@@ -84,6 +105,14 @@ ul {
   .welcome-text p {
     font-size: 1rem;
   }
+
+  .welcome-text .title {
+    font-size: 2rem; /* Slightly smaller title on tablets and phones */
+}
+
+.welcome-text .paragraph {
+    font-size: 1rem; /* Slightly smaller paragraph text */
+}
 }
 
 /* Further adjustments for very small screens (e.g., phones) */
@@ -102,5 +131,13 @@ ul {
   .welcome-text p {
     font-size: 0.9rem;
   }
+
+  .welcome-text .title {
+    font-size: 1.5rem; /* Smaller title for small screens */
+}
+
+.welcome-text .paragraph {
+    font-size: 0.9rem; /* Smaller paragraph for small screens */
+}
 }
 

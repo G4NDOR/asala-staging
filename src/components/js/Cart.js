@@ -47,6 +47,11 @@ const Cart = () => {
     window.addEventListener("resize", handleResize)
   })
 
+  useEffect(() => {
+    handleResize();
+  }, [])
+  
+
 
 
   return (
@@ -70,8 +75,8 @@ const Cart = () => {
             )
           }
           {
-            adjustedForPhone?
-            <OrderButton/>:
+            adjustedForPhone && !cartIsEmpty?
+            <OrderButton location={Paths.CART}/>:
             <GoToCartPageBtn/>
           }
         </div>

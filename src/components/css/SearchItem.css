@@ -1,0 +1,148 @@
+.search-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.search-icon {
+    font-size: 35px;
+    color:rgb(139 139 139);
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s ease, right 0.3s ease, bottom 0.3s ease;
+}
+
+.search-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    background-color: #f0f0f0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 50px;
+    transform: scale(1);
+    opacity: 1;
+    visibility: visible;
+    transition: all 0.3s ease;
+    max-width: 600px;
+    width: 100vw;
+    justify-self: center;
+    height: fit-content;
+    align-self: flex-start;
+    margin-top: 20px;
+    transition:  0.6s ease-out;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    border-radius: 25px;
+    background-color: white;
+}
+
+.search-container.open .search-icon {
+    transform: translate(-50%, -50%);
+    right: 50%;
+    bottom: 50%;
+}
+
+.search-container.open .search-bar {
+    transform: scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Shake animation keyframes */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+/* Apply the shake animation periodically to the search bar */
+.search-icon .shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+.bar-invisible{
+    
+    left: -1000px;
+    opacity: 0;
+    visibility: hidden;
+}
+
+
+
+
+/* For mobile view */
+@media (max-width: 768px) {
+    .search-container {
+        bottom: 1px;
+        right: 1px;
+        top: auto;
+        left: auto;
+    }
+
+    .search-container.open .search-icon {
+
+        transform: rotate(0deg);
+    }
+
+    .search-bar {
+        position: fixed;
+        max-width: 85%;
+        margin: 0;
+        margin-bottom: 20px;
+        padding : 0;
+        height: fit-content;
+        justify-self:flex-start;
+        margin-left: 10px;
+        align-self: flex-end;
+    }
+
+    .search-icon {
+        margin-bottom: 6px;
+        font-size: 28px;
+    }
+}
+
+/* For desktop view */
+@media (min-width: 769px) {
+    .search-container {
+        top: 20px;
+        right: auto;
+        bottom: auto;
+        left: 20px;
+    }
+
+    .search-container.open .search-icon {
+        top: 20px;
+        left: 20px;
+        transform: rotate(0deg);
+    }
+
+    .search-bar {
+
+        transform: translate(-50%, -50%);
+    }
+}
+
+@media (min-width: 480px) {
+    .search-bar{
+        font-size: 27px;
+    }
+}

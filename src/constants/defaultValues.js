@@ -9,9 +9,9 @@ const DEFAULT_VALUES = {
         description: "",
         
         fullDescription: "",
-        image:
+        'image-src':
           "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-        images: [
+        'images-src': [
         "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
         ],
         fullImages: [
@@ -24,6 +24,7 @@ const DEFAULT_VALUES = {
         availableTime: "",//"Mo,Tu,We,Th,Fr 8-5",
         quantity: 0,
         discount: 0,
+        'is-default-value': true
       },
     PRODUCTS: [
         {
@@ -108,7 +109,83 @@ const DEFAULT_VALUES = {
           discount: 50,
         },
       ],
-    COMMIT_NUMBER: 2,
+    COMMIT_NUMBER: 3,
+    IMAGES:[
+      "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+    ],
+    INTERVAL: null,
+    TITLE: "Welcome to Asala",
+    CONTENT: "Discover our amazing products and services!",
+    IP_ADDRESS: "",
+    CUSTOMER_DETAILS:{
+      id: "",
+      'ip_address': "",
+      name: "",
+      email: "",
+      phone: "",
+      'address-list': [
+        {
+          geopoint:{
+            lat: 37.7749,
+            lng: -122.4194,
+          },
+          string: "1600 Amphitheatre Parkway, Mountain View, CA 94"
+        }
+      ],
+      notes: "",
+      'is-default-value': true,
+    },
+    CUSTOMER_ID: "",
+    PRODUCER_DETAILS:{
+      active: true,
+      commission: 15,
+      id: 0,
+      'image-src': "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+      name: "Asala",
+      products: [
+        '1',
+        '2',
+        '3',
+      ],
+    },
+    API_KEY: "AIzaSyCRJxYr_MhIKXIg-uIOsaMv64T2RzN4DEI",
+    SLIDER_SETTINGS: {
+      dots: true,
+      infinite: true,
+      speed: 500,
+      slidesToShow: 3,
+      slidesToScroll: 1,
+      autoplay: true,
+      arrows: true,
+      autoplaySpeed: 3000,
+      centerMode: true, // Center the current slide
+      //centerPadding: '20px', // Padding around the centered slide
+      responsive: [
+        {
+          breakpoint: 1080,
+          settings: {
+            slidesToShow: 2,
+            slidesToScroll: 1,
+            //fade: true,
+            //speed: 1000,
+            //cssEase: 'linear'
+          }
+        },
+        {
+          breakpoint: 800,
+          settings: {
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            fade: true,
+            speed: 1000,
+            cssEase: 'linear',
+            arrows: true,
+          }
+        }
+      ]
+    },
+    SELECTED_ADDRESS_ID:-1,
+    ADDRESS:""
   };
   
   export default DEFAULT_VALUES;

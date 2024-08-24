@@ -16,8 +16,14 @@ export default function GoToCartPageBtn() {
     }
 
   return (
-    <button disabled={cartIsEmpty} className={`go-to-cart-btn ${cartIsEmpty?'disabled':''}`} onClick={handleCartBtnClick}>
-        Finish
-    </button>
+    <>
+    {
+      cartIsEmpty?
+      <></>:
+      <button disabled={cartIsEmpty} className={`go-to-cart-btn ${cartIsEmpty?'disabled':''}`} onClick={handleCartBtnClick}>
+          Finish
+      </button>
+    }
+    </>
   )
 }

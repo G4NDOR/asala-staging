@@ -1,26 +1,28 @@
 import React, { useState } from 'react';
+import { useSelector, useDispatch } from'react-redux';
 import { FaArrowDown, FaCircleNotch } from 'react-icons/fa';
+import { addItems, resetLoadingMore, triggerLoadingMore } from '../../redux/ducks/homePageManager';
 import '../css/LoadMoreBtn.css';
+import { loadProducts } from '../../utils/firestoreUtils';
 
 const LoadMoreBtn = ({ loadMoreItems, hasMoreItems }) => {
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const loading = useSelector(state => state.homePageManager.loadingMore);
   
 
   const handleClick = async () => {
     if (loading || !hasMoreItems) return;
-    setLoading(true);
-    await loadMoreItems();
-    setTimeout(() => {
-        setLoading(false);
-        
-    }, 3000);
+    dispatch(triggerLoadingMore());
+    const products = await loadProducts();
+    dispatch(addItems(products));
+    dispatch(resetLoadingMore());
   };
 
   return (
     <div className={`load-more-btn ${hasMoreItems? '': 'no-more-items'}`} onClick={handleClick}>
       {loading ? (
         <FaCircleNotch className="loading-icon" />
-      ) : hasMoreItems ? (
+      ) :  true? (//hasMoreItems
         <FaArrowDown className="arrow-icon" />
       ) : (
         <span className="no-more-items">No more items</span>

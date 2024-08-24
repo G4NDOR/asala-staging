@@ -15,6 +15,7 @@ import ProductPage from './pages/ProductPage';
 // Import paths
 import Paths from './constants/navigationPages';
 import ConfirmationPage from './pages/ConfirmationPage';
+import SearchPage from './components/js/SearchPage';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -25,6 +26,7 @@ root.render(
         <Route path={Paths.CART} element={<CartPage/>} />
         <Route path={Paths.PRODUCT} element={<ProductPage/>} />
         <Route path={Paths.CONFIRMATION} element={<ConfirmationPage/>} />
+        <Route path={Paths.SEARCH} element={<SearchPage/>} /> 
         {/* You can add more routes here */}
         {/* <Route path="/another-page" element={AnotherPage} /> */}
       </Routes >

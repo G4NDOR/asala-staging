@@ -6,9 +6,11 @@ import QuantityControl from "./QuantityControl";
 
 const CartItem = ({ item, listIdentifier }) => {
   //const { image, name, price } = item;
-  const { id, quantity, discount, image, name, price } = item;
+  const { id, quantity, name, price } = item;
+  const image = item['image-src'];
+  const discountPercentage = item.discount.percentage;
   const totalBeforeDiscounts = price * quantity;
-  const FinalTotal = (100-discount)*totalBeforeDiscounts/100;
+  const FinalTotal = (100-discountPercentage)*totalBeforeDiscounts/100;
 
   return (
     <div className="cart-item-wrapper">
@@ -26,12 +28,12 @@ const CartItem = ({ item, listIdentifier }) => {
           </p>
         </div>
         <div className="cart-item-total">
-          {discount ? (
+          {discountPercentage ? (
             <>
               <p className="cart-item-total-before-discounts">
                 <span className="before-discounts-text" >${totalBeforeDiscounts.toFixed(2)}</span>
                 <span className="cart-item-discount">
-                  ({discount}% off)
+                  ({discountPercentage}% off)
                 </span>
               </p>
               <p className="cart-item-discount-total">${

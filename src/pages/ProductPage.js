@@ -14,36 +14,57 @@ import { addOneItemCheckout, clearOneItemCheckout } from "../redux/ducks/orderMa
 import OrderButton from "../components/js/OrderButton";
 import { resetLoading, triggerLoading } from "../redux/ducks/appVars";
 import LoadingAnimation from "../components/js/LoadingAnimation";
+import { setAddress, setProducerImg } from "../redux/ducks/productPageManager";
+import { loadProductPageData } from "../utils/firestoreUtils";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick-theme.css";
+import AddressSlide from "../components/js/AddressSlide";
 
 const ProductPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   let product = DEFAULT_VALUES.PRODUCT;
   product = useSelector(state => state.productPageManager.product);
   const isDescriptionExpanded = useSelector(state => state.productPageManager.isDescriptionExpanded);
-  const navigate = useNavigate();
-  const [address, setAddress] = useState("");
-  const [notes, setNotes] = useState("");
+  const producerImg = useSelector(state => state.productPageManager.producerImg);
+  const customerId = useSelector(state => state.appVars.customerId);
+  const customer = useSelector(state => state.appVars.customerDetails);
+  const addresses = customer['is-default-value']?[]:customer['address-list'];
   const [showNotes, setShowNotes] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const recommendations = [];//[...DEFAULT_VALUES.PRODUCTS];
   const upsell = recommendations.length > 0;
+  
 
   useEffect(() => {
-    dispatch(addOneItemCheckout(product));
+    console.log(product);
+    //behind scenes work
+    load();
+
+    //done with behind scenes work
     dispatch(resetLoading());
     return () => {
       dispatch(triggerLoading());
       dispatch(clearOneItemCheckout());
     }
   }, [])
+
+  const load = async () => {
+    dispatch(addOneItemCheckout(product));
+    const data = await loadProductPageData(product.id ,product.producer.id);
+    dispatch(setProducerImg(data.producer['image-src']));
+    //dispatch(setReviews(data.reviews));
+  }
   
 
 
   useEffect(() => {
-    if (!product) {
+    if (!product || product['is-default-value']) {
       navigate(Paths.HOME);
     }
   }, [product, navigate]);
+  
 
 
   const handleAddressChange = (e) => {
@@ -56,7 +77,7 @@ const ProductPage = () => {
   };
 
   // If product is not available, return null or a loading state
-  if (!product) {
+  if (!product || product == null) {
     return null; // Or you can return a loading spinner or placeholder
   }
 
@@ -65,26 +86,33 @@ const ProductPage = () => {
       <LoadingAnimation/>
       <GoHomeBtn/>
       <AddressSelector/>
+      <section className="my-slider-section">
+        <Slider {...DEFAULT_VALUES.SLIDER_SETTINGS}>
+          {
+            addresses.map((v,i) => <AddressSlide key={i} address={v.string} id={i} />)
+          }
+        </Slider>
+      </section>
       <div className="image-slider-wrapper">
-        <ImageSlider images={product.images} />
+        <ImageSlider images={product['images-src']} />
       </div>
 
       <div className="product-details">
         <h1 className="product-name">{product.name}</h1>
         <div className="producer-info">
           <img
-            src={product.producerImage}
-            alt={product.producer}
+            src={producerImg}
+            alt={product.producer.name}
             className="producer-image"
           />
-          <p className="producer-name">by {product.producer}</p>
+          <p className="producer-name">by {product.producer.name}</p>
         </div>
 
         <div className="product-description">
           <p
             className={`description-text ${showFullDescription ? "expanded" : "collapsed"}`}
           >
-            {product.fullDescription}
+            {product['full-description']}
           </p>
           <div
             className="toggle-description"
@@ -102,7 +130,7 @@ const ProductPage = () => {
       <div className="order-summary" >
         <h2 style={{marginLeft:'15px'}}>Order Summary</h2>
         <CheckOutItemsList listIdentifier={ONE_ITEM_CHECKOUT}/>
-        <OrderButton />
+        <OrderButton location={Paths.PRODUCT} />
         {
           //<Payment/> when payment is integrated into the website
         }

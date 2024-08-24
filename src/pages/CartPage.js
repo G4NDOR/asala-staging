@@ -8,13 +8,14 @@ import GoHomeBtn from "../components/js/GoHomeBtn";
 import OrderButton from "../components/js/OrderButton";
 import { resetLoading, triggerLoading } from "../redux/ducks/appVars";
 import LoadingAnimation from "../components/js/LoadingAnimation";
+import Paths from "../constants/navigationPages";
 
 const CartPage = () => {
   const dispatch = useDispatch();
   const cartIsEmpty = useSelector((state) => state.orderManager.cartIsEmpty);
 
   useEffect(() => {
-    dispatch(resetLoading());
+    load();
   
     return () => {
       dispatch(triggerLoading());
@@ -69,6 +70,14 @@ const CartPage = () => {
     },
   ];
 
+  const load = async () => {
+    //behind scenes work
+    // fetch cart data from the backend
+
+    //done with behind scenes work
+    dispatch(resetLoading());
+  };
+
   return (
     <div className="container" style={{}}>
       <LoadingAnimation/>
@@ -85,7 +94,11 @@ const CartPage = () => {
           )
         }
       </div>
-      <OrderButton />
+      {
+        cartIsEmpty?
+        <></>:
+        <OrderButton location={Paths.CART} />
+      }
       {
         //<Payment/> when payment is integrated into the website
       }

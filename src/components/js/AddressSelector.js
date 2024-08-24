@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 import { useDispatch, useSelector } from 'react-redux';
+import DEFAULT_VALUES from '../../constants/defaultValues';
 import { setAddress, setNotes } from '../../redux/ducks/productPageManager';
 import '../css/AddressSelector.css';
 
@@ -8,11 +9,18 @@ const AddressSelector = () => {
   const dispatch = useDispatch();
   const address = useSelector(state => state.productPageManager.address);
   const notes = useSelector(state => state.productPageManager.notes);
-  const apiKey = process.env.GOOGLE_API_KEY;
+  const apiKey = DEFAULT_VALUES.API_KEY;//process.env.GOOGLE_API_KEY
 
+  useEffect(() => {
+    console.log(address);
+  
+    return () => {
+      
+    }
+  }, [address]);
+  
   const onAddresschnaged = (address) => {
-    console.log("set address: ", address);
-    dispatch(setAddress(address));
+    dispatch(setAddress(address.label));
   }
 
   const noNotesChanged = (notes)=> {
@@ -22,7 +30,7 @@ const AddressSelector = () => {
   return (
     <div className="address-selector">
       <GooglePlacesAutocomplete
-        apiKey={"AIzaSyCRJxYr_MhIKXIg-uIOsaMv64T2RzN4DEI"}
+        apiKey={apiKey}
         selectProps={{
           value: address,
           onChange: onAddresschnaged,

@@ -38,6 +38,13 @@
     align-items: center;
   }
 
+  .products-container-mini-card{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    flex-direction: row;
+  }
+
 }
 
 

@@ -1,0 +1,22 @@
+// firebaseConfig.js
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+    apiKey: "AIzaSyAP6WoqhE-csY6vZj8TiOWqgK8a-oYYK2E",
+    authDomain: "asala-staging.firebaseapp.com",
+    projectId: "asala-staging",
+    storageBucket: "asala-staging.appspot.com",
+    messagingSenderId: "285051155124",
+    appId: "1:285051155124:web:3a8b3660a883476737dde1",
+    measurementId: "G-HKXTR051NG"
+  };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Get a Firestore instance
+const db = getFirestore(app);
+
+export { db };
