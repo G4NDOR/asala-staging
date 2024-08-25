@@ -24,7 +24,7 @@ const OrderButton = ({location, test}) => {
     load();
   
     return () => {
-      dispatch(triggerLoading());
+      if(Confirmed) dispatch(triggerLoading());
       dispatch(resetIntentToPay());
     }
   }, [])

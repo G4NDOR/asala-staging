@@ -20,6 +20,8 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import AddressSlide from "../components/js/AddressSlide";
+import { getOperatingTime, isOperatingTime } from "../utils/appUtils";
+import { FIREBASE_DOCUMENTS_FEILDS_NAMES } from "../constants/firebase";
 
 const ProductPage = () => {
   const dispatch = useDispatch();
@@ -34,7 +36,14 @@ const ProductPage = () => {
   const [showNotes, setShowNotes] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const recommendations = [];//[...DEFAULT_VALUES.PRODUCTS];
-  const upsell = recommendations.length > 0;
+  // Get available time for the product
+  const days = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS}`];
+  const hours = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.HOURS}`];
+  const operatingTime = getOperatingTime(days, hours);//['Mo,Tu,We', '8-12'] => 'Mo,Tu,We 8-12'  
+  // are we in operating time for this product
+  const daysSpecificHoursNotSet = !product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS_SPECIFIC_HOURS_SET}`];
+  const weAreInOperatingTime = isOperatingTime(days, hours, daysSpecificHoursNotSet);  
+  const upsell = (recommendations.length > 0) && weAreInOperatingTime;
   
 
   useEffect(() => {
@@ -127,14 +136,18 @@ const ProductPage = () => {
         <UpSell recommendations={recommendations}/>:
         null
       }
-      <div className="order-summary" >
-        <h2 style={{marginLeft:'15px'}}>Order Summary</h2>
-        <CheckOutItemsList listIdentifier={ONE_ITEM_CHECKOUT}/>
-        <OrderButton location={Paths.PRODUCT} />
-        {
-          //<Payment/> when payment is integrated into the website
-        }
-      </div>
+      {
+        weAreInOperatingTime?
+        <div className="order-summary" >
+          <h2 style={{marginLeft:'15px'}}>Order Summary</h2>
+          <CheckOutItemsList listIdentifier={ONE_ITEM_CHECKOUT}/>
+          <OrderButton location={Paths.PRODUCT} />
+          {
+            //<Payment/> when payment is integrated into the website
+          }
+        </div>:
+        null        
+      }
     </div>
   );
 };

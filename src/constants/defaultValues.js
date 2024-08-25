@@ -1,6 +1,7 @@
 // src/constants/defaultValues.js
 
 const DEFAULT_VALUES = {
+    COMMIT_NUMBER: 4,
     PRODUCT:   {
         id: 1,
         name: "Product",
@@ -24,7 +25,13 @@ const DEFAULT_VALUES = {
         availableTime: "",//"Mo,Tu,We,Th,Fr 8-5",
         quantity: 0,
         discount: 0,
-        'is-default-value': true
+        'is-default-value': true,
+        'stock': 1,
+        'prep-time-in-minutes': 20,
+        'in-stock': true,
+        'keywords':[
+          "Product",
+        ]
       },
     PRODUCTS: [
         {
@@ -109,7 +116,6 @@ const DEFAULT_VALUES = {
           discount: 50,
         },
       ],
-    COMMIT_NUMBER: 3,
     IMAGES:[
       "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
     ],

@@ -12,7 +12,7 @@
 
 .wish-button {
     background-color: #3fc8da;
-    color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
     margin: 0 auto; /* Center the button horizontally */
     display: block; /* Ensure the button is treated as a block element for centering */
     text-align: center;
@@ -24,6 +24,7 @@
 
 .already-wished{
     background-color: #005964;
+    color: rgb(151 151 151);
 }
 
 .already-wished:hover {

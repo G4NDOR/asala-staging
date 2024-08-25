@@ -8,12 +8,14 @@ import { loadProducts } from '../../utils/firestoreUtils';
 const LoadMoreBtn = ({ loadMoreItems, hasMoreItems }) => {
   const dispatch = useDispatch();
   const loading = useSelector(state => state.homePageManager.loadingMore);
+  const lastDoc = useSelector(state => state.homePageManager.lastDoc);
   
 
   const handleClick = async () => {
     if (loading || !hasMoreItems) return;
     dispatch(triggerLoadingMore());
-    const products = await loadProducts();
+    const data = await loadProducts(lastDoc);
+    const products = data.products;
     dispatch(addItems(products));
     dispatch(resetLoadingMore());
   };

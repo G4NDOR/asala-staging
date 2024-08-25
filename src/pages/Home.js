@@ -8,7 +8,7 @@ import ProductsContainer from "../components/js/ProductsContainer";
 import DiscoverSection from "../components/js/DiscoverSection";
 import { useDispatch, useSelector } from 'react-redux';
 import { setCart } from "../redux/ducks/orderManager";
-import { setAnnouncements, setItems, setWelcomeSectionContent, setWelcomeSectionImages, setWelcomeSectionTitle } from "../redux/ducks/homePageManager";
+import { setAnnouncements, setFirstTimePageVisit, setItems, setLastDoc, setWelcomeSectionContent, setWelcomeSectionImages, setWelcomeSectionTitle } from "../redux/ducks/homePageManager";
 import LoadMoreBtn from "../components/js/LoadMoreBtn";
 import DEFAULT_VALUES from "../constants/defaultValues";
 import LoadingAnimation from "../components/js/LoadingAnimation";
@@ -30,6 +30,7 @@ const Home = () => {
   const content = useSelector(state => state.homePageManager.welcomeSectionContent);
   const loadingMore = useSelector(state => state.homePageManager.loadingMore);
   const searching = useSelector(state => state.homePageManager.searching);
+  const firstVisit = useSelector(state => state.homePageManager.firstTimePageVisit);
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const products = DEFAULT_VALUES.PRODUCTS;
 
@@ -39,7 +40,10 @@ const Home = () => {
   const ipAddress = getIpAddress();
 
   useEffect(() => {
-    load();
+    //behind scenes work
+    if(firstVisit) load();
+    else     //done with behind scenes work
+      dispatch(resetLoading());      
   
     return () => {
       dispatch(triggerLoading());
@@ -52,16 +56,17 @@ const Home = () => {
     const data = await loadHomeData();
     dispatch(setWelcomeSectionImages(data.welcomeImagesSrcs));
     dispatch(setItems(data.products));
+    dispatch(setLastDoc(data.productsLastDoc));
     dispatch(setAnnouncements(data.announcements));
     dispatch(setWelcomeSectionContent(data.welcomeSectionContent));
     dispatch(setWelcomeSectionTitle(data.welcomeSectionTitle));
     dispatch(setCustomerId(data.customerId));
-    dispatch(setCustomerDetails(data.customer))
+    dispatch(setCustomerDetails(data.customer));
     dispatch(setAddress(data.customer['address-list'][0].string));
+    dispatch(setFirstTimePageVisit(false));
 
-    
     //done with behind scenes work
-    dispatch(resetLoading());    
+    dispatch(resetLoading());      
   }
 
 
@@ -128,7 +133,9 @@ const Home = () => {
           loadMoreItems={loadMore}
           hasMoreItems={hasMoreItems}
         />
-        <Receipt/>
+        {
+          //<Receipt/>
+        }
         
       </div>
     </div>

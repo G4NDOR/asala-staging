@@ -1,5 +1,15 @@
 ONLY give me what I need to add not the whole file.
 
+****************************************************************
+//document function promt
+make me a detailed documentation with comments to this function:
+
+function()
+
+make sure you provide sample date for input and output, 
+ONLY give me what I need to add not the whole file.
+****************************************************************
+
 great now make it read collections if there's no doc arguments, make it create or overwrite a single document (setDoc ()) if specified intent in arguments. If the document does not exist, it will be created. If the document does exist, its contents will be overwritten with the newly provided data, unless you specify that the data should be merged into the existing document, (setDoc(cityRef, { capital: true }, { merge: true });), if there's any date needs to be written use (Timestamp from "firebase/firestore", dateExample: Timestamp.fromDate(new Date("December 10, 1815")), ),    Using Map or Dictionary objects to represent your documents is often inconvenient, so Cloud Firestore supports writing documents with custom classes. Cloud Firestore converts the objects to supported data types.
 
 Using custom classes, you can rewrite the initial example in the following way:  

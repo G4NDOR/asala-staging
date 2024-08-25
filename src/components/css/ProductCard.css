@@ -50,6 +50,10 @@
   font-size: 1.4rem;
   margin-bottom: 8px;
   }
+
+  .product-card-prep-time{
+    font-size: 1rem;
+  }
   
 .product-description {
   font-size: 1rem;
@@ -156,6 +160,10 @@
   
     .product-price {
     font-size: 1.2rem;
+    }
+
+    .product-card-prep-time{
+      font-size: 0.8rem;
     }
   
     .product-description {

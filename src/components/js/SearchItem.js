@@ -3,8 +3,9 @@ import { FaSearch, FaTimes } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Paths from '../../constants/navigationPages';
-import { triggerLoading } from '../../redux/ducks/appVars';
-import { resetSearching, setSearchBarIsOpen, setSearchItems, setSearchTerm, triggerSearching } from '../../redux/ducks/homePageManager';
+import { resetLoading, triggerLoading } from '../../redux/ducks/appVars';
+import { addSearchItems, resetSearching, setLastSearchedDoc, setSearchBarIsOpen, setSearchItems, setSearchTerm, triggerSearching } from '../../redux/ducks/homePageManager';
+import { loadSearchResultsProducts } from '../../utils/firestoreUtils';
 import '../css/SearchItem.css';
 
 const SearchItem = () => {
@@ -13,6 +14,7 @@ const SearchItem = () => {
     const searchTerm = useSelector(state => state.homePageManager.searchTerm);
     const items = useSelector(state => state.homePageManager.items);
     const isOpen = useSelector(state => state.homePageManager.searchBarIsOpen);
+    const lastSearchedDoc = useSelector(state => state.homePageManager.lastSearchedDoc);
     const [shake, setShake] = useState(true);
 
     const toggleSearch = () => {
@@ -44,16 +46,26 @@ const SearchItem = () => {
         dispatch(setSearchTerm(searchValue));
     };
 
-    const submitSearch = () => {
+    const submitSearch = async () => {
         dispatch(triggerLoading());
-        const validatedSearchTerm = searchTerm.trim();
+        const validatedSearchTerm = searchTerm.trim().toLowerCase();
         console.log('Searching for:', validatedSearchTerm);
-        if ( validatedSearchTerm == '') return;
-        console.log('Searching for:', validatedSearchTerm);
+        if ( validatedSearchTerm == '') {
+            dispatch(resetLoading());
+            return;
+        }
+        console.log('validatedSearchTerm not empty:', validatedSearchTerm);
         dispatch(triggerSearching());
-        const searchedList = items.filter(item => item.name.toLowerCase().includes(validatedSearchTerm.toLowerCase()));
+        const searchedList = items.filter(item => item.name.toLowerCase().includes(validatedSearchTerm));
         console.log('Search results:', searchedList);
         dispatch(setSearchItems(searchedList));
+        const fetchedData = await loadSearchResultsProducts(validatedSearchTerm, lastSearchedDoc);// returns {products: [], lastDoc: doc};
+        const fetchedItems = fetchedData.products;
+        const lastFetchedSearchedItem = fetchedItems.lastDoc;
+        console.log('fetched items:', fetchedItems);
+        dispatch(addSearchItems(fetchedItems));
+        dispatch(setLastSearchedDoc(lastFetchedSearchedItem));
+        dispatch(resetLoading());
 
         navigate(Paths.SEARCH)
     }

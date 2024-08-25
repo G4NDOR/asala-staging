@@ -21,6 +21,10 @@ const RESET_SEARCHING = 'homePageManager/resetSearching';
 const SET_SEARCH_ITEMS = 'homePageManager/setSearchItems';
 const SET_SEARCH_BAR_IS_OPEN = 'homePageManager/setSearchBarIsOpen';
 const SET_PRODUCT_SELECTED_ID = 'homePageManager/setProductSelectedId';
+const SET_FIRST_TIME_PAGE_VISIT = 'homePageManager/setFirstTimePage';
+const SET_LAST_DOC = 'homePageManager/setLastDoc';
+const ADD_SEARCH_IMTEMS = 'homePageManager/addSearchItems';
+const SET_LAST_SEARCHED_DOC = 'homePageManager/setLastSearchedDoc';
 
 
 
@@ -37,7 +41,9 @@ const initialState = {
     searching: false,
     searchBarIsOpen: false,
     productSelectedId: DEFAULT_VALUES.PRODUCT.id,
-    
+    firstTimePageVisit: true,
+    lastDoc: null,
+    lastSearchedDoc: null,
 };
 
 export default function homePageManager(state = initialState, action) {
@@ -144,6 +150,26 @@ export default function homePageManager(state = initialState, action) {
                ...state, 
                 productSelectedId: action.productId 
             };
+        case SET_FIRST_TIME_PAGE_VISIT:
+            return { 
+               ...state, 
+                firstTimePageVisit: action.isFirstTime
+            };
+        case SET_LAST_DOC:
+            return { 
+               ...state, 
+                lastDoc: action.lastDoc
+            };
+        case ADD_SEARCH_IMTEMS:
+            return { 
+               ...state, 
+                searchItems: [...state.searchItems,...action.searchItems] 
+            };
+        case SET_LAST_SEARCHED_DOC:
+            return { 
+               ...state, 
+                lastSearchedDoc: action.lastDoc
+            };
         // Add other action types as needed for the home page manager module
         default:
             return state;
@@ -234,4 +260,24 @@ export const setSearchBarIsOpen = (isOpen) => ({
 export const setProductSelectedId = (productId) => ({
     type: SET_PRODUCT_SELECTED_ID,
     productId
+});
+
+export const setFirstTimePageVisit = (isFirstTime) => ({
+    type: SET_FIRST_TIME_PAGE_VISIT,
+    isFirstTime
+});
+
+export const setLastDoc = (lastDoc) => ({
+    type: SET_LAST_DOC,
+    lastDoc
+});
+
+export const addSearchItems = (searchItems) => ({
+    type: ADD_SEARCH_IMTEMS,
+    searchItems
+});
+
+export const setLastSearchedDoc = (lastDoc) => ({
+    type: SET_LAST_SEARCHED_DOC,
+    lastDoc
 });

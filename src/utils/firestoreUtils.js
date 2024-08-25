@@ -18,9 +18,10 @@ import {
   arrayRemove,
   increment,
   serverTimestamp,
-  deleteField
+  deleteField,
+  startAfter
 } from 'firebase/firestore';
-import { TIMESTAMP } from '../constants/firebase';
+import { FIREBASE_CLLECTIONS_NAMES, FIREBASE_COLLECTIONS_QUERY_LIMIT, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DYNAMIC_OUTPUT_NAMES, TIMESTAMP } from '../constants/firebase';
 import { getIpAddress } from './retreiveIP_Address';
 import DEFAULT_VALUES from '../constants/defaultValues';
 
@@ -234,7 +235,41 @@ export const updateWithTimestamp = async (docPath, field) => {
 };
 
 // Add or remove elements from an array field
-export const updateArrayField = async (docPath, field, elements, operation) => {
+/**
+ * Updates an array field in a Firestore document by either adding or removing elements.
+ * 
+ * @async
+ * @function updateArrayField
+ * @param {string} docPath - The path to the Firestore document (e.g., 'users/userId').
+ * @param {string} field - The name of the array field to update in the document.
+ * @param {Array} elements - The elements to add or remove from the array field.
+ * @param {string} operation - The operation to perform: 'add' to add elements, 'remove' to remove elements.
+ * @returns {Promise<void>} - A promise that resolves when the update operation is complete.
+ * 
+ * @throws Will throw an error if the Firestore operation fails.
+ * 
+ * @example
+ * // Example 1: Adding elements to an array field
+ * const docPath = 'users/user123';
+ * const field = 'favorites';
+ * const elementsToAdd = ['item1', 'item2'];
+ * await updateArrayField(docPath, field, elementsToAdd, 'add');
+ * 
+ * // Document before: { favorites: ['item3'] }
+ * // Document after:  { favorites: ['item3', 'item1', 'item2'] }
+ * 
+ * @example
+ * // Example 2: Removing elements from an array field
+ * const docPath = 'users/user123';
+ * const field = 'favorites';
+ * const elementsToRemove = ['item3'];
+ * await updateArrayField(docPath, field, elementsToRemove, 'remove');
+ * 
+ * // Document before: { favorites: ['item1', 'item2', 'item3'] }
+ * // Document after:  { favorites: ['item1', 'item2'] }
+ */
+
+const updateArrayField = async (docPath, field, elements, operation) => {
   try {
     const docRef = doc(db, docPath);
     const update = operation === 'add' ? arrayUnion(...elements) : arrayRemove(...elements);
@@ -242,6 +277,14 @@ export const updateArrayField = async (docPath, field, elements, operation) => {
   } catch (error) {
     handleError(error);
   }
+};
+
+export const addElementsToArrayField = async (docPath, field, elements) => {
+  await updateArrayField(docPath, field, elements, 'add');
+};
+
+export const removeElementsFromArrayField = async (docPath, field, elements) => {
+  await updateArrayField(docPath, field, elements,'remove');
 };
 
 // Increment a numeric field value
@@ -264,25 +307,204 @@ export const deleteFieldFromDocument = async (docPath, field) => {
   }
 };
 
-// Query and order documents
+// Query and order documents from a Firestore collection
+// @param {string} collectionName - The name of the Firestore collection to query.
+// @param {string} whereField - The field to filter documents by.
+// @param {*} whereValue - The value to compare with the whereField.
+// @param {string} orderByField - The field to order the documents by.
+// @param {number} limitNum - The maximum number of documents to retrieve.
+// @returns {Promise<Array<Object>>} - A promise that resolves to an array of document data including document IDs.
+// @example
+// // Sample Input:
+// const collectionName = 'products';
+// const whereField = 'category';
+// const whereValue = 'coffee';
+// const orderByField = 'price';
+// const limitNum = 3;
+//
+// // Sample Output:
+// // [
+// //   { id: 'doc1', name: 'Moroccan Coffee', category: 'coffee', price: 5 },
+// //   { id: 'doc2', name: 'Espresso', category: 'coffee', price: 7 },
+// //   { id: 'doc3', name: 'Cappuccino', category: 'coffee', price: 6 },
+// // ]
 export const queryAndOrder = async (collectionName, whereField, whereValue, orderByField, limitNum) => {
   try {
+    // Create a query against the specified collection, filtering and ordering as required
     const q = query(
+      collection(db, collectionName), // Reference to the Firestore collection
+      where(whereField, '==', whereValue), // Filter documents where the field equals the specified value
+      orderBy(orderByField), // Order the results by the specified field
+      limit(limitNum) // Limit the number of results to the specified number
+    );
+
+    // Execute the query and get a snapshot of the results
+    const querySnapshot = await getDocs(q);
+
+    // Initialize an array to store the data from the documents
+    const data = [];
+
+    // Loop through each document in the snapshot and push its data to the array
+    querySnapshot.forEach((doc) => {
+      data.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Return the array of document data
+    return data;
+  } catch (error) {
+    // Handle any errors that occur during the query
+    handleError(error);
+  }
+};
+
+
+// Query and order documents with pagination
+// @param {string} collectionName - The name of the Firestore collection to query.
+// @param {string} whereField - The field to filter documents by.
+// @param {*} whereValue - The value to compare with the whereField.
+// @param {string} orderByField - The field to order the documents by.
+// @param {number} limitNum - The maximum number of documents to retrieve.
+// @param {DocumentSnapshot} lastDoc - The last document from the previous query (for pagination).
+// @returns {Promise<Object>} - A promise that resolves to an object containing the array of document data and the last document.
+// @example
+// // Sample Input:
+// const collectionName = 'products';
+// const whereField = 'category';
+// const whereValue = 'coffee';
+// const orderByField = 'price';
+// const limitNum = 3;
+// const lastDoc = null; // or the last document from a previous query
+//
+// // Sample Output:
+// // {
+// //   data: [
+// //     { id: 'doc1', name: 'Moroccan Coffee', category: 'coffee', price: 5 },
+// //     { id: 'doc2', name: 'Espresso', category: 'coffee', price: 7 },
+// //     { id: 'doc3', name: 'Cappuccino', category: 'coffee', price: 6 },
+// //   ],
+// //   lastDoc: <DocumentSnapshot> // The last document in the query results
+// // }
+export const queryAndOrderWithPagination = async (collectionName, whereField, whereValue, orderByField, limitNum, choose=false, ordered = false, limited=true, lastDoc = null) => {
+  try {
+    // Create a query against the specified collection, filtering, ordering, and paginating as required
+    let q = null;
+    if(choose && ordered && limited) {        
+      q = query(
       collection(db, collectionName),
       where(whereField, '==', whereValue),
       orderBy(orderByField),
       limit(limitNum)
-    );
+      );
+    } else if (choose && ordered && !limited) {
+      q = query(
+      collection(db, collectionName),
+      where(whereField, '==', whereValue),
+      orderBy(orderByField)
+      );
+    } else if (choose &&!ordered && limited) {
+      q = query(
+      collection(db, collectionName),
+      where(whereField, '==', whereValue),
+      limit(limitNum)
+      );
+    } else if (choose &&!ordered &&!limited) {
+      q = query(
+      collection(db, collectionName),
+      where(whereField, '==', whereValue)
+      );
+    } else if (!choose && ordered && limited) { 
+      q = query(
+      collection(db, collectionName),
+      orderBy(orderByField),
+      limit(limitNum)
+      );
+    } else if (!choose && ordered &&!limited) {
+      q = query(
+      collection(db, collectionName),
+      orderBy(orderByField)
+      );
+    } else if (!choose &&!ordered && limited) {
+      q = query(
+      collection(db, collectionName),
+      limit(limitNum)
+      );
+    } else {
+      q = query(
+      collection(db, collectionName)
+      );
+    }
+
+
+    // If a last document is provided, paginate by starting after it
+    if (limited && lastDoc) {
+      q = query(q, startAfter(lastDoc));
+    }
+
+    // Execute the query and get a snapshot of the results
     const querySnapshot = await getDocs(q);
+
+    // Initialize an array to store the data from the documents
     const data = [];
+
+    // Track the last document in the results
+    let lastVisibleDoc = null;
+
+    // Loop through each document in the snapshot and push its data to the array
     querySnapshot.forEach((doc) => {
       data.push({ id: doc.id, ...doc.data() });
+      lastVisibleDoc = doc; // Update last visible document
     });
-    return data;
+
+    // Return the array of document data and the last document
+    return { data, lastDoc: lastVisibleDoc };
   } catch (error) {
+    // Handle any errors that occur during the query
     handleError(error);
   }
 };
+
+export const searchByText = async (collectionName, searchText, limitNum, limited = true, lastDoc = null) => {
+  try {
+    // Create a query against the specified collection, searching for documents containing the searchText
+    let q = null;
+    if (limited) {
+      q = query(
+        collection(db, collectionName),
+        //where("regions", "array-contains", "west_coast")
+        where(FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.KEYWORDS, "array-contains", searchText), 
+        limit(limitNum)
+      );
+    } else {
+      q = query(
+        collection(db, collectionName),
+        where(FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.KEYWORDS, "array-contains", searchText), 
+      );
+    }
+
+    // If a last document is provided, paginate by starting after it
+    if (limited && lastDoc) {
+      q = query(q, startAfter(lastDoc));
+    }    
+
+    // Execute the query and get a snapshot of the results
+    const querySnapshot = await getDocs(q);
+    // Initialize an array to store the data from the documents
+    const data = [];
+    // Track the last document in the results
+    let lastVisibleDoc = null;    
+    // Loop through each document in the snapshot and push its data to the array
+    querySnapshot.forEach((doc) => {
+      data.push({ id: doc.id,...doc.data() });
+      lastVisibleDoc = doc;
+    });
+    // Return the array of document data
+    return {data, lastDoc: lastVisibleDoc};
+  } catch (error) {
+    // Handle any errors that occur during the query
+    handleError(error);
+  }
+}
+
 
 /*
 /   =================================================================
@@ -292,13 +514,14 @@ export const queryAndOrder = async (collectionName, whereField, whereValue, orde
 
 
 export const loadHomeData = async () => {
-  const homePageDynamicOutput = await getDocument("dynamic-output/VpFaBNbAGB6jn99KAo6F");
+  //const homePageDynamicOutput = await getDocument("dynamic-output/VpFaBNbAGB6jn99KAo6F");
 
   //================================================================
   // Dynamic output is loaded and prepared here
   //++++++++++++++++++++++++++++++++++++++++++++++++
   //load welcome section images
-  const welcomeImages = homePageDynamicOutput['welcome-section-images'];//array of images
+  const welcomeImagesData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_IMAGES}`);//array of images
+  const welcomeImages = welcomeImagesData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
   //sample image object
   //image = {
   //  'title': "Welcome",
@@ -310,29 +533,35 @@ export const loadHomeData = async () => {
   });
   //++++++++++++++++++++++++++++++++++++++++++++++++
   //Load welcome section title
-  const welcomeSectionTitle = homePageDynamicOutput['welcome-section-title'];
+  const welcomeSectionTitleData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_TITLE}`);
+  const welcomeSectionTitle = welcomeSectionTitleData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
   //++++++++++++++++++++++++++++++++++++++++++++++++
   //Load welcome section content
-  const welcomeSectionContent = homePageDynamicOutput['welcome-section-content'];
+  const welcomeSectionContentData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_CONTENT}`);
+  const welcomeSectionContent = welcomeSectionContentData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
 
 
 
 
   //================================================================
   //Load announcements section content
-  const announcements = await getCollection("announcements");
+  const announcementsFetchedData = await loadAnnouncements();
+  const announcementsLastDoc = announcementsFetchedData.lastDoc;
+  const announcements = announcementsFetchedData.announcements;
   //Load products section content
-  const products = await loadProducts();
+  const productsFetchedData = await loadProducts();
+  const productsLastDoc = productsFetchedData.lastDoc;
+  const products = productsFetchedData.products;
   //Load customer id if any
   const ipAddress = await getIpAddress();
-  const customers = await queryCollection("customers", "ip-address", "==", ipAddress);
+  const customers = await queryCollection(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, "ip-address", "==", ipAddress);
   let customer = DEFAULT_VALUES.CUSTOMER_DETAILS;
   let customerId = DEFAULT_VALUES.CUSTOMER_ID;
   if (customers.length > 0){
     customer = customers[0];
     customerId = customer.id;
   } else {
-    customerId = await addDocument("customers", { 'ip-address': `${ipAddress}` });
+    customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, { 'ip-address': `${ipAddress}` });
     customer = { 'ip-address': `${ipAddress}`, 'id': customerId };
   }
   
@@ -344,23 +573,34 @@ export const loadHomeData = async () => {
     announcements,
     products,
     customerId,
-    customer
+    customer,
+    productsLastDoc,
+    announcementsLastDoc
     // Add more data as needed
   };
   return homeData;
 }
 
 //Load products section content
-export const loadProducts = async () => {
-  let products = await getCollection("products");
+export const loadProducts = async (ladtDoc=null) => {
+  let retreivedData = await queryAndOrderWithPagination(`${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}`,FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.AVAILABLE,true,'',FIREBASE_COLLECTIONS_QUERY_LIMIT.PRODUCTS,true,false,true,ladtDoc);//getCollection("products");
+  let products = retreivedData.data;
   if (!products)
     products = [];
-  return products;
+  return {products, lastDoc: retreivedData.lastDoc};
+}
+
+export const loadSearchResultsProducts = async (searchQuery, ladtDoc=null) => {
+  let retreivedData = await searchByText(FIREBASE_CLLECTIONS_NAMES.PRODUCTS, searchQuery, FIREBASE_COLLECTIONS_QUERY_LIMIT.PRODUCTS, true, ladtDoc);
+  let products = retreivedData.data;
+  if (!products)
+    products = [];
+  return {products, lastDoc: retreivedData.lastDoc};
 }
 
 export const loadProductPageData = async (productId, producerId) => {
-  let producer = await getDocument(`producers/${producerId}`);
-  const customerReviews = await queryCollection(`reviews`, "product-id", "==", productId);
+  let producer = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.PRODUCERS}/${producerId}`);
+  const customerReviews = await queryCollection(`${FIREBASE_CLLECTIONS_NAMES.REVIEWS}`, "product-id", "==", productId);
 
   if (!producer) 
     producer = DEFAULT_VALUES.PRODUCER_DETAILS;
@@ -371,6 +611,18 @@ export const loadProductPageData = async (productId, producerId) => {
     // Add more data as needed
   };
   return data;
+}
+
+export const loadAnnouncements = async (ladtDoc=null) => {
+  let retreivedData = await queryAndOrderWithPagination(`${FIREBASE_CLLECTIONS_NAMES.ANNOUNCEMENTS}`,'','','', FIREBASE_COLLECTIONS_QUERY_LIMIT.ANNOUNCEMENTS, false,false,true,ladtDoc);
+  let announcements = retreivedData.data;
+  if (!announcements)
+    announcements = [];
+  return { announcements, lastDoc: retreivedData.lastDoc};
+}
+
+export const wishItem = (customerId, productId) => {
+  return addElementsToArrayField(`${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}/${productId}`, `${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.WISHES}`, [customerId]);
 }
 
 

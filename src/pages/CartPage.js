@@ -15,8 +15,14 @@ const CartPage = () => {
   const cartIsEmpty = useSelector((state) => state.orderManager.cartIsEmpty);
 
   useEffect(() => {
+    //behind scenes work
     load();
-  
+
+
+    //done with behind scenes work
+    dispatch(resetLoading());
+
+
     return () => {
       dispatch(triggerLoading());
     }
@@ -74,8 +80,7 @@ const CartPage = () => {
     //behind scenes work
     // fetch cart data from the backend
 
-    //done with behind scenes work
-    dispatch(resetLoading());
+
   };
 
   return (
