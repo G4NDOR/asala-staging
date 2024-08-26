@@ -51,6 +51,7 @@ export const addDocument = async (collectionName, data) => {
     console.log("Document written with ID: ", docRef.id);
     return docRef.id;
   } catch (error) {
+    return '';
     handleError(error);
   }
 };
@@ -514,75 +515,84 @@ export const searchByText = async (collectionName, searchText, limitNum, limited
 
 
 export const loadHomeData = async () => {
-  //const homePageDynamicOutput = await getDocument("dynamic-output/VpFaBNbAGB6jn99KAo6F");
+  try {
+      //const homePageDynamicOutput = await getDocument("dynamic-output/VpFaBNbAGB6jn99KAo6F");
 
-  //================================================================
-  // Dynamic output is loaded and prepared here
-  //++++++++++++++++++++++++++++++++++++++++++++++++
-  //load welcome section images
-  const welcomeImagesData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_IMAGES}`);//array of images
-  const welcomeImages = welcomeImagesData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
-  //sample image object
-  //image = {
-  //  'title': "Welcome",
-  //  'image-src': "url",
-  //  'description': "Welcome",
-  //}
-  const welcomeImagesSrcs = welcomeImages.map(image => {
-    return image['image-src'];
-  });
-  
-  //++++++++++++++++++++++++++++++++++++++++++++++++
-  //Load welcome section title
-  const welcomeSectionTitleData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_TITLE}`);
-  const welcomeSectionTitle = welcomeSectionTitleData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
-  //++++++++++++++++++++++++++++++++++++++++++++++++
-  //Load welcome section content
-  const welcomeSectionContentData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_CONTENT}`);
-  const welcomeSectionContent = welcomeSectionContentData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
+    //================================================================
+    // Dynamic output is loaded and prepared here
+    //++++++++++++++++++++++++++++++++++++++++++++++++
+    //load welcome section images
+    const welcomeImagesData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_IMAGES}`);//array of images
+    const welcomeImages = welcomeImagesData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
+    //sample image object
+    //image = {
+    //  'title': "Welcome",
+    //  'image-src': "url",
+    //  'description': "Welcome",
+    //}
+    const welcomeImagesSrcs = welcomeImages.map(image => {
+      return image['image-src'];
+    });
+    
+    //++++++++++++++++++++++++++++++++++++++++++++++++
+    //Load welcome section title
+    const welcomeSectionTitleData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_TITLE}`);
+    const welcomeSectionTitle = welcomeSectionTitleData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
+    //++++++++++++++++++++++++++++++++++++++++++++++++
+    //Load welcome section content
+    const welcomeSectionContentData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_CONTENT}`);
+    const welcomeSectionContent = welcomeSectionContentData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
 
 
 
 
-  //================================================================
-  //Load announcements section content
-  const announcementsFetchedData = await loadAnnouncements();
-  const announcementsLastDoc = announcementsFetchedData.lastDoc;
-  const announcements = announcementsFetchedData.announcements;
-  //Load products section content
-  const productsFetchedData = await loadProducts();
-  const productsLastDoc = productsFetchedData.lastDoc;
-  const products = productsFetchedData.products;
-  
-  //Load customer id if any
-  const ipAddress = await getIpAddress();
-  //console.log(`IP Address: ${ipAddress}`);
-  const customersData = await queryAndOrderWithPagination(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, FIREBASE_DOCUMENTS_FEILDS_NAMES.CUSTOMERS.IP_ADDRESS, `${ipAddress}`, '', FIREBASE_COLLECTIONS_QUERY_LIMIT.CUSTOMERS, true, false, true);//getCollection("customers");
-  const customers = customersData.data;
-  let customer = DEFAULT_VALUES.CUSTOMER_DETAILS;
-  let customerId = DEFAULT_VALUES.CUSTOMER_ID;
-  if (customers && customers.length > 0){
-    customer = customers[0];
-    customerId = customer.id;
-  } else {
-    customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, { 'ip-address': `${ipAddress}` });
-    customer = { 'ip-address': `${ipAddress}`, 'id': customerId };
+    //================================================================
+    //Load announcements section content
+    const announcementsFetchedData = await loadAnnouncements();
+    const announcementsLastDoc = announcementsFetchedData.lastDoc;
+    const announcements = announcementsFetchedData.announcements;
+    //Load products section content
+    const productsFetchedData = await loadProducts();
+    const productsLastDoc = productsFetchedData.lastDoc;
+    const products = productsFetchedData.products;
+    
+    //Load customer id if any
+    const ipAddress = await getIpAddress();
+    //console.log(`IP Address: ${ipAddress}`);
+    const customersData = await queryAndOrderWithPagination(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, FIREBASE_DOCUMENTS_FEILDS_NAMES.CUSTOMERS.IP_ADDRESS, `${ipAddress}`, '', FIREBASE_COLLECTIONS_QUERY_LIMIT.CUSTOMERS, true, false, true);//getCollection("customers");
+    const customers = customersData.data;
+    let customer = DEFAULT_VALUES.CUSTOMER_DETAILS;
+    let customerId = DEFAULT_VALUES.CUSTOMER_ID;
+    if (customers && customers.length > 0){
+      customer = customers[0];
+      customerId = customer.id;
+    } else {
+      customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, { 'ip-address': `${ipAddress}` });
+      console.log(`Customer ID: ${customerId}`);
+      if (customerId != '')
+        customer = { 'ip-address': `${ipAddress}`, 'id': customerId };
+    }
+    
+
+    const homeData = {
+      welcomeImagesSrcs,
+      welcomeSectionTitle,
+      welcomeSectionContent,
+      announcements,
+      products,
+      customerId,
+      customer,
+      productsLastDoc,
+      announcementsLastDoc
+      // Add more data as needed
+    };
+    return homeData;
+} catch (error) {
+  // Handle any errors that occur during the query
+  console.error('Error loading home data:', error);
+  return null;
   }
   
-
-  const homeData = {
-    welcomeImagesSrcs,
-    welcomeSectionTitle,
-    welcomeSectionContent,
-    announcements,
-    products,
-    customerId,
-    customer,
-    productsLastDoc,
-    announcementsLastDoc
-    // Add more data as needed
-  };
-  return homeData;
 }
 
 //Load products section content

@@ -59,6 +59,10 @@ const Home = () => {
   const load = async () => {
     //behind scenes work
     const data = await loadHomeData();
+    if (!data) {
+      dispatch(resetLoading());
+      return;
+    }
     dispatch(setWelcomeSectionImages(data.welcomeImagesSrcs));
     dispatch(setItems(data.products));
     dispatch(setLastDoc(data.productsLastDoc));
