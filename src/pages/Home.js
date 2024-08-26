@@ -61,14 +61,14 @@ const Home = () => {
     const data = await loadHomeData();
     dispatch(setWelcomeSectionImages(data.welcomeImagesSrcs));
     dispatch(setItems(data.products));
-    //dispatch(setLastDoc(data.productsLastDoc));
+    dispatch(setLastDoc(data.productsLastDoc));
     dispatch(setAnnouncements(data.announcements));
     dispatch(setWelcomeSectionContent(data.welcomeSectionContent));
     dispatch(setWelcomeSectionTitle(data.welcomeSectionTitle));
-    //dispatch(setCustomerId(data.customerId));
-    //dispatch(setCustomerDetails(data.customer));
-    //dispatch(setAddress(data.customer['address-list'][0].string));
-    //dispatch(setFirstTimePageVisit(false));
+    dispatch(setCustomerId(data.customerId));
+    dispatch(setCustomerDetails(data.customer));
+    dispatch(setAddress(data.customer['address-list'][0].string));
+    dispatch(setFirstTimePageVisit(false));
 
     //done with behind scenes work
     dispatch(resetLoading());      

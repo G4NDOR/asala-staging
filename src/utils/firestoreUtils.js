@@ -575,10 +575,10 @@ export const loadHomeData = async () => {
     welcomeSectionContent,
     announcements,
     products,
-    //customerId,
-    //customer,
-    //productsLastDoc,
-    //announcementsLastDoc
+    customerId,
+    customer,
+    productsLastDoc,
+    announcementsLastDoc
     // Add more data as needed
   };
   return homeData;
