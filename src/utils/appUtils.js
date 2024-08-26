@@ -1,3 +1,4 @@
+import DEFAULT_VALUES from "../constants/defaultValues";
 import { DAY_INDEX_MAP, FIREBASE_DOCUMENTS_FEILDS_NAMES } from "../constants/firebase";
 
 /**
@@ -169,6 +170,75 @@ export const isOperatingTime = (days, hours, daysSpecificHoursNotSet) => {
   //************************************************************************************************
   //************************************************************************************************
   //************************************************************************************************  
+
+
+
+export const generateButtonDetails = ({
+  active = null,
+  visible = null,
+  //content
+  generalContent,
+  activeContent,
+  notActiveContent,
+  //className
+  generalClassName,
+  activeClassName,
+  notActiveClassName,
+  //actions
+  activeAction,
+  notActiveAction,
+  params
+}) => {
+
+  const _active = (active == null)? DEFAULT_VALUES.BUTTON_DETAILS.active: active;
+  const _visible = (visible == null)? DEFAULT_VALUES.BUTTON_DETAILS.visible: visible;
+  //content
+  const _generalContent = !generalContent? DEFAULT_VALUES.BUTTON_DETAILS.generalContent: generalContent;
+  const _activeContent = !activeContent? DEFAULT_VALUES.BUTTON_DETAILS.activeContent: activeContent;
+  const _notActiveCotent = !notActiveContent? DEFAULT_VALUES.BUTTON_DETAILS.notActiveContent: notActiveContent;
+  //className
+  const _generalClassName = !generalClassName? DEFAULT_VALUES.BUTTON_DETAILS.generalClassName: generalClassName;
+  const _activeClassName = !activeClassName? DEFAULT_VALUES.BUTTON_DETAILS.activeClassName: activeClassName;
+  const _notActiveClassName = !notActiveClassName? DEFAULT_VALUES.BUTTON_DETAILS.notActiveClassName: notActiveClassName;
+  //actions
+  const _activeAction = !activeAction? DEFAULT_VALUES.BUTTON_DETAILS.activeAction: activeAction;
+  const _notActiveAction = !notActiveAction? DEFAULT_VALUES.BUTTON_DETAILS.notActiveAction: notActiveAction;
+  const _params = !params? DEFAULT_VALUES.BUTTON_DETAILS.params: params;
+  
+
+  const buttonDetails = {
+    active: _active,
+    visible: _visible,
+    generalContent: _generalContent,
+    activeContent: _activeContent,
+    notActiveContent: _notActiveCotent,
+    generalClassName: _generalClassName,
+    activeClassName: _activeClassName,
+    notActiveClasName: _notActiveClassName,
+    activeAction: _activeAction,
+    notActiveAction: _notActiveAction,
+    params: _params
+  };
+  return buttonDetails;
+};
+
+
+
+  
+
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************  
+
 
 
   

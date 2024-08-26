@@ -32,6 +32,8 @@ const ProductPage = () => {
   const producerImg = useSelector(state => state.productPageManager.producerImg);
   const customerId = useSelector(state => state.appVars.customerId);
   const customer = useSelector(state => state.appVars.customerDetails);
+  const homePageVisited = useSelector(state => state.appVars.homePageVisited);
+  const homePageNotVisited = !homePageVisited;
   const addresses = customer['is-default-value']?[]:customer['address-list'];
   const [showNotes, setShowNotes] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
@@ -47,7 +49,7 @@ const ProductPage = () => {
   
 
   useEffect(() => {
-    console.log(product);
+    //console.log(product);
     //behind scenes work
     load();
 
@@ -69,7 +71,7 @@ const ProductPage = () => {
 
 
   useEffect(() => {
-    if (!product || product['is-default-value']) {
+    if (!product || product['is-default-value'] || homePageNotVisited) {
       navigate(Paths.HOME);
     }
   }, [product, navigate]);

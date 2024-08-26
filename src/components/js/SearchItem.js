@@ -49,21 +49,23 @@ const SearchItem = () => {
     const submitSearch = async () => {
         dispatch(triggerLoading());
         const validatedSearchTerm = searchTerm.trim().toLowerCase();
-        console.log('Searching for:', validatedSearchTerm);
+        //console.log('Searching for:', validatedSearchTerm);
         if ( validatedSearchTerm == '') {
             dispatch(resetLoading());
             return;
         }
-        console.log('validatedSearchTerm not empty:', validatedSearchTerm);
+        //console.log('validatedSearchTerm not empty:', validatedSearchTerm);
         dispatch(triggerSearching());
-        const searchedList = items.filter(item => item.name.toLowerCase().includes(validatedSearchTerm));
-        console.log('Search results:', searchedList);
-        dispatch(setSearchItems(searchedList));
+        //items that have loaded before and are stored locally
+        //const searchedList = items.filter(item => item.name.toLowerCase().includes(validatedSearchTerm));
+        //console.log('Search results:', searchedList);
+        //dispatch(setSearchItems(searchedList));
         const fetchedData = await loadSearchResultsProducts(validatedSearchTerm, lastSearchedDoc);// returns {products: [], lastDoc: doc};
         const fetchedItems = fetchedData.products;
         const lastFetchedSearchedItem = fetchedItems.lastDoc;
-        console.log('fetched items:', fetchedItems);
-        dispatch(addSearchItems(fetchedItems));
+        //console.log('fetched items:', fetchedItems);
+        //dispatch(addSearchItems(fetchedItems));
+        dispatch(setSearchItems(fetchedItems));
         dispatch(setLastSearchedDoc(lastFetchedSearchedItem));
         dispatch(resetLoading());
 

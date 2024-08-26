@@ -554,6 +554,7 @@ export const loadHomeData = async () => {
   const products = productsFetchedData.products;
   //Load customer id if any
   const ipAddress = await getIpAddress();
+  //console.log(`IP Address: ${ipAddress}`);
   const customers = await queryCollection(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, "ip-address", "==", ipAddress);
   let customer = DEFAULT_VALUES.CUSTOMER_DETAILS;
   let customerId = DEFAULT_VALUES.CUSTOMER_ID;

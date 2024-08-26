@@ -117,7 +117,7 @@ export default function homePageManager(state = initialState, action) {
                     return null; // or undefined to skip adding it to the newItems array
                 } else {
                     // If the item doesn't exist, add it to the newItems array
-                    return item;
+                    return {...item, quantity: 1};
                 }
             }).filter(item => item !== null);
         case SET_SEARCH_TERM:

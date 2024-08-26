@@ -9,14 +9,18 @@ import OrderButton from "../components/js/OrderButton";
 import { resetLoading, triggerLoading } from "../redux/ducks/appVars";
 import LoadingAnimation from "../components/js/LoadingAnimation";
 import Paths from "../constants/navigationPages";
+import { useNavigate } from "react-router-dom";
 
 const CartPage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const cartIsEmpty = useSelector((state) => state.orderManager.cartIsEmpty);
+  const homePageVisited = useSelector(state => state.appVars.homePageVisited);
+  const homePageNotVisited = !homePageVisited;
 
   useEffect(() => {
     //behind scenes work
-    load();
+    if (homePageVisited) load(); // make sure he came from home page
 
 
     //done with behind scenes work
@@ -27,6 +31,12 @@ const CartPage = () => {
       dispatch(triggerLoading());
     }
   }, [])
+
+  useEffect(() => {
+    if (homePageNotVisited) {
+      navigate(Paths.HOME);
+    }
+  }, [navigate]);
 
   const products = [
     {

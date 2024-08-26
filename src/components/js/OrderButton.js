@@ -14,11 +14,19 @@ const OrderButton = ({location, test}) => {
   const cart = useSelector(state => state.orderManager.cart);
   const productPageCart = useSelector(state => state.orderManager.oneItemCheckout);
   const cartIsEmpty = useSelector(state => state.orderManager.cartIsEmpty);
+  const cartIsNotEmpty = !cartIsEmpty;
   const navigate = useNavigate();
+  const adjustedForPhone = useSelector(state => state.appVars.screenWidthIsLessThan480);
   const payClicked = useSelector(state => state.orderManager.intentToPay);
   const Confirmed = useSelector(state => state.orderManager.intentToPayConfirmed);
-  const disabled = (location == Paths.CART)? cartIsEmpty : false;
-
+  const isCartPage = (location == Paths.CART);
+  const orderButtonIsActiveInCartPage = cartIsNotEmpty; // active when cart is not empty
+  const orderButtonIsNotActiveInCartPage =!orderButtonIsActiveInCartPage;
+  const isProductPage = (location == Paths.PRODUCT);
+  const orderButtonIsActiveInProductPage = true;// because product page always has a product, by defenition it is a page for a certain product, do there's a product to buy => there should be an order button
+  const orderButtonIsNotActiveInProductPage =!orderButtonIsActiveInProductPage;
+  const disabled = isCartPage? orderButtonIsNotActiveInCartPage : orderButtonIsNotActiveInProductPage;
+  
   useEffect(() => {
     
     load();
@@ -96,6 +104,32 @@ const OrderButton = ({location, test}) => {
     //done with behind scenes work
     dispatch(resetLoading());
   }
+
+  /*
+  // buttons needed for the order section
+  const PayOnlineButtonDetails = {
+    active: true,
+    visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock,
+    activeContent: "Pay Online",
+    generalClassName: "home-page-product-card-pay-online-button",
+    activeAction: makePaymentWithSquare,
+    params:{}
+  }
+  const PayCashButtonDetails = {
+    active: payClicked,
+    visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock,
+    activeContent: "Pay Cash",
+    generalClassName: "home-page-product-card-pay-cash-button",
+    activeAction: makePaymentWithCash,
+    params:{}
+  }
+  
+
+  const buttonsDetails = [
+    PayOnlineButtonDetails,
+    PayCashButtonDetails,
+  ]  
+  */
 
 
 

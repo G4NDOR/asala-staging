@@ -8,5 +8,6 @@ export const getIpAddress = async () => {
         return ipAddress;
     } catch (error) {
         throw new Error('Failed to get IP address');
+        return '';
     }
 }

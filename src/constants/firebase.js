@@ -38,6 +38,8 @@ export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
         PREORDER_PERIOD_IN_HOURS: 'preorder-period-in-hours',
         PREORDER_SET: 'preorder-set',
         PREP_TIME_IN_MINUTES: 'prep-time-in-minutes',
+        STATUS: 'status',
+        IN_STOCK: 'in-stock',
     },
     DYNAMIC_OUTPUT: {
         CONTENT: 'content',
@@ -71,19 +73,11 @@ export const DAY_INDEX_MAP = {
 
 export const FIREBASE_DOCUMENTS_FEILDS_UNITS = {
     PRODUCTS: {
-        PRICE: 'currency',
-        STOCK: 'number',
-        WISHES: 'number',
-        AVAILABLE: 'boolean',
-        KEYWORDS: 'array',
-        DAYS: 'array',
-        HOURS: 'array',
-        HOURS_START: 'number',
-        HOURS_END: 'number',
-        DAYS_SPECIFIC_HOURS_SET: 'array',
-        CONTENT: 'html',
-        DESCRIPTION: 'text',
         PREP_TIME_IN_MINUTES: 'min',
         PREORDER_PERIOD_IN_HOURS: 'hrs',
+        STATUS: {
+            present: 'present',
+            future: 'future',
+        },
     }
 }

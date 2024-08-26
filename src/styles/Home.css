@@ -21,21 +21,6 @@ body {
     padding: 20px 0;
   }
   
-  button {
-    font-size: 1rem;
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-button:hover {
-  background-color: #218838;
-}
-  
 ul {
   list-style: none;
   padding: 0;

@@ -15,7 +15,7 @@ import ProductPage from './pages/ProductPage';
 // Import paths
 import Paths from './constants/navigationPages';
 import ConfirmationPage from './pages/ConfirmationPage';
-import SearchPage from './components/js/SearchPage';
+import SearchPage from './pages/SearchPage';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

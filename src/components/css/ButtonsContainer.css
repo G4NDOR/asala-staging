@@ -1,0 +1,13 @@
+.buttons-container {
+  display: flex;
+  flex-direction: column;
+  width: 100% - 20px;
+  padding: 10px 10px;
+  gap: 10px;
+}
+
+.buttons-container-horizontal{
+  flex-direction: row;
+}
+  
+  

@@ -1,7 +1,7 @@
 // src/constants/defaultValues.js
 
 const DEFAULT_VALUES = {
-    COMMIT_NUMBER: 4,
+    COMMIT_NUMBER: 5,
     PRODUCT:   {
         id: 1,
         name: "Product",
@@ -191,7 +191,24 @@ const DEFAULT_VALUES = {
       ]
     },
     SELECTED_ADDRESS_ID:-1,
-    ADDRESS:""
+    ADDRESS:"",
+    BUTTON_DETAILS:{
+      active: true,
+      visible: true,
+      generalContent: "",
+      activeContent: "",
+      notActiveContent: "",
+      generalClassName: "button-general",
+      activeClassName: "button-active",
+      notActiveClassName: "button-not-active",
+      activeAction: () => {
+        console.log("Active action");
+      },
+      notActiveAction: () => {
+        console.log("Not active action");
+      },
+      params:{}
+    }
   };
   
   export default DEFAULT_VALUES;

@@ -49,6 +49,9 @@ const Cart = () => {
 
   useEffect(() => {
     handleResize();
+    return () => {
+      dispatch(setCartIsOpen(false));
+    }
   }, [])
   
 

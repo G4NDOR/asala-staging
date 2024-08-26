@@ -10,6 +10,7 @@ const SET_CUSTOMER_DETAILS = 'appVars/setCustomerDetails';
 const SET_SCREEN_WIDTH_IS_LESS_THAN_800 = 'appVars/setScreenWidthIsLessThan800';
 const SET_WISH_LIST = 'appVars/setWishList';
 const ADD_TO_WISH_LIST = 'appVars/addToWishList';
+const SET_HOME_PAGE_VISITED = 'appVars/setHomePageVisited';
 
 
 const initialState = {
@@ -19,6 +20,7 @@ const initialState = {
     customerDetails: DEFAULT_VALUES.CUSTOMER_DETAILS,  // Assuming customerDetails is an object containing customer data
     screenWidthIsLessThan800:false,
     wishList: [],  // Assuming wishList is a boolean value
+    homePageVisited: false, 
 };
 
 export default function appVars(state = initialState, action) {
@@ -62,6 +64,11 @@ export default function appVars(state = initialState, action) {
             return { 
                ...state,
                 wishList: [...state.wishList, action.itemId],
+            };
+        case SET_HOME_PAGE_VISITED:
+            return { 
+               ...state,
+                homePageVisited: action.homePageVisited
             };
             
         // Add other actions here as needed
@@ -107,4 +114,9 @@ export const setWishList = (wishList) => ({
 export const addToWishList = (itemId) => ({
     type: ADD_TO_WISH_LIST,  
     itemId: itemId  
+});
+
+export const setHomePageVisited = (homePageVisited) => ({
+    type: SET_HOME_PAGE_VISITED,
+    homePageVisited: homePageVisited
 });

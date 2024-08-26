@@ -1,0 +1,114 @@
+.button{
+    flex: 1;
+    padding: 10px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    background-color: #2fb84c;
+    color: white;
+}
+
+.button-invisible {
+  display: none;
+}
+
+.button:hover {
+  background-color: #28a745;
+}
+
+.button:disabled {
+  background-color: #218838;
+  cursor: not-allowed;
+}
+
+/****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+
+/* Specific Button Styles */
+
+/* ================================================================= */
+/* buy item button in the product card in the home page takes a customer to the product page  when clicked  */
+
+.home-page-product-card-buy-item-button {
+  background-color: #28a745;
+  font-weight:600;
+}
+
+.home-page-product-card-buy-item-button:hover {
+  background-color: #218838;
+}
+
+/* ================================================================= */
+
+/* ================================================================= */
+/* add to cart button, adds item to the cart */
+
+.home-page-product-card-add-to-cart-button {
+  background-color: #d19900;
+  font-weight:600;
+}
+
+.home-page-product-card-add-to-cart-button:hover {
+  background-color: #b18305;
+}
+
+/* ================================================================= */
+
+/* ================================================================= */
+/* add to cart button, adds item to the cart */
+
+.home-page-product-card-item-unavailable-button {
+  background-color: #d19900;
+  font-weight:600;
+}
+
+.home-page-product-card-item-unavailable-button:hover {
+  background-color: #b18305;
+}
+
+/* ================================================================= */
+
+/* ================================================================= */
+/* wish button, in the product card, it lets customers wish an item */
+
+.home-page-product-card-wish-button {
+  font-weight:600;
+}
+
+.home-page-product-card-wish-button-active{
+  background-color: #3fc8da;
+  color: rgb(255, 255, 255);
+}
+
+.home-page-product-card-wish-button-active:hover {
+  background-color: #05a1b6;
+}
+
+.button.home-page-product-card-wish-button-not-active{
+  background-color: #005964;
+  color: rgb(151 151 151);
+}
+
+
+/* ================================================================= */
+
+/* ================================================================= */
+/* not in stock button, in product card for when product is sold out */
+
+.button.home-page-product-card-not-in-stock-button{
+  background-color: #9b380b;
+  color:#9d9d9d;
+  font-weight:600;
+}
+
+
+/* ================================================================= */
+
+
+
+

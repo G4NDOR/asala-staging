@@ -12,12 +12,13 @@ import { setAnnouncements, setFirstTimePageVisit, setItems, setLastDoc, setWelco
 import LoadMoreBtn from "../components/js/LoadMoreBtn";
 import DEFAULT_VALUES from "../constants/defaultValues";
 import LoadingAnimation from "../components/js/LoadingAnimation";
-import { resetLoading, setCustomerDetails, setCustomerId, triggerLoading } from "../redux/ducks/appVars";
+import { resetLoading, setCustomerDetails, setCustomerId, setHomePageVisited, triggerLoading } from "../redux/ducks/appVars";
 import { getIpAddress } from "../utils/retreiveIP_Address";
 import { getCollection, loadHomeData } from "../utils/firestoreUtils";
 import { setAddress } from "../redux/ducks/productPageManager";
 import SearchItem from "../components/js/SearchItem";
 import Receipt from "../components/js/Receipt";
+import ButtonsContainer from "../components/js/ButtonsContainer";
 
 
 
@@ -31,6 +32,8 @@ const Home = () => {
   const loadingMore = useSelector(state => state.homePageManager.loadingMore);
   const searching = useSelector(state => state.homePageManager.searching);
   const firstVisit = useSelector(state => state.homePageManager.firstTimePageVisit);
+  const homePageVisited = useSelector(state => state.appVars.homePageVisited);
+  //console.log('home page visited d: ', homePageVisited);
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const products = DEFAULT_VALUES.PRODUCTS;
 
@@ -41,12 +44,14 @@ const Home = () => {
 
   useEffect(() => {
     //behind scenes work
+    dispatch(setHomePageVisited(true));
     if(firstVisit) load();
     else     //done with behind scenes work
       dispatch(resetLoading());      
   
     return () => {
       dispatch(triggerLoading());
+      //console.log('home page visited end: ', homePageVisited);
     }
   }, [])
 
@@ -136,6 +141,7 @@ const Home = () => {
         {
           //<Receipt/>
         }
+        
         
       </div>
     </div>
