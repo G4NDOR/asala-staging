@@ -531,7 +531,7 @@ export const loadHomeData = async () => {
   const welcomeImagesSrcs = welcomeImages.map(image => {
     return image['image-src'];
   });
-  /*
+  
   //++++++++++++++++++++++++++++++++++++++++++++++++
   //Load welcome section title
   const welcomeSectionTitleData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_TITLE}`);
@@ -563,21 +563,21 @@ export const loadHomeData = async () => {
     customer = customers[0];
     customerId = customer.id;
   } else {
-    customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, { 'ip-address': `${ipAddress}` });
-    customer = { 'ip-address': `${ipAddress}`, 'id': customerId };
+    //customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, { 'ip-address': `${ipAddress}` });
+    //customer = { 'ip-address': `${ipAddress}`, 'id': customerId };
   }
-  */
+  
 
   const homeData = {
     welcomeImagesSrcs,
-    //welcomeSectionTitle,
-    //welcomeSectionContent,
-    //announcements,
-    //products,
+    welcomeSectionTitle,
+    welcomeSectionContent,
+    announcements,
+    products,
     //customerId,
     //customer,
-    //productsLastDoc,
-    //announcementsLastDoc
+    productsLastDoc,
+    announcementsLastDoc
     // Add more data as needed
   };
   return homeData;
