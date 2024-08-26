@@ -565,8 +565,8 @@ export const loadHomeData = async () => {
     customer = customers[0];
     customerId = customer.id;
   } else {
-    //customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, { 'ip-address': `${ipAddress}` });
-    //customer = { 'ip-address': `${ipAddress}`, 'id': customerId };
+    customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, { 'ip-address': `${ipAddress}` });
+    customer = { 'ip-address': `${ipAddress}`, 'id': customerId };
   }
   
 
