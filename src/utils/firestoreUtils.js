@@ -566,16 +566,20 @@ export const loadHomeData = async () => {
     if (customers && customers.length > 0){
       customer = customers[0];
       customerId = customer.id;
-    } /*else {
+    } else {
       const customerDetails = { 
         'ip-address': `${ipAddress}`,
       };
+      console.log('Adding new customer: ', customerDetails);
       customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, customerDetails);
       console.log(`Customer ID: ${customerId}`);
-      if (customerId != '')
+      if (customerId != '') {
+        console.log('Customer added successfully');
         customer = customerDetails;
+      }
+      console.log('customer details: ', customer);
     }
-    */
+    
     
 
     const homeData = {
@@ -590,6 +594,7 @@ export const loadHomeData = async () => {
       announcementsLastDoc
       // Add more data as needed
     };
+    console.log('returning home data: ', homeData);
     return homeData;
 } catch (error) {
   // Handle any errors that occur during the query
