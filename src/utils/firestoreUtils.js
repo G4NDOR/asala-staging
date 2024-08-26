@@ -553,7 +553,7 @@ export const loadHomeData = async () => {
   const productsFetchedData = await loadProducts();
   const productsLastDoc = productsFetchedData.lastDoc;
   const products = productsFetchedData.products;
-  /*
+  
   //Load customer id if any
   const ipAddress = await getIpAddress();
   //console.log(`IP Address: ${ipAddress}`);
@@ -568,7 +568,7 @@ export const loadHomeData = async () => {
     //customer = { 'ip-address': `${ipAddress}`, 'id': customerId };
   }
   
-*/
+
   const homeData = {
     welcomeImagesSrcs,
     welcomeSectionTitle,
