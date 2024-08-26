@@ -566,12 +566,16 @@ export const loadHomeData = async () => {
     if (customers && customers.length > 0){
       customer = customers[0];
       customerId = customer.id;
-    } else {
-      customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, { 'ip-address': `${ipAddress}` });
+    } /*else {
+      const customerDetails = { 
+        'ip-address': `${ipAddress}`,
+      };
+      customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, customerDetails);
       console.log(`Customer ID: ${customerId}`);
       if (customerId != '')
-        customer = { 'ip-address': `${ipAddress}`, 'id': customerId };
+        customer = customerDetails;
     }
+    */
     
 
     const homeData = {
