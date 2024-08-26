@@ -152,6 +152,7 @@ export const getDocument = async (docPath) => {
       return null;
     }
   } catch (error) {
+    return null
     handleError(error);
   }
 };
