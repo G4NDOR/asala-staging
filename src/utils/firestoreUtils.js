@@ -568,6 +568,7 @@ export const loadHomeData = async () => {
       customerId = customer.id;
     } else {
       const customerDetails = { 
+        ...customer,
         'ip-address': `${ipAddress}`,
       };
       console.log('Adding new customer: ', customerDetails);
