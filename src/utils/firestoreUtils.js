@@ -152,7 +152,6 @@ export const getDocument = async (docPath) => {
       return null;
     }
   } catch (error) {
-    return null
     handleError(error);
   }
 };
@@ -532,7 +531,7 @@ export const loadHomeData = async () => {
   const welcomeImagesSrcs = welcomeImages.map(image => {
     return image['image-src'];
   });
-  /*
+  
   //++++++++++++++++++++++++++++++++++++++++++++++++
   //Load welcome section title
   const welcomeSectionTitleData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_TITLE}`);
@@ -544,7 +543,7 @@ export const loadHomeData = async () => {
 
 
 
-
+/*
   //================================================================
   //Load announcements section content
   const announcementsFetchedData = await loadAnnouncements();
@@ -571,8 +570,8 @@ export const loadHomeData = async () => {
 */
   const homeData = {
     welcomeImagesSrcs,
-    //welcomeSectionTitle,
-    //welcomeSectionContent,
+    welcomeSectionTitle,
+    welcomeSectionContent,
     //announcements,
     //products,
     //customerId,
