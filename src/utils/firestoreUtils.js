@@ -575,7 +575,7 @@ export const loadHomeData = async () => {
       console.log(`Customer ID: ${customerId}`);
       if (customerId != '') {
         console.log('Customer added successfully');
-        customer = customerDetails;
+        customer = {...customer, ...customerDetails};
       }
       console.log('customer details: ', customer);
     }
