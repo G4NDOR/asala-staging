@@ -59,13 +59,13 @@ const Home = () => {
   const load = async () => {
     //behind scenes work
     const data = await loadHomeData();
-    console.log('home data loaded: ', data);
+    //console.log('home data loaded: ', data);
     if (!data) {
-      console.log('Failed to load home data');
+      //console.log('Failed to load home data');
       dispatch(resetLoading());
       return;
     }
-    console.log('home data loaded with success: ', data);
+    //console.log('home data loaded with success: ', data);
     dispatch(setWelcomeSectionImages(data.welcomeImagesSrcs));
     dispatch(setItems(data.products));
     dispatch(setLastDoc(data.productsLastDoc));
@@ -78,7 +78,7 @@ const Home = () => {
     dispatch(setFirstTimePageVisit(false));
 
     //done with behind scenes work
-    console.log('stop Loading');
+    //console.log('stop Loading');
     dispatch(resetLoading());      
   }
 
