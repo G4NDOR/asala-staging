@@ -557,8 +557,8 @@ export const loadHomeData = async () => {
   //Load customer id if any
   const ipAddress = await getIpAddress();
   //console.log(`IP Address: ${ipAddress}`);
-  const customers = await queryCollection(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, "ip-address", "==", ipAddress);
-  
+  const customersData = await queryAndOrderWithPagination(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, FIREBASE_DOCUMENTS_FEILDS_NAMES.CUSTOMERS.IP_ADDRESS, `${ipAddress}`, '', FIREBASE_COLLECTIONS_QUERY_LIMIT.CUSTOMERS, true, false, true);//getCollection("customers");
+  const customers = customersData.data;
   let customer = DEFAULT_VALUES.CUSTOMER_DETAILS;
   let customerId = DEFAULT_VALUES.CUSTOMER_ID;
   if (customers && customers.length > 0){

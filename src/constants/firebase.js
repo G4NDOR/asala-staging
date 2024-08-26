@@ -44,13 +44,16 @@ export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
     DYNAMIC_OUTPUT: {
         CONTENT: 'content',
         DESCRIPTION: 'description',
-    }
+    },
+    CUSTOMERS: {
+        IP_ADDRESS: 'ip-address',
+    },
 }
 
 export const FIREBASE_COLLECTIONS_QUERY_LIMIT = {
     PRODUCTS: 10,
     ANNOUNCEMENTS: 5,
-    CUSTOMERS: 10,
+    CUSTOMERS: 1,
     PRODUCERS: 10,
     REVIEWS: 5,
 }
