@@ -60,9 +60,9 @@ const Home = () => {
     //behind scenes work
     const data = await loadHomeData();
     dispatch(setWelcomeSectionImages(data.welcomeImagesSrcs));
-    //dispatch(setItems(data.products));
+    dispatch(setItems(data.products));
     //dispatch(setLastDoc(data.productsLastDoc));
-    //dispatch(setAnnouncements(data.announcements));
+    dispatch(setAnnouncements(data.announcements));
     dispatch(setWelcomeSectionContent(data.welcomeSectionContent));
     dispatch(setWelcomeSectionTitle(data.welcomeSectionTitle));
     //dispatch(setCustomerId(data.customerId));

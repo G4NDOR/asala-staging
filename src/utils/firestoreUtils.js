@@ -543,7 +543,7 @@ export const loadHomeData = async () => {
 
 
 
-/*
+
   //================================================================
   //Load announcements section content
   const announcementsFetchedData = await loadAnnouncements();
@@ -553,6 +553,7 @@ export const loadHomeData = async () => {
   const productsFetchedData = await loadProducts();
   const productsLastDoc = productsFetchedData.lastDoc;
   const products = productsFetchedData.products;
+  /*
   //Load customer id if any
   const ipAddress = await getIpAddress();
   //console.log(`IP Address: ${ipAddress}`);
@@ -572,8 +573,8 @@ export const loadHomeData = async () => {
     welcomeImagesSrcs,
     welcomeSectionTitle,
     welcomeSectionContent,
-    //announcements,
-    //products,
+    announcements,
+    products,
     //customerId,
     //customer,
     //productsLastDoc,
