@@ -19,17 +19,56 @@ import {
   increment,
   serverTimestamp,
   deleteField,
-  startAfter
+  startAfter,
+  Timestamp
 } from 'firebase/firestore';
-import { FIREBASE_CLLECTIONS_NAMES, FIREBASE_COLLECTIONS_QUERY_LIMIT, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DYNAMIC_OUTPUT_NAMES, TIMESTAMP } from '../constants/firebase';
+import { FIREBASE_CLLECTIONS_NAMES, FIREBASE_COLLECTIONS_QUERY_LIMIT, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DYNAMIC_OUTPUT_NAMES, TIMESTAMP } from '../constants/firebase';
 import { getIpAddress } from './retreiveIP_Address';
 import DEFAULT_VALUES from '../constants/defaultValues';
+import CONSTANTS from '../constants/appConstants';
 
 // Common process to handle errors
 const handleError = (error) => {
   console.error("Firebase operation failed: ", error);
   throw new Error(error.message);
 };
+
+
+//get data dated to save to firebase
+const getDatedDataForFirebaseDocumentsAdds = (data) => {
+  const timestampFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.TIMESTAMP;;
+  const datedData = {...data, [`${timestampFieldName}`]: Timestamp.now() };
+  return datedData;
+}
+
+//deletes id feild from the data since documents have ids by default in firestore
+const getDataWithoutId = (data) => {
+  const dataWithoutId = data;
+  const idFeildName = FIREBASE_DOCUMENTS_FEILDS_NAMES.ID;
+  delete dataWithoutId[`${idFeildName}`];
+  return dataWithoutId;
+}
+
+//default values are values that are assined by default for the purpose of the client side code to run with no errors of undefined reading
+//updates the 'is-default-value' field to false before storing the document, because when they will load from firebase they will be fetched data, not default
+/** 
+ * @param {Object} data - The data to be updated with default values.
+ * @returns {Object} - The updated data with default values.
+ */
+const updateIsDefaultValueFeild = (data) => {
+  const isDefaultValueFeildName = FIREBASE_DOCUMENTS_FEILDS_NAMES.IS_DEFAULT_VALUE;
+  const updatedData = {...data, [`${isDefaultValueFeildName}`]: false };
+  return updatedData;
+}
+
+//validate data to store in firebase
+//deletes id property and adds a date property
+const validateDataToStoreInFirebase = (data) => {
+  const dataWithoutId = getDataWithoutId(data);
+  const dataNotDefault = updateIsDefaultValueFeild(dataWithoutId);
+  const datedDataWithoutId = getDatedDataForFirebaseDocumentsAdds(dataNotDefault);
+  return datedDataWithoutId;
+}
 
 // Add a new document with auto-generated ID
 /**
@@ -46,8 +85,9 @@ const handleError = (error) => {
  * console.log(newDocumentId); // Output: ID of the newly created document
  */
 export const addDocument = async (collectionName, data) => {
+  const validatedData = validateDataToStoreInFirebase(data);
   try {
-    const docRef = await addDoc(collection(db, collectionName), data);
+    const docRef = await addDoc(collection(db, collectionName), validatedData);
     console.log("Document written with ID: ", docRef.id);
     return docRef.id;
   } catch (error) {
@@ -72,9 +112,10 @@ export const addDocument = async (collectionName, data) => {
  * // The document 'alice' in the 'users' collection will be updated with new age value, merging with existing data.
  */
 export const setDocument = async (docPath, data, merge = false) => {
+  const validatedData = validateDataToStoreInFirebase(data);
   try {
     const docRef = doc(db, docPath);
-    await setDoc(docRef, data, { merge });
+    await setDoc(docRef, validatedData, { merge });
   } catch (error) {
     handleError(error);
   }
@@ -141,19 +182,23 @@ export const deleteDocument = async (docPath) => {
  * // If the document does not exist
  * const docData = await getDocument('users/nonexistent');
  * console.log(docData); // Output: null
+ * returns null if the document does not exist.
  */
 export const getDocument = async (docPath) => {
   try {
     const docRef = doc(db, docPath);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      return docSnap.data();
+      const doc = {id: docSnap.id,...docSnap.data() };
+      //console.log("Document data: return", doc);
+      return doc;
     } else {
       console.log("No such document!");
       return null;
     }
   } catch (error) {
     handleError(error);
+    return null;
   }
 };
 
@@ -464,6 +509,64 @@ export const queryAndOrderWithPagination = async (collectionName, whereField, wh
   }
 };
 
+
+
+
+/**
+ * Retrieves documents from a Firestore collection based on a list of IDs.
+ *
+ * @param {string} collectionName - The name of the Firestore collection.
+ * @param {Array<string>} ids - An array of document IDs to retrieve.
+ * @returns {Promise<Array<Object>>} - A promise that resolves to an array of document data.
+ * @throws {Error} If there is an error retrieving the documents.
+ */
+ export const getDocumentsByIds = async (collectionName, ids) => {
+  if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error('IDs must be a non-empty array.');
+  }
+  //console.log('array of IDs:', ids);
+  //console.log('whereField:', whereField);
+  //console.log('collectionName:', collectionName);
+
+    // Create an array of promises
+    const promises = ids.map(async (id) => {
+      const docPathString = `${collectionName}/${id}`;
+      return await getDocument(docPathString);
+    });  
+
+  try {
+    // Wait for all promises to resolve
+    const documents = await Promise.all(promises);
+    // Filter out any null results
+    //console.log('documents:', documents);
+    return documents.filter(doc => doc !== null);
+    
+    //  const q = query(
+    //    collection(db, collectionName),
+    //    where(whereField, 'in', ids)
+    //  );
+    //  const querySnapshot = await getDocs(q);
+    //  console.log('querySnapshot:', querySnapshot);
+//
+    //  return querySnapshot.docs.map(doc => {
+    //    console.log('doc:', doc);
+    //    return ({
+    //      
+    //      id: doc.id,
+    //      ...doc.data()
+    //  })
+    //  });
+  } catch (error) {
+      console.error('Error getting documents by IDs:', error);
+      throw error;
+      return [];
+  }
+}
+
+
+
+
+
 export const searchByText = async (collectionName, searchText, limitNum, limited = true, lastDoc = null) => {
   try {
     // Create a query against the specified collection, searching for documents containing the searchText
@@ -513,6 +616,288 @@ export const searchByText = async (collectionName, searchText, limitNum, limited
 /   =================================================================
 */
 
+const promptToRetry = () => {
+  return;
+}
+
+// Function to save user ID in local storage
+const saveUserIdToLocalStorage = (userId) => {
+  const key = CONSTANTS.LOCAL_STORAGE.KEYS.USER_ID_KEY;
+  localStorage.setItem(key, userId);
+};
+
+// Function to get user ID from local storage
+//returns user id if found
+//returns null if not found
+const getUserIdFromLocalStorage = () => {
+  const key = CONSTANTS.LOCAL_STORAGE.KEYS.USER_ID_KEY;
+  const userId = localStorage.getItem(key);
+  return userId;//null if not found
+};
+
+//gets customer by id from firebase
+//returns customer object if found
+//returns null if not found
+const getCustomerById = async (customerId) => {
+  const docPath = `${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}/${customerId}`;
+  //console.log('docPath:', docPath);
+  const customer = await getDocument(docPath);//returns null if not found
+  return customer;// returns null if not found
+}
+
+//adds a customer to firebase
+//returns customer id if successful
+//returns null if not successful
+const addCustomer = async (customerDetails) => {
+  let customerDetailesWithIPAddress = customerDetails;//will update customer details with ip address if any later in code
+  const ipAddress = await getIpAddress();
+  const ipAddressFeildName = FIREBASE_DOCUMENTS_FEILDS_NAMES.CUSTOMERS.IP_ADDRESS;
+  if (ipAddress) customerDetailesWithIPAddress = {...customerDetailesWithIPAddress, [`${ipAddressFeildName}`]: ipAddress };
+  const customer = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, customerDetailesWithIPAddress);
+  const customerNotAdded = (customer == '' || !customer);
+  if (customerNotAdded) return null;//returns null if not successful
+  return customer;
+}
+
+const getOrCreateUser = async () => {
+  //Load customer id if any
+  let customerId = DEFAULT_VALUES.CUSTOMER_ID;//null
+  let customer = DEFAULT_VALUES.CUSTOMER_DETAILS;// id = null
+  const customerIdInLocalStorage = getUserIdFromLocalStorage();//returns null if not found
+  if (customerIdInLocalStorage) {
+    //customer exists in local storage, load it, don't add it again
+    const customerInFirebase = await getCustomerById(customerIdInLocalStorage);//returns null if not found
+    if(!customerInFirebase) {
+      //console.log('Customer not found in firebase, loading from local storage');
+      //promptToRetry();// let customer use app (even if his info can't be retreved) as a new customer with default values
+      //customer exists but can't fetch it from firebase
+      const data = {
+        customerId,
+        customer
+      }
+      return data;
+    }else{
+      customer = customerInFirebase;
+      customerId = customerInFirebase.id;
+    }
+    
+  }else {
+    //customer doesn't exist, or local storage have been cleaned, add it to firebase
+    const customerIdFromFirebase = await addCustomer(customer);
+    if (!customerIdFromFirebase) {
+      //failed to save customer to firebase
+      //promptToRetry(); //let customer use app even without saving his info to firebase
+      //customer can't be added to firebase
+      const data = {
+        customerId,
+        customer
+      }
+      return data;
+    }else{
+      //customer added to firebase successfully
+      saveUserIdToLocalStorage(customerIdFromFirebase);
+      customer = {...customer, 'id': customerIdFromFirebase };
+      customerId = customerIdFromFirebase;
+    }
+  }
+  const data = {
+    customerId,
+    customer,
+  }
+  return data;
+}
+
+//gets cart based on the customer's id, returns cart items if found
+//returns empty array if not found
+const loadCartItemsFromFirebaseAndLocalStorage = async (customerId) => {
+  //set a default value for cart items [] // [productObj1, productObj2, ...]
+  const defaultCart = DEFAULT_VALUES.CART; 
+  const itemsListFeildNameInCartObj = FIREBASE_DOCUMENTS_FEILDS_NAMES.CARTS.ITEMS;
+  const defaultCartItems = defaultCart[`${itemsListFeildNameInCartObj}`];
+  //get the list of productobj from local storage,// which is [productObj1, productObj2, ...] //same structure stored in firebase
+  const cartFromLocalStorage = getCartFromLocalStorage();//returns {itemId1: quantity1, itemId2: quantity2, ...}
+  const itemsListFromLocalStorageCart = getItemsListFromLocalStorageCart(cartFromLocalStorage);//returns [{id:itemId, quantity: itemQuantity},...]
+  const productObjListFromLocalStorage = await getProductsListFromFirebaseUsingItemsListInCartObj(itemsListFromLocalStorageCart);//returns [productObj1, productObj2, ...]
+  console.log("productObjListFromLocalStorage is: ", productObjListFromLocalStorage);
+  // if there's cart info in local storage, use it instead of default value: []
+  if (productObjListFromLocalStorage && productObjListFromLocalStorage.length > 0) {
+    //there's cart info in local storage
+    //if there's no customer id, return cart items from local storage, and that's it
+    //not probabal since customer is is also retreived from local storage like cart info 
+    //no customerId => probably cookiess have been wiped => cart in local storage is wiped too
+    if (!customerId) return productObjListFromLocalStorage;
+    //get cart from firebase
+    const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
+    const fetchedCart = await getDocument(docPath);
+    const itemsListInCartObjFromFirebase = fetchedCart[`${itemsListFeildNameInCartObj}`];//returns [{id:itemId, quantity: itemQuantity},...]
+    const noCartInFirebase =!fetchedCart;
+    if (noCartInFirebase) {
+      //no cart in firebase, 
+      //create a new cart in firebase with local storage cart info, and default values
+      const dataToSave = {...defaultCart, [`${itemsListFeildNameInCartObj}`]: itemsListFromLocalStorageCart};
+      await setDocument(docPath, dataToSave);
+    }else if (JSON.stringify(itemsListInCartObjFromFirebase)!== JSON.stringify(itemsListFromLocalStorageCart)) {
+      //cart exists in firebase but not equivilant to cart in local storage, update firebase with cart from local storage,
+      // since it is more up to date, (updated on each cart change) 
+      //const updates = {[`${itemsListFeildNameInCartObj}`]: itemsListFromLocalStorageCart};       
+      await updateCartItemsInFirebaseFromItemsListinCartObj(customerId, itemsListFromLocalStorageCart);
+    };
+    //if equivilant return cart
+    return productObjListFromLocalStorage;
+  };
+  
+  //there's no cart info in local storage => no cart items in firebase, since localStorage is updated more frequent,
+  // and it's the only way to recognize a user for now, (no authentication)
+  // return default cart items []
+  return defaultCartItems;
+
+}
+/*
+duplicate code, see below
+export const updateCartItemsInFirebaseFromProductObjList = async (customerId, productObjList) => {
+  const itemIdFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.ID;
+  const itemQuantityFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.QUANTITY;
+  const itemIdFieldNameInItemsListInCartObj = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.ID;
+  const quantityFieldNameInItemsListInCartObj = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.QUANTITY;
+  //const newCart = {};//{itemId1: quantity1, itemId2: quantity2,...}
+  const itemsListInCartObj = productObjList.map(item => {
+    const itemId = item[`${itemIdFieldName}`];
+    const itemQuantity = item[`${itemQuantityFieldName}`];
+    const ItemObjInCartItemsList = {
+      [`${itemIdFieldNameInItemsListInCartObj}`]: itemId,
+      [`${quantityFieldNameInItemsListInCartObj}`]: itemQuantity,
+    };
+    return ItemObjInCartItemsList;
+  });
+  const itemsListFeildNameInCartObj = FIREBASE_DOCUMENTS_FEILDS_NAMES.CARTS.ITEMS;
+  const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
+  const updates = {[`${itemsListFeildNameInCartObj}`]: itemsListInCartObj};       
+  await updateCartItemsInFirebaseFromItemsListinCartObj(docPath, updates);
+}
+*/
+
+//updates cart items based on the customer's id
+//takes customer id and a list of product obj{id:itemId, quantity: itemQuantity, available: bool,...}
+//turns it into a structore to be stored in firebase as a list of {id: itemId, quantity: itemQuantity}
+export const updateCartItemsInFirebaseFromProductObjList = async (cartItems) => {
+  const customerId = getUserIdFromLocalStorage();
+  if (!customerId) return; //if there's no customer id, return
+  const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
+  const itemsFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.CARTS.ITEMS;
+  const itemIdFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.ID;
+  const itemQuantityFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.QUANTITY;
+  const cartItemIdFieldName = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.ID;
+  const cartItemQuantityFieldName = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.QUANTITY;
+  const cartItemsList = cartItems.map(item => {
+    console.log("itemQuantityFieldName: ", itemQuantityFieldName);
+    console.log("item quantity: ", item[`${itemQuantityFieldName}`]);
+    const itemObj = {
+      [cartItemIdFieldName]: item[`${itemIdFieldName}`],
+      [cartItemQuantityFieldName]: item[`${itemQuantityFieldName}`]
+    };
+    return itemObj;
+  });
+  const updates = {
+    [itemsFieldName]: cartItemsList
+  };
+  console.log("updates: " , updates);
+  await updateDocument(docPath, updates);
+}
+
+//updates cart items based on the customer's id
+//takes customer id and a list of items in cart obj [{id: itemId1, quantity: itemQuantity1}, {id: itemId2, quantity: itemQuantity2},...]]
+const updateCartItemsInFirebaseFromItemsListinCartObj = async (customerId, cartItems) => {
+  if (!customerId) return; //if there's no customer id, return
+  const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
+  const itemsFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.CARTS.ITEMS;
+  const itemIdFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.ID;
+  const itemQuantityFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.QUANTITY;
+  const cartItemIdFieldName = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.ID;
+  const cartItemQuantityFieldName = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.QUANTITY;
+  const cartItemsList = cartItems.map(item => {
+    const itemObj = {
+      [cartItemIdFieldName]: item[`${itemIdFieldName}`],
+      [cartItemQuantityFieldName]: item[`${itemQuantityFieldName}`]
+    };
+    return itemObj;
+  });
+  const updates = {
+    [`${itemsFieldName}`]: cartItemsList
+  };
+  await updateDocument(docPath, updates);
+}
+
+// returns products list in [productObj1, productObj2,...] form,
+// using items list in cart obj  [{id:itemId1, quantity: itemQuantity1}, {id:itemId2, quantity: itemQuantity2},...]
+//returns an empty array if no items found
+const getProductsListFromFirebaseUsingItemsListInCartObj = async (itemsListInCartObj) => {
+  if (!itemsListInCartObj || itemsListInCartObj.length === 0) return []; //if there's no items list, return empty array
+  const itemIdFieldNameInCartObj = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.ID;
+  const itemQuantityFieldNameInCartObj = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.QUANTITY;  
+  // Use Promise.all to fetch all items in parallel
+  const itemsListFromFirebase = await Promise.all(itemsListInCartObj.map(async (item) => {
+    const itemId = item[`${itemIdFieldNameInCartObj}`];
+    const itemQuantity = item[itemQuantityFieldNameInCartObj];
+    try {
+      //console.log(`Fetching item with ID ${itemId}`);
+      const itemDataFromFirebase = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}/${itemId}`);
+      if (!itemDataFromFirebase) return null; // Return null if item doesn't exist
+      return { ...itemDataFromFirebase, quantity: itemQuantity };
+    } catch (error) {
+      console.error(`Failed to fetch item with ID ${itemId}:`, error);
+      return null; // Return null on error
+    }
+  }));  
+  const items = itemsListFromFirebase.filter(item => item!== null); //filter out the not found items
+  return items;
+
+}
+
+
+//returns cart from local storage {itemId1: quantity1, itemId2: quantity2,...}
+//or returns empty object if no cart found in local storage
+const getCartFromLocalStorage = () => {
+  const key = CONSTANTS.LOCAL_STORAGE.KEYS.CART_KEY;
+  const cart = JSON.parse(localStorage.getItem(key));
+  return cart || {};
+}
+
+//turns cart saved in local storage into itemsList to be saved in firebase storage
+//{'itemId1': quantity1, itemId2: quantity2,...} => [{'id': itemId, 'quantity': quantity}, ...]
+//returns empty array if no cart found in local storage
+const getItemsListFromLocalStorageCart = (localStorageCart) => {
+  if (!localStorageCart || Object.keys(localStorageCart).length === 0) return []; 
+  // Convert to a list of { id, quantity } objects
+  const itemsList = Object.entries(localStorageCart).map(([id, quantity]) => {
+    return { id, quantity };
+  });
+  return itemsList;
+}
+
+//save or update cart item in local storage based on the parameter merge (true to merge, false to replace)
+//returns nothing
+export const saveOrUpdateCartItemToLocalStorage = (cart, merge = false) => {
+  const key = CONSTANTS.LOCAL_STORAGE.KEYS.CART_KEY;
+  const itemIdFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.ID;
+  const itemQuantityFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.QUANTITY;
+  const newCart = {};//{itemId1: quantity1, itemId2: quantity2,...}
+  cart.map(item => {
+    const itemId = item[`${itemIdFieldName}`];
+    const itemQuantity = item[`${itemQuantityFieldName}`];
+    const itemLocalStorageKey = `${itemId}`;
+    newCart[itemLocalStorageKey] = itemQuantity;
+  });
+  if (!merge){
+    console.log("newCart: ", newCart);
+    localStorage.setItem(key, JSON.stringify(newCart));//{'cart': {itemId1: quantity1, itemId2: quantity2,...}}
+    console.log("Success");
+    return;
+  }
+  const cartLocalStorage = getCartFromLocalStorage();//{itemId1: quantity1, itemId2: quantity2,...}
+  localStorage.setItem(key, JSON.stringify({...cartLocalStorage,...newCart}));//{'cart': {itemId1: quantity1, itemId2: quantity2,...}}
+  return;
+}
+
 
 export const loadHomeData = async () => {
   try {
@@ -557,30 +942,18 @@ export const loadHomeData = async () => {
     const products = productsFetchedData.products;
     
     //Load customer id if any
-    const ipAddress = await getIpAddress();
-    //console.log(`IP Address: ${ipAddress}`);
-    const customersData = await queryAndOrderWithPagination(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, FIREBASE_DOCUMENTS_FEILDS_NAMES.CUSTOMERS.IP_ADDRESS, `${ipAddress}`, '', FIREBASE_COLLECTIONS_QUERY_LIMIT.CUSTOMERS, true, false, true);//getCollection("customers");
-    const customers = customersData.data;
-    let customer = DEFAULT_VALUES.CUSTOMER_DETAILS;
-    let customerId = DEFAULT_VALUES.CUSTOMER_ID;
-    if (customers && customers.length > 0){
-      customer = customers[0];
-      customerId = customer.id;
-    } else {
-      const customerDetails = { 
-        ...customer,
-        'ip-address': `${ipAddress}`,
-      };
-      //console.log('Adding new customer: ', customerDetails);
-      customerId = await addDocument(`${FIREBASE_CLLECTIONS_NAMES.CUSTOMERS}`, customerDetails);
-      //console.log(`Customer ID: ${customerId}`);
-      if (customerId != '') {
-        //console.log('Customer added successfully');
-        customer = {...customer, ...customerDetails};
-      }
-      //console.log('customer details: ', customer);
-    }
-    
+    const customerData = await getOrCreateUser();
+    const customerId = customerData.customerId;//null by default
+    const customer = customerData.customer;//null by default
+    //load costumer's cart
+    const cart = await loadCartItemsFromFirebaseAndLocalStorage(customerId);
+    //Select one of the customer's addresses by default if any
+    const addressesFeildName = FIREBASE_DOCUMENTS_FEILDS_NAMES.CUSTOMERS.ADDRESSES;
+    const addressStringFeildName = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CUSTOMERS.ADDRESSES.STRING;
+    const customerAddresses = customer[addressesFeildName].map(address => address[`${addressStringFeildName}`]);
+    const customerHasAnAddress = customerAddresses.length > 0;
+    const defaultAddress = DEFAULT_VALUES.CUSTOMER_DETAILS[addressesFeildName][0];
+    const addresses = customerHasAnAddress? customerAddresses : [defaultAddress];
     
 
     const homeData = {
@@ -591,8 +964,10 @@ export const loadHomeData = async () => {
       products,
       customerId,
       customer,
+      addresses,
       productsLastDoc,
-      announcementsLastDoc
+      announcementsLastDoc,
+      cart,
       // Add more data as needed
     };
     //console.log('returning home data: ', homeData);
@@ -622,8 +997,9 @@ export const loadSearchResultsProducts = async (searchQuery, ladtDoc=null) => {
   return {products, lastDoc: retreivedData.lastDoc};
 }
 
-export const loadProductPageData = async (productId, producerId) => {
+export const loadProductPageData = async (productId, producerId, recommendationsIds) => {
   let producer = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.PRODUCERS}/${producerId}`);
+  const recommendations = await loadRecommendationsForProduct(recommendationsIds);
   const customerReviews = await queryCollection(`${FIREBASE_CLLECTIONS_NAMES.REVIEWS}`, "product-id", "==", productId);
 
   if (!producer) 
@@ -632,6 +1008,7 @@ export const loadProductPageData = async (productId, producerId) => {
   const data = {
     producer,
     customerReviews,
+    recommendations
     // Add more data as needed
   };
   return data;
@@ -647,6 +1024,18 @@ export const loadAnnouncements = async (ladtDoc=null) => {
 
 export const wishItem = (customerId, productId) => {
   return addElementsToArrayField(`${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}/${productId}`, `${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.WISHES}`, [customerId]);
+}
+
+export const loadRecommendationsForProduct = async (recommendationsIds) => {
+  //console.log('Recommendations ids: ', recommendationsIds);
+  if (!recommendationsIds || recommendationsIds.length === 0) return [];
+  //console.log('Recommendations not empty: ');
+  //const whereField = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.MATCHING_PRODUCTS;
+  const recommendations = await getDocumentsByIds(FIREBASE_CLLECTIONS_NAMES.PRODUCTS, recommendationsIds);
+  //console.log('Recommendations 1 : ', recommendations);
+  if (!recommendations) return [];
+  
+  return recommendations;
 }
 
 

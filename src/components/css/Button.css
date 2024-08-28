@@ -109,6 +109,71 @@
 
 /* ================================================================= */
 
+/* ================================================================= */
+/* go to cart page button, in the fixed cart view for when screen width is big */
+
+.home-page-cart-go-to-cart-page-button{
+  width: 80%;
+  align-self: center;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  
+}
+
+
+/* ================================================================= */
+
+/* ================================================================= */
+/* online payment button */
+
+.home-page-and-product-page-online-payment-button{
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  
+}
+
+
+/* ================================================================= */
+
+/* ================================================================= */
+/* in person payment button */
+
+.home-page-and-product-page-in-person-payment-button{
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  background-color: #5cadc5;
+}
+
+.home-page-and-product-page-in-person-payment-button:hover{
+    background-color: #3056bd;
+}
+
+
+/* ================================================================= */
+
+/* ================================================================= */
+/* in person payment confirmation button */
+
+.home-page-and-product-page-in-person-payment-confirmation-button{
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  background-color: #e3a10c;
+}
+
+.home-page-and-product-page-in-person-payment-confirmation-button:hover{
+  background-color: #b98d05;
+}
+
+
+/* ================================================================= */
+
+
+
+
+
 
 
 

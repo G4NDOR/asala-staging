@@ -1,0 +1,22 @@
+.product-page-product-info-section{
+    
+    align-self: stretch;
+    padding: 5px 10px;
+    display: flex;
+    flex-direction: column;
+
+}
+
+.product-page-product-info-section .title{
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.product-page-product-info-section .info{
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: #555;
+    margin-left: 40px;
+}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FaSearch, FaTimes } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import CONSTANTS from '../../constants/appConstants';
 import Paths from '../../constants/navigationPages';
 import { resetLoading, triggerLoading } from '../../redux/ducks/appVars';
 import { addSearchItems, resetSearching, setLastSearchedDoc, setSearchBarIsOpen, setSearchItems, setSearchTerm, triggerSearching } from '../../redux/ducks/homePageManager';
@@ -90,7 +91,7 @@ const SearchItem = () => {
     }
 
     return (
-        <div className={`search-container  ${isOpen ? 'open' : 'search-closed'}`}>
+        <div className={`search-container  ${isOpen ? 'open' : 'search-closed'}`} style={{zIndex:`${CONSTANTS.Z_INDEXES.SEARCH_BAR}`}}>
             <div className={`search-icon ${isOpen ? '':'shake'}`} onClick={toggleSearch}>
                 {isOpen ? <FaTimes /> : <FaSearch />}
             </div>

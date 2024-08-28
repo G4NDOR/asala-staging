@@ -1,5 +1,5 @@
 import DEFAULT_VALUES from "../constants/defaultValues";
-import { DAY_INDEX_MAP, FIREBASE_DOCUMENTS_FEILDS_NAMES } from "../constants/firebase";
+import { DAY_INDEX_MAP, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../constants/firebase";
 
 /**
  * Generates all possible substrings of a given string.
@@ -221,6 +221,80 @@ export const generateButtonDetails = ({
   };
   return buttonDetails;
 };
+
+
+
+  
+
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************  
+
+
+  export const findAppliedDiscount = (discounts, quantity) => {
+    let appliedDiscount = DEFAULT_VALUES.PRODUCT[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DISCOUNTS}`][0];
+    const activeDiscounts = discounts.filter(discount => (discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.ACTIVE}`]));        
+    const appliedDiscountBasedOnQuantity = activeDiscounts.filter(discount => {
+      const quantityOnwhichDiscountApplies = discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.QUANTITY}`];
+      const discountShouldApply = quantity >= quantityOnwhichDiscountApplies;
+      return discountShouldApply;
+    });    
+    if (appliedDiscountBasedOnQuantity.length > 0) 
+      appliedDiscount = appliedDiscountBasedOnQuantity[0];
+    return appliedDiscount;
+  }
+
+  const getPriceWithDiscountApplied = (discount, price) => {
+    let amountTobeSubtracted = 0;
+    const discountExists = discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.ACTIVE}`];//if there's none, discount will be default value which has "active" set to false
+    const discountType = discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.TYPE}`];
+    const discountValue = discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.VALUE}`];
+    const DISCOUNT_TYPE_OPTION_1 = FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.DISCOUNTS.TYPE.PERCENTAGE;
+    const DISCOUNT_TYPE_OPTION_2 = FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.DISCOUNTS.TYPE.FIXED;
+    if (discountExists) {
+      switch (discountType) {
+        case DISCOUNT_TYPE_OPTION_1:
+          amountTobeSubtracted = (discountValue * price) / 100;          
+          break;
+    
+        case DISCOUNT_TYPE_OPTION_2:
+          amountTobeSubtracted = discountValue;          
+          break;
+        default:
+          break;
+      }
+    }
+    const priceWithDiscountApplied = price - amountTobeSubtracted;    
+    return priceWithDiscountApplied;
+  }
+
+
+
+  export const calculatePrice = (discounts, price, quantity) => {    
+    const appliedDiscount = findAppliedDiscount(discounts, quantity);
+    let total = price * quantity;
+    const applyOnSingleItem = appliedDiscount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.APPLY_ON_SINGLE_ITEM}`];
+    if (applyOnSingleItem) {
+      const singleItemPriceWithDiscountApplied = getPriceWithDiscountApplied(appliedDiscount, price);
+      total = singleItemPriceWithDiscountApplied * quantity;
+    } else{
+      const priceBasedOnQuantity = price * quantity;
+      total = getPriceWithDiscountApplied(appliedDiscount, priceBasedOnQuantity);
+    }
+    
+    
+    return total;
+  }
+
 
 
 

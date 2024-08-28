@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import Paths from '../../constants/navigationPages';
 import { resetIntentToPay, resetIntentToPayConfirmed, triggerIntentToPay, triggerIntentToPayConfirmed } from "../../redux/ducks/orderManager";
 import { resetLoading, triggerLoading } from "../../redux/ducks/appVars";
+import ButtonsContainer from "./ButtonsContainer";
+import SwipeConfirmation from "./SwipeConfirmation";
 
 const OrderButton = ({location, test}) => {
   // Retrieve cart from Redux state
@@ -17,7 +19,9 @@ const OrderButton = ({location, test}) => {
   const cartIsNotEmpty = !cartIsEmpty;
   const navigate = useNavigate();
   const adjustedForPhone = useSelector(state => state.appVars.screenWidthIsLessThan480);
+  const notAdjustedForPhone =!adjustedForPhone;
   const payClicked = useSelector(state => state.orderManager.intentToPay);
+  const payNotClicked = !payClicked;
   const Confirmed = useSelector(state => state.orderManager.intentToPayConfirmed);
   const isCartPage = (location == Paths.CART);
   const orderButtonIsActiveInCartPage = cartIsNotEmpty; // active when cart is not empty
@@ -25,8 +29,10 @@ const OrderButton = ({location, test}) => {
   const isProductPage = (location == Paths.PRODUCT);
   const orderButtonIsActiveInProductPage = true;// because product page always has a product, by defenition it is a page for a certain product, do there's a product to buy => there should be an order button
   const orderButtonIsNotActiveInProductPage =!orderButtonIsActiveInProductPage;
-  const disabled = isCartPage? orderButtonIsNotActiveInCartPage : orderButtonIsNotActiveInProductPage;
-  
+  const hidden = isCartPage? orderButtonIsNotActiveInCartPage : orderButtonIsNotActiveInProductPage;
+  const visible = !hidden;
+  const mobileScreenConfirmation = visible && payClicked && adjustedForPhone;
+
   useEffect(() => {
     
     load();
@@ -77,23 +83,25 @@ const OrderButton = ({location, test}) => {
   }
 
   const calculateTotalPriceProductPageCart = () =>   {
-    return productPageCart.reduce((total, item) => {
-      const { quantity, price } = item;
-      const discount = item.discount.percentage; // Assuming discount is a percentage in the item object.
-      const totalBeforeDiscounts = price * quantity;
-      const finalTotal = (100 - discount) * totalBeforeDiscounts / 100;
-      return total + finalTotal;
-    }, 0);
+    //return productPageCart.reduce((total, item) => {
+    //  const { quantity, price } = item;
+    //  const discount = item.discount.percentage; // Assuming discount is a percentage in the item object.
+    //  const totalBeforeDiscounts = price * quantity;
+    //  const finalTotal = (100 - discount) * totalBeforeDiscounts / 100;
+    //  return total + finalTotal;
+    //}, 0);
+    return 1;
   }
 
   const calculateTotalPriceCart = () => {
-    return cart.reduce((total, item) => {
-      const { quantity, price } = item;
-      const discount = item.discount.percentage; // Assuming discount is a percentage in the item object.
-      const totalBeforeDiscounts = price * quantity;
-      const finalTotal = (100 - discount) * totalBeforeDiscounts / 100;
-      return total + finalTotal;
-    }, 0);
+    //return cart.reduce((total, item) => {
+    //  const { quantity, price } = item;
+    //  const discount = item.discount.percentage; // Assuming discount is a percentage in the item object.
+    //  const totalBeforeDiscounts = price * quantity;
+    //  const finalTotal = (100 - discount) * totalBeforeDiscounts / 100;
+    //  return total + finalTotal;
+    //}, 0);
+    return 1;
   }
 
   const load = () => {
@@ -148,31 +156,69 @@ const OrderButton = ({location, test}) => {
 
   const total = calculateTotalPrice();
 
+  const onConfirm = () => {
+    // The order has been confirmed
+    makeCashPayment();
+  }
+
+  const onCancel = () => {
+    // The order has been canceled
+    dispatch(resetIntentToPay());
+  }
+
+  const makeOnlinePayment = () => {
+    dispatch(triggerLoading());
+    dispatch(resetIntentToPay());
+    console.log("Make payment with Square");
+    navigate(Paths.CONFIRMATION);
+  }
+
+  const makeCashPayment = () => {
+    //confirmation received from buyer
+    //make payment with cash
+    dispatch(triggerLoading());
+    console.log("Make payment with cash");
+    dispatch(resetIntentToPay());
+    navigate(Paths.CONFIRMATION);
+    
+  }
+
+  const triggerIntentToMakeCashPayment = () => {
+    dispatch(triggerIntentToPay());
+  }
+
+  const onlinePaymentButtonDetails = {
+    visible: visible,
+    generalContent: `Pay Now $${total.toFixed(2)}`,
+    generalClassName: "home-page-and-product-page-online-payment-button",
+    activeAction: makeOnlinePayment,
+  }
+
+  const inPersonPaymentButtonDetails = {
+    visible: visible && payNotClicked,
+    generalContent: "Cash",
+    generalClassName: "home-page-and-product-page-in-person-payment-button",
+    activeAction: triggerIntentToMakeCashPayment,
+  }
+
+  const inPersonPaymentConfirmationButtonDetails = {
+    visible:  visible && payClicked && notAdjustedForPhone,
+    generalContent: `Confirm $${total.toFixed(2)}`,
+    generalClassName: "home-page-and-product-page-in-person-payment-confirmation-button",
+    activeAction: makeCashPayment,
+  }
+
+  const buttonsDetails = [
+    onlinePaymentButtonDetails,
+    inPersonPaymentButtonDetails,
+    inPersonPaymentConfirmationButtonDetails
+  ]
+
 
   return (
     <>
-    <button className={`order-button square ${disabled?'disabled':''}`} onClick={makePaymentWithSquare}>
-      {
-        false?
-        <span style={{fontWeight: "600", fontSize:"1.5rem"}} >
-        Confirm ${total.toFixed(2)}
-        </span>:
-        <span>
-        Pay Now ${total.toFixed(2)}
-        </span>
-      }
-    </button>    
-    <button className={`order-button cash ${payClicked?'confirm-stage':''} ${disabled?'disabled':''}`} onClick={makePaymentWithCash}>
-      {
-        payClicked?
-        <span style={{fontWeight: "600", fontSize:"1.5rem"}} >
-        Confirm ${total.toFixed(2)}
-        </span>:
-        <span>
-        Cash 
-        </span>
-      }
-    </button>    
+      <SwipeConfirmation active={mobileScreenConfirmation} onCancel={onCancel} onConfirm={onConfirm} />    
+      <ButtonsContainer buttonsDetails={buttonsDetails}/>
     </>
   );
 };

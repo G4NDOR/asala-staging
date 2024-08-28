@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector } from'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import Paths from '../constants/navigationPages';
@@ -11,10 +12,13 @@ const ConfirmationPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(10); // Set the timer to 10 seconds
+  const homePageVisited = useSelector(state => state.appVars.homePageVisited);
   const success = true;
 
   useEffect(() => {
-    dispatch(resetLoading());
+    if (homePageVisited){
+      dispatch(resetLoading());
+    }
   
     return () => {
       dispatch(triggerLoading());

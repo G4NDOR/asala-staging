@@ -3,119 +3,355 @@
 const DEFAULT_VALUES = {
     COMMIT_NUMBER: 5,
     PRODUCT:   {
-        id: 1,
-        name: "Product",
-        price: 1.00,
-        status: "present",
-        description: "",
-        
-        fullDescription: "",
-        'image-src':
-          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-        'images-src': [
+      "id": "",
+      "is-default-value": true,
+      "preorder-period-in-hours": 48,
+      "full-images-src": [
+        "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"
+      ],
+      "category": "",//category id
+      "compare-price": 2,
+      "in-stock": true,
+      "matching-products": [
+        ""//a matching product ID
+      ],
+      "images-src": [
         "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-        ],
-        fullImages: [
-          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-        ],
-        wishes: 0,
-        available: false,
-        producer: "Asala",
-        producerImage: "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-        availableTime: "",//"Mo,Tu,We,Th,Fr 8-5",
-        quantity: 0,
-        discount: 0,
-        'is-default-value': true,
-        'stock': 1,
-        'prep-time-in-minutes': 20,
-        'in-stock': true,
-        'keywords':[
-          "Product",
-        ]
-      },
-    PRODUCTS: [
+        "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"
+      ],
+      "keywords": [
+        "n",
+        "na",
+        "nam",
+        "name",
+        "ame",
+        "me",
+        "a",
+        "e",
+        "am"
+      ],
+      "full-name": "product name",
+      "discounts": [
         {
-          id: 1,
-          name: "Product 1",
-          price: 10.3,
-          status: "present",
-          description: " little short description...",
-          
-          fullDescription: `I want to make a product page, where if you click on a product you get redirected to this page, I want you to give me a ProductPage.js and a ProductPage.css files knowing that:
-      I want the page to be simple and nice looking with good design, clean, not too much stuff. also responsive and conveniant for mobile phones, I want it to have a bar on top where it prompts for an adress (that's the adress that the order will be delivered to), maybe if you include a prompt in the search bar that fades when costumer start typing would be nice, make sure to make it ask for precice adress, and have a little field (for any notes or requests or description ) that pops up when costumer have selected an adress. make sure the search bar for adress, lets costumer type in an adress and shows suggestion for it, so that the costumer have to choose from the list, the final adress is an option from the list not what the costumer writes. after that, I want it to be thin not taking too much space, just like a bar on top, and the description field that pops up under it. then have a big image slider, taking up the screen's width, with some arrows for costumers to go through pictures. after that I want the ame of the product maybe under the image slider to the left with nice big font, that is also responsive. after that a small image in   a circle with a name under it for the producer, this line should be under the product name. after that I want to have under that a description, where there's more detail about the product, description taking up screen width, if it's too long, show some and hide the rest,  have a little arrow that suggest to read more if you click it. so that if you click it you have a nice little animation where the where the description expands vertically, make sure you have the option to collapse it back. make sure everything is layed out in a nice way, responsive and friendly to the costumer. evrythingis easy to figure out. without confusing the costumer. `,
-          image:
-            "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-          images: [
-          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-          "https://www.eatright.org/-/media/images/eatright-landing-pages/foodgroupslp_804x482.jpg?as=0&w=967&rev=d0d1ce321d944bbe82024fff81c938e7&hash=E6474C8EFC5BE5F0DA9C32D4A797D10D",
-          ],
-          fullImages: [
-            "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-            "https://www.eatright.org/-/media/images/eatright-landing-pages/foodgroupslp_804x482.jpg?as=0&w=967&rev=d0d1ce321d944bbe82024fff81c938e7&hash=E6474C8EFC5BE5F0DA9C32D4A797D10D",
-          ],
-          wishes: 500,
-          available: true,
-          producer: "Asala",
-          producerImage: "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-          availableTime: "Mo,Tu,We,Th,Fr 8-5",
-          quantity: 4,
-          discount: 10,
-        },
-        {
-          id: 2,
-          name: "Product 2",
-          price: 20.0,
-          status: "future",
-          description: " little short description...",
-          
-          fullDescription: `I want to make a product page, where if you click on a product you get redirected to this page, I want you to give me a ProductPage.js and a ProductPage.css files knowing that:
-      I want the page to be simple and nice looking with good design, clean, not too much stuff. also responsive and conveniant for mobile phones, I want it to have a bar on top where it prompts for an adress (that's the adress that the order will be delivered to), maybe if you include a prompt in the search bar that fades when costumer start typing would be nice, make sure to make it ask for precice adress, and have a little field (for any notes or requests or description ) that pops up when costumer have selected an adress. make sure the search bar for adress, lets costumer type in an adress and shows suggestion for it, so that the costumer have to choose from the list, the final adress is an option from the list not what the costumer writes. after that, I want it to be thin not taking too much space, just like a bar on top, and the description field that pops up under it. then have a big image slider, taking up the screen's width, with some arrows for costumers to go through pictures. after that I want the ame of the product maybe under the image slider to the left with nice big font, that is also responsive. after that a small image in   a circle with a name under it for the producer, this line should be under the product name. after that I want to have under that a description, where there's more detail about the product, description taking up screen width, if it's too long, show some and hide the rest,  have a little arrow that suggest to read more if you click it. so that if you click it you have a nice little animation where the where the description expands vertically, make sure you have the option to collapse it back. make sure everything is layed out in a nice way, responsive and friendly to the costumer. evrythingis easy to figure out. without confusing the costumer. `,
-          image:
-            "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-          images: [
-          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-          "https://www.eatright.org/-/media/images/eatright-landing-pages/foodgroupslp_804x482.jpg?as=0&w=967&rev=d0d1ce321d944bbe82024fff81c938e7&hash=E6474C8EFC5BE5F0DA9C32D4A797D10D",
-          ],
-          fullImages: [
-            "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-            "https://www.eatright.org/-/media/images/eatright-landing-pages/foodgroupslp_804x482.jpg?as=0&w=967&rev=d0d1ce321d944bbe82024fff81c938e7&hash=E6474C8EFC5BE5F0DA9C32D4A797D10D",
-          ],
-          wishes: 700,
-          available: true,
-          producer: "Asala",
-          producerImage: "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-          availableTime: "Mo,Tu,We,Th,Fr 8-5",
-          quantity: 5,
-          discount: 0,
-        },
-        {
-          id: 3,
-          name: "Product 3",
-          price: 30.0,
-          status: "future",
-          description: " little short description...",
-          
-          fullDescription: `I want to make a product page, where if you click on a product you get redirected to this page, I want you to give me a ProductPage.js and a ProductPage.css files knowing that:
-      I want the page to be simple and nice looking with good design, clean, not too much stuff. also responsive and conveniant for mobile phones, I want it to have a bar on top where it prompts for an adress (that's the adress that the order will be delivered to), maybe if you include a prompt in the search bar that fades when costumer start typing would be nice, make sure to make it ask for precice adress, and have a little field (for any notes or requests or description ) that pops up when costumer have selected an adress. make sure the search bar for adress, lets costumer type in an adress and shows suggestion for it, so that the costumer have to choose from the list, the final adress is an option from the list not what the costumer writes. after that, I want it to be thin not taking too much space, just like a bar on top, and the description field that pops up under it. then have a big image slider, taking up the screen's width, with some arrows for costumers to go through pictures. after that I want the ame of the product maybe under the image slider to the left with nice big font, that is also responsive. after that a small image in   a circle with a name under it for the producer, this line should be under the product name. after that I want to have under that a description, where there's more detail about the product, description taking up screen width, if it's too long, show some and hide the rest,  have a little arrow that suggest to read more if you click it. so that if you click it you have a nice little animation where the where the description expands vertically, make sure you have the option to collapse it back. make sure everything is layed out in a nice way, responsive and friendly to the costumer. evrythingis easy to figure out. without confusing the costumer. `,
-          image:
-            "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-          images: [
-          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-          "https://www.eatright.org/-/media/images/eatright-landing-pages/foodgroupslp_804x482.jpg?as=0&w=967&rev=d0d1ce321d944bbe82024fff81c938e7&hash=E6474C8EFC5BE5F0DA9C32D4A797D10D",
-          ],
-          fullImages: [
-            "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-            "https://www.eatright.org/-/media/images/eatright-landing-pages/foodgroupslp_804x482.jpg?as=0&w=967&rev=d0d1ce321d944bbe82024fff81c938e7&hash=E6474C8EFC5BE5F0DA9C32D4A797D10D",
-          ],
-          wishes: 50,
-          available: true,
-          producer: "Asala",
-          producerImage: "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-          availableTime: "Mo,Tu,We,Th,Fr 8-5",
-          quantity: 15,
-          discount: 50,
+          "active": false,
+          "description": "10% off on all snacks",
+          "quantity": 1,
+          "type": "percentage",
+          "value": 10,
+          "apply-on-single-item": true
         },
       ],
+      "wishes": [
+        ""//customer id
+      ],
+      "prep-time-in-minutes": 20,
+      "price": 1.0,
+      "image-src": "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+      "name": "product",
+      "quantity": 1,
+      "producer": {
+        "id": "1IdZty4OGvALtPdXZ0X1",
+        "name": "Asala"
+      },
+      "available": false,
+      "stock": 1,
+      "hours": [
+        {
+          "end": "05:00 PM",
+          "start": "08:00 AM"
+        }
+      ],
+      "status": "present",
+      "day-specific-hours-set": false,
+      "description": " little short description...",
+      "days": [
+        "Mo",
+        "Tu",
+        "We",
+        "Th",
+        "Fr",
+        "Sa",
+        "Su"
+      ],
+      "full-description": "this is full description...",
+      "preorder-set": false,
+      "time-created": {
+        "seconds": 1724468698,
+        "nanoseconds": 772000000
+      }
+    },
+    PRODUCTS: [
+      {
+        "id": "",
+        "is-default-value": true,
+        "preorder-period-in-hours": 48,
+        "full-images-src": [
+          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"
+        ],
+        "category": "category ID",
+        "compare-price": 2,
+        "in-stock": true,
+        "matching-products": [
+          "a matching product ID"
+        ],
+        "images-src": [
+          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"
+        ],
+        "keywords": [
+          "n",
+          "na",
+          "nam",
+          "name",
+          "ame",
+          "me",
+          "a",
+          "e",
+          "am"
+        ],
+        "full-name": "product name",
+        "discounts": [
+          {
+            "active": true,
+            "value": 10,
+            "type": "percentage",
+            "description": "10% off on all snacks"
+          },
+          {
+            "active": false,
+            "value": 10,
+            "type": "fixed",
+            "description": "10 ($) off on all snacks",
+          }
+        ],
+        "wishes": [
+          ""
+        ],
+        "prep-time-in-minutes": 20,
+        "price": 1.0,
+        "image-src": "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+        "name": "product",
+        "quantity": 1,
+        "producer": {
+          "id": "1IdZty4OGvALtPdXZ0X1",
+          "name": "Asala"
+        },
+        "available": true,
+        "stock": 1,
+        "hours": [
+          {
+            "end": "05:00 PM",
+            "start": "08:00 AM"
+          }
+        ],
+        "status": "present",
+        "day-specific-hours-set": false,
+        "description": " little short description...",
+        "days": [
+          "Mo",
+          "Tu",
+          "We",
+          "Th",
+          "Fr",
+          "Sa",
+          "Su"
+        ],
+        "full-description": "this is full description...",
+        "preorder-set": false,
+        "time-created": {
+          "seconds": 1724468698,
+          "nanoseconds": 772000000
+        }
+      },
+      {
+        "id": "",
+        "is-default-value": true,
+        "preorder-period-in-hours": 48,
+        "full-images-src": [
+          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"
+        ],
+        "category": "category ID",
+        "compare-price": 2,
+        "in-stock": true,
+        "matching-products": [
+          "a matching product ID"
+        ],
+        "images-src": [
+          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"
+        ],
+        "keywords": [
+          "n",
+          "na",
+          "nam",
+          "name",
+          "ame",
+          "me",
+          "a",
+          "e",
+          "am"
+        ],
+        "full-name": "product name",
+        "discounts": [
+          {
+            "active": true,
+            "value": 10,
+            "type": "percentage",
+            "description": "10% off on all snacks"
+          },
+          {
+            "active": false,
+            "value": 10,
+            "type": "fixed",
+            "description": "10 ($) off on all snacks",
+          }
+        ],
+        "wishes": [
+          ""
+        ],
+        "prep-time-in-minutes": 20,
+        "price": 1.0,
+        "image-src": "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+        "name": "product",
+        "quantity": 1,
+        "producer": {
+          "id": "1IdZty4OGvALtPdXZ0X1",
+          "name": "Asala"
+        },
+        "available": true,
+        "stock": 1,
+        "hours": [
+          {
+            "end": "05:00 PM",
+            "start": "08:00 AM"
+          }
+        ],
+        "status": "present",
+        "day-specific-hours-set": false,
+        "description": " little short description...",
+        "days": [
+          "Mo",
+          "Tu",
+          "We",
+          "Th",
+          "Fr",
+          "Sa",
+          "Su"
+        ],
+        "full-description": "this is full description...",
+        "preorder-set": false,
+        "time-created": {
+          "seconds": 1724468698,
+          "nanoseconds": 772000000
+        }
+      },
+      {
+        "id": "",
+        "is-default-value": true,
+        "preorder-period-in-hours": 48,
+        "full-images-src": [
+          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"
+        ],
+        "category": "category ID",
+        "compare-price": 2,
+        "in-stock": true,
+        "matching-products": [
+          "a matching product ID"
+        ],
+        "images-src": [
+          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+          "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"
+        ],
+        "keywords": [
+          "n",
+          "na",
+          "nam",
+          "name",
+          "ame",
+          "me",
+          "a",
+          "e",
+          "am"
+        ],
+        "full-name": "product name",
+        "discounts": [
+          {
+            "active": true,
+            "value": 10,
+            "type": "percentage",
+            "description": "10% off on all snacks"
+          },
+          {
+            "active": false,
+            "value": 10,
+            "type": "fixed",
+            "description": "10 ($) off on all snacks",
+          }
+        ],
+        "wishes": [
+          ""
+        ],
+        "prep-time-in-minutes": 20,
+        "price": 1.0,
+        "image-src": "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+        "name": "product",
+        "quantity": 1,
+        "producer": {
+          "id": "1IdZty4OGvALtPdXZ0X1",
+          "name": "Asala"
+        },
+        "available": true,
+        "stock": 1,
+        "hours": [
+          {
+            "end": "05:00 PM",
+            "start": "08:00 AM"
+          }
+        ],
+        "status": "present",
+        "day-specific-hours-set": false,
+        "description": " little short description...",
+        "days": [
+          "Mo",
+          "Tu",
+          "We",
+          "Th",
+          "Fr",
+          "Sa",
+          "Su"
+        ],
+        "full-description": "this is full description...",
+        "preorder-set": false,
+        "time-created": {
+          "seconds": 1724468698,
+          "nanoseconds": 772000000
+        }
+      }
+    ],
+    ANNOUNCEMENT: {
+      "id": "8jLZ5kgY9Ur65eSKWTYS",
+      "image-src": "https://via.placeholder.com/150",
+      "description": "Discover our latest addition to the menu! A delightful blend of traditional spices.",
+      "title": "New Moroccan Dish",
+      "time-created": {
+        "seconds": 1724468698,
+        "nanoseconds": 772000000
+      },
+      "is-default-value": true
+    },
+    ANNOUNCEMENTS: [
+      {
+        "id": "8jLZ5kgY9Ur65eSKWTYS",
+        "image-src": "https://via.placeholder.com/150",
+        "description": "Discover our latest addition to the menu! A delightful blend of traditional spices.",
+        "title": "New Moroccan Dish",
+        "time-created": {
+          "seconds": 1724468698,
+          "nanoseconds": 772000000
+        },
+        "is-default-value": true
+      }
+    ],
     IMAGES:[
       "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
     ],
@@ -124,24 +360,31 @@ const DEFAULT_VALUES = {
     CONTENT: "Discover our amazing products and services!",
     IP_ADDRESS: "",
     CUSTOMER_DETAILS:{
-      id: "",
-      'ip_address': "",
-      name: "",
-      email: "",
-      phone: "",
-      'address-list': [
+      "id": "",
+      "last-name": "",
+      "address-list": [
         {
-          geopoint:{
-            lat: 37.7749,
-            lng: -122.4194,
-          },
-          string: "1600 Amphitheatre Parkway, Mountain View, CA 94"
+          "string": "",//1600 Amphitheatre Parkway, Mountain View, CA 94
+          "geopoint": {
+            "latitude": 0,//37.7749,
+            "longitude": 0//-122.4194
+          }
         }
       ],
-      notes: "",
-      'is-default-value': true,
+      "user-name": "username",
+      "orders": [],
+      "ip-address": "",
+      "first-name": "",
+      "image-src": "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+      "phone-number": 0,
+      "email": "",
+      "is-default-value": true,
+      "time-created": {
+        "seconds": 1724468698,
+        "nanoseconds": 772000000
+      }
     },
-    CUSTOMER_ID: "",
+    CUSTOMER_ID: null,
     PRODUCER_DETAILS:{
       active: true,
       commission: 15,
@@ -153,6 +396,11 @@ const DEFAULT_VALUES = {
         '2',
         '3',
       ],
+      "time-created": {
+        "seconds": 1724468698,
+        "nanoseconds": 772000000
+      },
+      "is-default-value": true
     },
     API_KEY: "AIzaSyCRJxYr_MhIKXIg-uIOsaMv64T2RzN4DEI",
     SLIDER_SETTINGS: {
@@ -208,6 +456,33 @@ const DEFAULT_VALUES = {
         console.log("Not active action");
       },
       params:{}
+    },
+    REVIEW: {
+      "content": "Write a review...",
+      "customer-id": null,//customer id
+      "is-default-value": true,
+      "product": null,//product id
+      "rating": 0,
+      //"title": "",
+      "time-created": {
+        "seconds": 1724468698,
+        "nanoseconds": 772000000
+        },
+    },
+    CART: {
+      "is-default-value": true,
+      "items": [
+        //{id: "product id", quantity: 2},
+      ],
+      "status": "active",
+      "time-created": {
+        "seconds": 1724468698,
+        "nanoseconds": 772000000
+      },
+      "updated-at": {
+        "seconds": 1724468698,
+        "nanoseconds": 772000000
+      },
     }
   };
   

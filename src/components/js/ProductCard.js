@@ -68,23 +68,24 @@ const ProductCard = ({product}) => {
     dispatch(setProductSelectedId(DEFAULT_VALUES.PRODUCT.id));
   }
 
+    //util functions for button actions
+    const goToProductPage = ({product}) => {
+      dispatch(triggerLoading());
+      dispatch(setProduct(product));
+      navigate(Paths.PRODUCT);   
+    }
+
   // buttons needed for the product card
   const BuyItemButtonDetails = {
-    active: true,
     visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock,
     activeContent: "Buy Now",
     generalClassName: "home-page-product-card-buy-item-button",
-    activeAction: ({product}) => {
-      dispatch(triggerLoading());
-      dispatch(setProduct(product));
-      navigate(Paths.PRODUCT);
-    },
+    activeAction: goToProductPage,
     params:{
       product
     }
   }
   const AddToCartButtonDetails = {
-    active: true,
     visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock,
     activeContent: "Add to Cart",
     generalClassName: "home-page-product-card-add-to-cart-button",
@@ -104,21 +105,19 @@ const ProductCard = ({product}) => {
     }
   }
   const notInStockButtonDetails = {
-    active: false,
     visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productNotInStock,
     generalContent: "Sold out",
     generalClassName: "home-page-product-card-not-in-stock-button",
+    activeAction: goToProductPage,
+    params:{
+      product
+    }
   }
   const ItemUnavailableButtonDetails = {
-    active: true,
     visible: productIsRealeasedToPublic && productExists && weAreNotInOperatingTime,
     activeContent: "Unavailable",
     generalClassName: "home-page-product-card-item-unavailable-button",
-    activeAction: ({product}) => {
-      dispatch(triggerLoading());
-      dispatch(setProduct(product));
-      navigate(Paths.PRODUCT);      
-    },
+    activeAction: goToProductPage,
     params:{
       product
     }
@@ -140,6 +139,8 @@ const ProductCard = ({product}) => {
       id: id,
     }
   }
+
+
   
 
   const buttonsDetails = [

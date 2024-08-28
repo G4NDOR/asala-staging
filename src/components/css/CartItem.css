@@ -48,7 +48,8 @@
 
 .cart-item-discount-total {
   font-size: 1rem;
-  color: #e91e63;
+  color: #000000;
+  font-weight: 600;
 }
 
 .cart-item-discount {

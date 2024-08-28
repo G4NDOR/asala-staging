@@ -20,7 +20,7 @@ const TRIGGER_INTENT_TO_PAY = 'orderManager/triggerIntentToPay';
 const RESET_INTENT_TO_PAY = 'orderManager/resetIntentToPay';
 const TRIGGER_INTENT_TO_PAY_CONFIRMED = 'orderManager/triggerIntentToPayConfirmed';
 const RESET_INTENT_TO_PAY_CONFIRMED = 'orderManager/resetIntentToPayConfirmed';
-
+const SET_CART_LOADED_FROM_STORAGE = 'orderManager/setCartLoadedFromStorage';
 
 
 
@@ -28,6 +28,7 @@ const RESET_INTENT_TO_PAY_CONFIRMED = 'orderManager/resetIntentToPayConfirmed';
 const initialState = {
     cartIsOpen: false,
     cart: [], // Array to hold cart items
+    cartLoadedFromStorage: false, // New boolean to indicate if cart data has been loaded from storage
     cartIsEmpty: true,  // New boolean to indicate if the cart is empty
     oneItemCheckout: [],   // Add this to manage a single product
     unseenChanges: false, // New boolean to track unseen changes
@@ -222,6 +223,8 @@ export default function orderManager(state = initialState, action) {
             return { ...state, intentToPayConfirmed: true };
         case RESET_INTENT_TO_PAY_CONFIRMED:
             return { ...state, intentToPayConfirmed: false };            
+        case SET_CART_LOADED_FROM_STORAGE:
+            return { ...state, cartLoadedFromStorage: action.cartLoadedFromStorage };
         default:
             return state;
     }
@@ -323,6 +326,11 @@ export const triggerIntentToPayConfirmed = () => ({
 
 export const resetIntentToPayConfirmed = () => ({
     type: RESET_INTENT_TO_PAY_CONFIRMED,
+});
+
+export const setCartLoadedFromStorage = (cartLoadedFromStorage) => ({
+    type: SET_CART_LOADED_FROM_STORAGE,
+    cartLoadedFromStorage
 });
 
 

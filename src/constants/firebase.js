@@ -15,6 +15,7 @@ export const FIREBASE_CLLECTIONS_NAMES = {
     PRODUCERS: 'producers',
     REVIEWS: 'reviews',
     DYNAMIC_OUTPUT: 'dynamic-output',
+    CARTS: 'carts',
 }
 
 export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
@@ -25,7 +26,6 @@ export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
         DESCRIPTION: 'description',
         IMAGE_URL: 'image-src',
         CATEGORY: 'category',
-        PRODUCER_ID: 'producerId',
         STOCK: 'stock',
         AVAILABLE: 'available',
         KEYWORDS: 'keywords',
@@ -40,6 +40,11 @@ export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
         PREP_TIME_IN_MINUTES: 'prep-time-in-minutes',
         STATUS: 'status',
         IN_STOCK: 'in-stock',
+        DISCOUNTS: 'discounts',
+        MATCHING_PRODUCTS: 'matching-products',
+        PRODUCER: 'producer',
+        FULL_NAME: 'full-name',
+        QUANTITY: 'quantity',
     },
     DYNAMIC_OUTPUT: {
         CONTENT: 'content',
@@ -47,6 +52,17 @@ export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
     },
     CUSTOMERS: {
         IP_ADDRESS: 'ip-address',
+        ADDRESSES: 'address-list',
+    },
+    TIMESTAMP: 'time-created',
+    ID: 'id',
+    IS_DEFAULT_VALUE: 'is-default-value',
+    CARTS: {
+        IS_DEFAULT_VALUE: 'is-default-value',
+        ITEMS: 'items',
+        STATUS: 'status',
+        TIMESTAMP: 'time-created',
+        UPDATED_AT: 'updated-at',
     },
 }
 
@@ -82,5 +98,46 @@ export const FIREBASE_DOCUMENTS_FEILDS_UNITS = {
             present: 'present',
             future: 'future',
         },
+        DISCOUNTS: {
+            TYPE: {
+                FIXED: 'fixed',
+                PERCENTAGE: 'percentage',
+            },
+        },
     }
+}
+
+//feild value of a feild
+export const FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES = {
+    PRODUCTS: {
+        DISCOUNTS: {
+            TYPE: 'type',
+            VALUE: 'value',
+            DESCRIPTION: 'description',
+            ACTIVE: 'active',
+            QUANTITY: 'quantity',
+            APPLY_ON_SINGLE_ITEM: 'apply-on-single-item',
+            
+        },
+        PRODUCER: {
+            ID: 'id',
+            NAME: 'name',
+        },
+        ADDRESS_LIST: {
+            GEOPOINT: 'geopoint',
+            STRING: 'string',
+        },
+    },
+    CUSTOMERS: {
+        ADDRESSES: {
+            GEOPOINT: 'geopoint',
+            STRING:'string',
+        },
+    },
+    CARTS: {
+        ITEMS: {
+            ID: 'id',
+            QUANTITY: 'quantity',
+        },
+    },
 }

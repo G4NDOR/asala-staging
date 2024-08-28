@@ -10,21 +10,29 @@ import { resetLoading, triggerLoading } from "../redux/ducks/appVars";
 import LoadingAnimation from "../components/js/LoadingAnimation";
 import Paths from "../constants/navigationPages";
 import { useNavigate } from "react-router-dom";
+import { saveOrUpdateCartItemToLocalStorage, updateCartItemsInFirebaseFromProductObjList } from "../utils/firestoreUtils";
 
 const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const cartIsEmpty = useSelector((state) => state.orderManager.cartIsEmpty);
+  const cart = useSelector(state => state.orderManager.cart);
+  const cartLoadedFromStorage = useSelector(state => state.orderManager.cartLoadedFromStorage);
   const homePageVisited = useSelector(state => state.appVars.homePageVisited);
   const homePageNotVisited = !homePageVisited;
 
   useEffect(() => {
-    //behind scenes work
-    if (homePageVisited) load(); // make sure he came from home page
+    
+    // make sure visitor came from home page, not from baseurl/cart
+    if (homePageVisited) {
+      //behind scenes work
+      load()
+      //done with behind scenes work
+      dispatch(resetLoading());      
+    }
 
 
-    //done with behind scenes work
-    dispatch(resetLoading());
+
 
 
     return () => {
@@ -37,6 +45,21 @@ const CartPage = () => {
       navigate(Paths.HOME);
     }
   }, [navigate]);
+
+  useEffect(() => {
+    //update cart when changed
+    //updateCartItemsInFirebaseFromProductObjList
+    //console.log('cart updated: ', cart);
+    //console.log('cart loaded from storage: ', cartLoadedFromStorage);
+    if (cartLoadedFromStorage) {
+      saveOrUpdateCartItemToLocalStorage(cart);
+      updateCartItemsInFirebaseFromProductObjList(cart);
+    };
+    return () => {
+      //save changes to firestore when leaving cart view
+      //if(inCart) updateCartItemsInFirebaseFromProductObjList(cart);
+    }
+  }, [cart])  
 
   const products = [
     {

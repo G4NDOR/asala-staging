@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 import { useDispatch, useSelector } from 'react-redux';
 import DEFAULT_VALUES from '../../constants/defaultValues';
-import { setAddress, setNotes } from '../../redux/ducks/productPageManager';
+import { addAddress, setAddress, setNotes } from '../../redux/ducks/productPageManager';
 import '../css/AddressSelector.css';
 
 const AddressSelector = () => {
@@ -12,7 +12,7 @@ const AddressSelector = () => {
   const apiKey = DEFAULT_VALUES.API_KEY;//process.env.GOOGLE_API_KEY
 
   useEffect(() => {
-    console.log(address);
+    console.log('address: useeffect addressSelector',address);
   
     return () => {
       
@@ -20,7 +20,10 @@ const AddressSelector = () => {
   }, [address]);
   
   const onAddresschnaged = (address) => {
-    dispatch(setAddress(address.label));
+    console.log('address changed', address);
+    const value = address.label;
+    dispatch(setAddress(value));
+    dispatch(addAddress(value));
   }
 
   const noNotesChanged = (notes)=> {
@@ -33,6 +36,7 @@ const AddressSelector = () => {
         apiKey={apiKey}
         selectProps={{
           value: address,
+          label: 'Current Address',
           onChange: onAddresschnaged,
           placeholder: ".  Enter delivery address",
           styles: {

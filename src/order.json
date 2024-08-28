@@ -1,0 +1,58 @@
+{
+    "orderId": "abc123",
+    "customerId": "customer789",
+    "orderDate": "2024-08-27T12:34:56Z",
+    "status": "paid",
+    "totalAmount": 100.00,
+    "discountAmount": 10.00,
+    "finalAmount": 90.00,
+    "paymentMethod": "Credit Card",
+    "paymentStatus": "paid",
+    "customerName": "John Doe",
+    "customerEmail": "johndoe@example.com",
+    "customerPhone": "+1234567890",
+    "customerAddress": {
+      "streetAddress": "123 Main St",
+      "city": "Anytown",
+      "state": "CA",
+      "zipCode": "90210",
+      "country": "USA"
+    },
+    "items": [
+      {
+        "productId": "prod1",
+        "productName": "Product 1",
+        "quantity": 2,
+        "price": 25.00,
+        "discount": 5.00,
+        "finalPrice": 45.00
+      },
+      {
+        "productId": "prod2",
+        "productName": "Product 2",
+        "quantity": 1,
+        "price": 50.00,
+        "discount": 0,
+        "finalPrice": 50.00
+      }
+    ],
+    "shippingMethod": "Standard Shipping",
+    "shippingCost": 5.00,
+    "trackingNumber": "TRACK12345",
+    "deliveryDate": "2024-08-30T12:00:00Z",
+    "taxAmount": 7.50,
+    "taxPercentage": 7.5,
+    "appliedDiscounts": [
+      {
+        "discountId": "disc123",
+        "description": "Summer Sale",
+        "amount": 10.00
+      }
+    ],
+    "notes": "Leave the package at the front door.",
+    "receiptId": "rcpt123",
+    "createdBy": "admin123",
+    "updatedBy": "admin456",
+    "lastUpdated": "2024-08-27T14:00:00Z"
+  }
+  

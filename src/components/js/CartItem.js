@@ -3,14 +3,34 @@
 import React from "react";
 import "../css/CartItem.css";
 import QuantityControl from "./QuantityControl";
+import { FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
+import DEFAULT_VALUES from "../../constants/defaultValues";
+import { calculatePrice, findAppliedDiscount } from "../../utils/appUtils";
 
 const CartItem = ({ item, listIdentifier }) => {
   //const { image, name, price } = item;
   const { id, quantity, name, price } = item;
   const image = item['image-src'];
-  const discountPercentage = item.discount.percentage;
+  //name of a field, 
+  const discounts = item[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DISCOUNTS}`];
+  
+  const appliedDiscount = findAppliedDiscount(discounts, quantity);
+  
+  //name of a field of a feild, name of a nested feild
+  const appliedDiscountExists = appliedDiscount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.ACTIVE}`];//since default value will be false by default unless there's a discount
+  const appliedDiscountValue = appliedDiscount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.VALUE}`];
   const totalBeforeDiscounts = price * quantity;
-  const FinalTotal = (100-discountPercentage)*totalBeforeDiscounts/100;
+  const FinalTotal = calculatePrice(discounts, price, quantity);
+
+  const discountAppliedOnSingleItem = appliedDiscount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.APPLY_ON_SINGLE_ITEM}`];
+  const discountType = appliedDiscount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.TYPE}`];
+  const discountFixed = discountType === FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.DISCOUNTS.TYPE.FIXED;
+  const discountPercentage = discountType === FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.DISCOUNTS.TYPE.PERCENTAGE;
+  const discountUnit = `${discountFixed? '$': (discountPercentage? '%': '')}`;
+  const discountString = `(${appliedDiscountValue}${discountUnit} off${discountAppliedOnSingleItem? ' each': ''})`;
+
+
+
 
   return (
     <div className="cart-item-wrapper">
@@ -28,12 +48,12 @@ const CartItem = ({ item, listIdentifier }) => {
           </p>
         </div>
         <div className="cart-item-total">
-          {discountPercentage ? (
+          {appliedDiscountExists ? (
             <>
               <p className="cart-item-total-before-discounts">
                 <span className="before-discounts-text" >${totalBeforeDiscounts.toFixed(2)}</span>
                 <span className="cart-item-discount">
-                  ({discountPercentage}% off)
+                  {discountString}
                 </span>
               </p>
               <p className="cart-item-discount-total">${
