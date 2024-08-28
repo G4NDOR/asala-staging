@@ -729,8 +729,8 @@ const loadCartItemsFromFirebaseAndLocalStorage = async (customerId) => {
     //get cart from firebase
     const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
     const fetchedCart = await getDocument(docPath);
-    const itemsListInCartObjFromFirebase = fetchedCart[`${itemsListFeildNameInCartObj}`];//returns [{id:itemId, quantity: itemQuantity},...]
     const noCartInFirebase =!fetchedCart;
+    const itemsListInCartObjFromFirebase = noCartInFirebase? []: fetchedCart[`${itemsListFeildNameInCartObj}`];//returns [{id:itemId, quantity: itemQuantity},...]
     if (noCartInFirebase) {
       //no cart in firebase, 
       //create a new cart in firebase with local storage cart info, and default values
