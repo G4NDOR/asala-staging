@@ -108,7 +108,7 @@ const Home = () => {
     dispatch(setCart(data.cart));
     dispatch(setCartLoadedFromStorage(true));
     dispatch(setAddresses(data.addresses));
-    dispatch(setAddress(data.addresses[0]));
+    if(data.addresses.length > 0) dispatch(setAddress(data.addresses[0]));
     dispatch(setFirstTimePageVisit(false));
 
     //done with behind scenes work

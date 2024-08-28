@@ -953,7 +953,7 @@ export const loadHomeData = async () => {
     const customerAddresses = customer[addressesFeildName].map(address => address[`${addressStringFeildName}`]);
     const customerHasAnAddress = customerAddresses.length > 0;
     const defaultAddress = DEFAULT_VALUES.CUSTOMER_DETAILS[addressesFeildName][0];
-    const addresses = customerHasAnAddress? customerAddresses : [defaultAddress];
+    const addresses = customerAddresses;//customerHasAnAddress? customerAddresses : [defaultAddress];
     
 
     const homeData = {
