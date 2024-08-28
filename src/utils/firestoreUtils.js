@@ -719,17 +719,21 @@ const loadCartItemsFromFirebaseAndLocalStorage = async (customerId) => {
   const itemsListFromLocalStorageCart = getItemsListFromLocalStorageCart(cartFromLocalStorage);//returns [{id:itemId, quantity: itemQuantity},...]
   const productObjListFromLocalStorage = await getProductsListFromFirebaseUsingItemsListInCartObj(itemsListFromLocalStorageCart);//returns [productObj1, productObj2, ...]
   console.log("productObjListFromLocalStorage is: ", productObjListFromLocalStorage);
+  console.log("productObjListFromLocalStorage is: ", productObjListFromLocalStorage);
+  if (!customerId) return defaultCart;
+  const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
   // if there's cart info in local storage, use it instead of default value: []
   if (productObjListFromLocalStorage && productObjListFromLocalStorage.length > 0) {
     //there's cart info in local storage
     //if there's no customer id, return cart items from local storage, and that's it
     //not probabal since customer is is also retreived from local storage like cart info 
     //no customerId => probably cookiess have been wiped => cart in local storage is wiped too
-    if (!customerId) return productObjListFromLocalStorage;
+    //if (!customerId) return productObjListFromLocalStorage;
     //get cart from firebase
-    const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
+    
     const fetchedCart = await getDocument(docPath);
     const noCartInFirebase =!fetchedCart;
+    console.log("noCartInFirebase is: ", noCartInFirebase);
     const itemsListInCartObjFromFirebase = noCartInFirebase? []: fetchedCart[`${itemsListFeildNameInCartObj}`];//returns [{id:itemId, quantity: itemQuantity},...]
     if (noCartInFirebase) {
       //no cart in firebase, 
@@ -748,6 +752,9 @@ const loadCartItemsFromFirebaseAndLocalStorage = async (customerId) => {
   
   //there's no cart info in local storage => no cart items in firebase, since localStorage is updated more frequent,
   // and it's the only way to recognize a user for now, (no authentication)
+  //create a new cart in firebase
+  const dataToSave = defaultCart;
+  await setDocument(docPath, dataToSave);
   // return default cart items []
   return defaultCartItems;
 
