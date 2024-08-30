@@ -5,7 +5,7 @@ import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import Paths from '../constants/navigationPages';
 import '../styles/ConfirmationPage.css';
 import { useDispatch } from 'react-redux';
-import { resetLoading, triggerLoading } from '../redux/ducks/appVars';
+import { resetLoading, setCurrentPage, triggerLoading } from '../redux/ducks/appVars';
 import LoadingAnimation from '../components/js/LoadingAnimation';
 
 const ConfirmationPage = () => {
@@ -25,12 +25,18 @@ const ConfirmationPage = () => {
     }
   }, [])
 
+  //navigate function to change pages
+  const navigateToPage = (path) => {
+    dispatch(setCurrentPage(path));
+    navigate(path);
+  }  
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
         if (prevTime === 1) {
           clearInterval(timer);
-          navigate(Paths.HOME);
+          navigateToPage(Paths.HOME);
         }
         return prevTime - 1;
       });
@@ -60,7 +66,7 @@ const ConfirmationPage = () => {
         <p className="redirect-message">
           Redirecting to the home page in {timeLeft} seconds...
         </p>
-        <button className="continue-button" onClick={() => navigate(Paths.HOME)}>
+        <button className="continue-button" onClick={() => navigateToPage(Paths.HOME)}>
           Continue Shopping
         </button>
       </div>

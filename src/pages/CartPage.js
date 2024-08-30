@@ -6,20 +6,28 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CART } from "../constants/stateKeys";
 import GoHomeBtn from "../components/js/GoHomeBtn";
 import OrderButton from "../components/js/OrderButton";
-import { resetLoading, triggerLoading } from "../redux/ducks/appVars";
+import { resetLoading, triggerLoading, setCurrentPage } from "../redux/ducks/appVars";
 import LoadingAnimation from "../components/js/LoadingAnimation";
 import Paths from "../constants/navigationPages";
 import { useNavigate } from "react-router-dom";
 import { saveOrUpdateCartItemToLocalStorage, updateCartItemsInFirebaseFromProductObjList } from "../utils/firestoreUtils";
+import Cart from "../components/js/Cart";
+import AddressSelector from "../components/js/AddressSelector";
+import Slider from "react-slick";
+import DEFAULT_VALUES from "../constants/defaultValues";
+import AddressSlide from "../components/js/AddressSlide";
 
 const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const addresses = useSelector(state => state.productPageManager.addresses);
   const cartIsEmpty = useSelector((state) => state.orderManager.cartIsEmpty);
   const cart = useSelector(state => state.orderManager.cart);
   const cartLoadedFromStorage = useSelector(state => state.orderManager.cartLoadedFromStorage);
   const homePageVisited = useSelector(state => state.appVars.homePageVisited);
   const homePageNotVisited = !homePageVisited;
+  const currentPage = useSelector(state => state.appVars.currentPage);
+  const isCartPage = currentPage == Paths.CART;
 
   useEffect(() => {
     
@@ -116,26 +124,39 @@ const CartPage = () => {
 
   };
 
+    //navigate function to change pages
+    const navigateToPage = (path) => {
+      dispatch(setCurrentPage(path));
+      navigate(path);
+    }
+
+  const closeCart = () => {
+    //behind scenes work
+    // save cart data to the backend
+    // navigate to home page
+    navigateToPage(Paths.HOME);
+  };
+
   return (
-    <div className="container" style={{}}>
+    <div className="cart-page-container" style={{}}>
       <LoadingAnimation/>
       <GoHomeBtn/>
+      <span className="close-btn" onClick={closeCart}>X</span>
+      <h3 style={{padding:'8px'}}>Your Cart</h3>
       
-      <div className="cart-items-wrapper" style={{
-      
-      }}>
-        {
-          !cartIsEmpty ? (
-            <CheckOutItemsList listIdentifier={CART}/>
-          ) : (
-            <p className="cart-empty-text">Your cart is empty</p>
-          )
-        }
+      <div className="cart-items-wrapper">
+        <CheckOutItemsList />
       </div>
+      <AddressSelector visible={!cartIsEmpty}/>
+      <section className={`cart-page-my-slider-section ${cartIsEmpty? 'invisible':''}`}>
+        <Slider {...DEFAULT_VALUES.SLIDER_SETTINGS}>
+          {
+            addresses.map((v,i) => <AddressSlide key={i} address={v} id={i} />)
+          }
+        </Slider>
+      </section>      
       {
-        cartIsEmpty?
-        <></>:
-        <OrderButton location={Paths.CART} />
+        <OrderButton />
       }
       {
         //<Payment/> when payment is integrated into the website

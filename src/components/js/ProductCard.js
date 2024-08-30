@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DEFAULT_VALUES from "../../constants/defaultValues";
 import { FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
 import Paths from "../../constants/navigationPages";
-import { addToWishList, triggerLoading } from "../../redux/ducks/appVars";
+import { addToWishList, setCurrentPage, triggerLoading } from "../../redux/ducks/appVars";
 import { setProductSelectedId } from "../../redux/ducks/homePageManager";
 import { addItemToCart, resetAnimation, triggerAnimation, triggerUnseenChanges } from "../../redux/ducks/orderManager";
 import { setProduct } from "../../redux/ducks/productPageManager";
@@ -62,6 +62,12 @@ const ProductCard = ({product}) => {
   const prepTimeInfo = preOrderSet?'':prepTimeInfoString;
   
 
+  //navigate function to change pages
+  const navigateToPage = (path) => {
+    dispatch(setCurrentPage(path));
+    navigate(path);
+  }
+
 
 
   const deselect = () => {
@@ -72,7 +78,7 @@ const ProductCard = ({product}) => {
     const goToProductPage = ({product}) => {
       dispatch(triggerLoading());
       dispatch(setProduct(product));
-      navigate(Paths.PRODUCT);   
+      navigateToPage(Paths.PRODUCT);   
     }
 
   // buttons needed for the product card

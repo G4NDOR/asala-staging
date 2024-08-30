@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import CONSTANTS from '../../constants/appConstants';
 import Paths from '../../constants/navigationPages';
-import { resetLoading, triggerLoading } from '../../redux/ducks/appVars';
+import { resetLoading, setCurrentPage, triggerLoading } from '../../redux/ducks/appVars';
 import { addSearchItems, resetSearching, setLastSearchedDoc, setSearchBarIsOpen, setSearchItems, setSearchTerm, triggerSearching } from '../../redux/ducks/homePageManager';
 import { loadSearchResultsProducts } from '../../utils/firestoreUtils';
 import '../css/SearchItem.css';
@@ -25,7 +25,7 @@ const SearchItem = () => {
             //dispatch(setLoad)
             dispatch(setSearchTerm(''));
             dispatch(resetSearching());
-            navigate(Paths.HOME);
+            navigateToPage(Paths.HOME);
         }  // Reset searching when closed;
         setIsOpen(!isOpen);
         
@@ -46,6 +46,12 @@ const SearchItem = () => {
         const searchValue = e.target.value;
         dispatch(setSearchTerm(searchValue));
     };
+
+    //navigate function to change pages
+    const navigateToPage = (path) => {
+        dispatch(setCurrentPage(path));
+        navigate(path);
+    }    
 
     const submitSearch = async () => {
         dispatch(triggerLoading());
@@ -70,7 +76,7 @@ const SearchItem = () => {
         dispatch(setLastSearchedDoc(lastFetchedSearchedItem));
         dispatch(resetLoading());
 
-        navigate(Paths.SEARCH)
+        navigateToPage(Paths.SEARCH)
     }
 
     const handleKeyDown = (e) => {

@@ -3,7 +3,7 @@ import { FaPlus } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 import { FIREBASE_DOCUMENTS_FEILDS_NAMES } from '../../constants/firebase';
 import { addOneItemCheckout } from '../../redux/ducks/orderManager';
-import { calculatePrice } from '../../utils/appUtils';
+import { calculatePriceForItem } from '../../utils/appUtils';
 import '../css/UpSell.css'; // Import the CSS file for styling
 import UpsellBtn from './UpsellBtn';
 
@@ -21,10 +21,10 @@ const UpSell = ({  }) => {
           const id = item[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.ID}`];
           const imageUrl = item[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.IMAGE_URL}`];
           const name = item[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.NAME}`];
-          const discounts = item[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DISCOUNTS}`];
+          const appliedDiscount = null;
           const price = item[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PRICE}`];
           const quantity = 1; // Default quantity for upsell items is 1
-          const FinalPrice = calculatePrice(discounts, price, quantity);
+          const FinalPrice = calculatePriceForItem(appliedDiscount, price, quantity);
 
           return (
             <div key={id} className="upsell-item">

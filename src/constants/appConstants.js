@@ -14,7 +14,23 @@ const CONSTANTS = {
             ORDER_KEY: 'order',
             USER_ID_KEY: 'user-id'
         }
-    }
+    },
+    CHARGE_INFO_TYPES:{
+        SUBTOTAL: 'subtotal',
+        DISCOUNT: 'discount',
+        DELIVERY: 'delivery',
+        TAX: 'tax',
+        TOTAL: 'total',
+        SAVINGS:'savings'
+    },
+    PAYMENT_METHODS: {
+        CREDIT_CARD: 'Credit Card',
+        PAYPAL: 'PayPal',
+        GOOGLE_PAY: 'Google Pay',
+        APPLE_PAY: 'Apple Pay',
+        ONLINE: 'Online',
+        CASH: 'Cash'
+    },
 };
 
 export default CONSTANTS;

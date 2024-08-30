@@ -6,6 +6,7 @@ const Paths = {
     PRODUCT: '/product',
     CONFIRMATION:'/confirmation',
     SEARCH: '/search',
+    ADMIN: '/admin',
     // Add more paths as needed
   };
   

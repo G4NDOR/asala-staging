@@ -1,3 +1,20 @@
+# suggestion to improve product model
+    //AND the customer is logged in
+    //AND the customer is a premium user
+    //AND the customer has enough points to make the purchase
+    //AND the customer has not exceeded the maximum purchase limit for this product
+    //AND the customer has not exceeded the maximum purchase limit for this merchant
+    //AND the customer has not exceeded the maximum purchase limit for this product category
+    //AND the customer has not exceeded the maximum purchase limit for this brand
+    //AND the customer has not exceeded the maximum purchase limit for this season
+    //AND the customer has not exceeded the maximum purchase limit for this country
+    //AND the customer has not exceeded the maximum purchase limit for this region
+    //AND the customer has not exceeded the maximum purchase limit for this product type
+    //AND the customer has not exceeded the maximum purchase limit for this product color
+    //AND the customer has not exceeded the maximum purchase limit for this product size
+    //AND the customer has not exceeded the maximum purchase limit for this product style
+
+
 # ChatGpt promts
 here's html :
       <div className="cart-icon" onClick={toggleCart}>

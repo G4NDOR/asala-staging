@@ -21,6 +21,12 @@ import Receipt from "../components/js/Receipt";
 import ButtonsContainer from "../components/js/ButtonsContainer";
 import { FIREBASE_CLLECTIONS_NAMES } from "../constants/firebase";
 import { createAndDownloadJSON } from "../utils/getJsonFile";
+import CartPage from "./CartPage";
+import CONSTANTS from "../constants/appConstants";
+import ConfirmationInfo from "../components/js/ConfirmationInfo";
+import Form from "../components/js/Form";
+import EmailInput from "../components/js/EmailInput";
+import PhoneNumberInput from "../components/js/PhoneNumberInput";
 
 
 
@@ -102,7 +108,6 @@ const Home = () => {
     dispatch(setWelcomeSectionTitle(data.welcomeSectionTitle));
     dispatch(setCustomerId(data.customerId));
     dispatch(setCustomerDetails(data.customer));
-    console.log("data.cart: ", data.cart);
     //if there's cart data from previous session show that to visitor
     if (data.cart.length > 0) showUnseenChangesIndicator();
     dispatch(setCart(data.cart));
@@ -171,17 +176,17 @@ const Home = () => {
   const appStyle = {
     //padding: '20px',
     fontFamily: "Arial, sans-serif",
-    maxWisth: '100vw',
+    maxWiDth: '100vw',
     overFlow: 'hidden'
   };
 
   const containerStyle = {
     //width: '90%',
     //maxWidth: '1200px',
-    margin: "0 auto",
     //padding: '20px 0',
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: '#f8f9fa'
   };
 
   return (
@@ -191,7 +196,7 @@ const Home = () => {
         //<L2/>
       }
       
-      <div style={containerStyle}>
+      <div className="container" style={containerStyle}>
         
         
         <SearchItem />
@@ -226,8 +231,12 @@ const Home = () => {
         {
           //<Receipt/>
         }
-        
-        
+        {
+          //<ConfirmationInfo paymentMethod={CONSTANTS.PAYMENT_METHODS.CASH}/>
+        }
+        {
+          //<Form />
+        }
       </div>
     </div>
   );

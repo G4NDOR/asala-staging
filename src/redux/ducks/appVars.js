@@ -1,6 +1,7 @@
 // redux/ducks/appVars.js
 
 import DEFAULT_VALUES from "../../constants/defaultValues";
+import Paths from "../../constants/navigationPages";
 
 const TRIGGER_LOADING = 'appVars/triggerLoading';
 const RESET_LOADING = 'appVars/resetLoading';
@@ -11,6 +12,7 @@ const SET_SCREEN_WIDTH_IS_LESS_THAN_800 = 'appVars/setScreenWidthIsLessThan800';
 const SET_WISH_LIST = 'appVars/setWishList';
 const ADD_TO_WISH_LIST = 'appVars/addToWishList';
 const SET_HOME_PAGE_VISITED = 'appVars/setHomePageVisited';
+const SET_CURRENT_PAGE = 'appVars/setCurrentPage';
 
 
 const initialState = {
@@ -21,6 +23,7 @@ const initialState = {
     screenWidthIsLessThan800:false,
     wishList: [],  // Assuming wishList is a boolean value
     homePageVisited: false, 
+    currentPage: Paths.HOME,  // Assuming currentPage is a string
 };
 
 export default function appVars(state = initialState, action) {
@@ -69,6 +72,11 @@ export default function appVars(state = initialState, action) {
             return { 
                ...state,
                 homePageVisited: action.homePageVisited
+            };
+        case SET_CURRENT_PAGE:
+            return { 
+               ...state,
+                currentPage: action.currentPage
             };
             
         // Add other actions here as needed
@@ -119,4 +127,9 @@ export const addToWishList = (itemId) => ({
 export const setHomePageVisited = (homePageVisited) => ({
     type: SET_HOME_PAGE_VISITED,
     homePageVisited: homePageVisited
+});
+
+export const setCurrentPage = (currentPage) => ({
+    type: SET_CURRENT_PAGE,
+    currentPage: currentPage
 });

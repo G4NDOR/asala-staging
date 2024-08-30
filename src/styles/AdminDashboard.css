@@ -1,0 +1,13 @@
+/* AdminDashboard.css */
+.admin-dashboard {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+}
+  
+  .admin-dashboard h1 {
+    margin-bottom: 1.5rem;
+  }
+  

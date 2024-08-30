@@ -362,15 +362,7 @@ const DEFAULT_VALUES = {
     CUSTOMER_DETAILS:{
       "id": "",
       "last-name": "",
-      "address-list": [
-        {
-          "string": "",//1600 Amphitheatre Parkway, Mountain View, CA 94
-          "geopoint": {
-            "latitude": 0,//37.7749,
-            "longitude": 0//-122.4194
-          }
-        }
-      ],
+      "address-list": [],
       "user-name": "username",
       "orders": [],
       "ip-address": "",
@@ -470,6 +462,7 @@ const DEFAULT_VALUES = {
         },
     },
     CART: {
+      "id": "",
       "is-default-value": true,
       "items": [
         //{id: "product id", quantity: 2},
@@ -483,6 +476,28 @@ const DEFAULT_VALUES = {
         "seconds": 1724468698,
         "nanoseconds": 772000000
       },
+    },
+    DISCOUNT:{
+      "name": "general 10% dicount",
+      "id": "1",
+      "active": false,
+      "apply-on-single-item": true,
+      "customer": "", //customer id or 'all' (means for all customers)
+      "description": "10% off on all snacks",
+      "expiration": null,
+      "max-uses": 10,
+      "product": "",// product id or 'all' (means for all products)
+      "quantity": 3,
+      "type": "percentage",//or fixed
+      "value": 10,
+      "is-default-value": true,
+      "time-created": {
+        "seconds": 1724468698,
+        "nanoseconds": 772000000
+      },
+      "opposing-discounts": [
+        //ids of dicounts that can't be used when this one is used
+      ]
     }
   };
   

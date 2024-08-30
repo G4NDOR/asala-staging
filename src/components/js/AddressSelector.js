@@ -5,7 +5,7 @@ import DEFAULT_VALUES from '../../constants/defaultValues';
 import { addAddress, setAddress, setNotes } from '../../redux/ducks/productPageManager';
 import '../css/AddressSelector.css';
 
-const AddressSelector = () => {
+const AddressSelector = ({visible=true}) => {
   const dispatch = useDispatch();
   const address = useSelector(state => state.productPageManager.address);
   const notes = useSelector(state => state.productPageManager.notes);
@@ -31,7 +31,7 @@ const AddressSelector = () => {
   }
 
   return (
-    <div className="address-selector">
+    <div className={`address-selector ${visible? '':'invisible'}`}>
       <GooglePlacesAutocomplete
         apiKey={apiKey}
         selectProps={{

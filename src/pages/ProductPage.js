@@ -69,6 +69,12 @@ const ProductPage = () => {
     const preOrderInfoString = `pre Order (${preOderPeriod}${FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.PREORDER_PERIOD_IN_HOURS})`;
     const availabilityInfoString = preOrderSet? preOrderInfoString : operatingTime;
 
+    //allow customer to checkout if the product is released to the public
+    //AND product Exists
+    //AND the merchant is in operating time to sell this product
+    //AND the product is in stock
+    const checkoutAvailable = productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock;
+
 
   useEffect(() => {
     //console.log(product);
@@ -175,11 +181,11 @@ const ProductPage = () => {
         null
       }
       {
-        productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock?
+        checkoutAvailable?
         <div className="order-summary" >
           <h2 style={{marginLeft:'15px'}}>Order Summary</h2>
-          <CheckOutItemsList listIdentifier={ONE_ITEM_CHECKOUT}/>
-          <OrderButton location={Paths.PRODUCT} />
+          <CheckOutItemsList />
+          <OrderButton />
           {
             //<Payment/> when payment is integrated into the website
           }

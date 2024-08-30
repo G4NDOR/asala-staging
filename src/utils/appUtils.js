@@ -240,11 +240,11 @@ export const generateButtonDetails = ({
   //************************************************************************************************  
 
 
+  //checks if the discount should be applied based on the quantity of the item purchased.
   export const findAppliedDiscount = (discounts, quantity) => {
-    let appliedDiscount = DEFAULT_VALUES.PRODUCT[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DISCOUNTS}`][0];
-    const activeDiscounts = discounts.filter(discount => (discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.ACTIVE}`]));        
-    const appliedDiscountBasedOnQuantity = activeDiscounts.filter(discount => {
-      const quantityOnwhichDiscountApplies = discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.QUANTITY}`];
+    let appliedDiscount = null;
+    const appliedDiscountBasedOnQuantity = discounts.filter(discount => {
+      const quantityOnwhichDiscountApplies = discount[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DISCOUNTS.QUANTITY}`];
       const discountShouldApply = quantity >= quantityOnwhichDiscountApplies;
       return discountShouldApply;
     });    
@@ -253,36 +253,39 @@ export const generateButtonDetails = ({
     return appliedDiscount;
   }
 
-  const getPriceWithDiscountApplied = (discount, price) => {
+  //returns the new price based on the old price and the discount amount and its type.
+  export const getPriceWithDiscountApplied = (discount, price) => {
     let amountTobeSubtracted = 0;
-    const discountExists = discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.ACTIVE}`];//if there's none, discount will be default value which has "active" set to false
-    const discountType = discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.TYPE}`];
-    const discountValue = discount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.VALUE}`];
-    const DISCOUNT_TYPE_OPTION_1 = FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.DISCOUNTS.TYPE.PERCENTAGE;
-    const DISCOUNT_TYPE_OPTION_2 = FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.DISCOUNTS.TYPE.FIXED;
-    if (discountExists) {
-      switch (discountType) {
-        case DISCOUNT_TYPE_OPTION_1:
-          amountTobeSubtracted = (discountValue * price) / 100;          
-          break;
-    
-        case DISCOUNT_TYPE_OPTION_2:
-          amountTobeSubtracted = discountValue;          
-          break;
-        default:
-          break;
-      }
+    const discountType = discount[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DISCOUNTS.TYPE}`];
+    const discountValue = discount[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DISCOUNTS.VALUE}`];
+    const DISCOUNT_TYPE_PERCENTAGE = FIREBASE_DOCUMENTS_FEILDS_UNITS.DISCOUNTS.TYPE.PERCENTAGE;
+    const DISCOUNT_TYPE_FIXED = FIREBASE_DOCUMENTS_FEILDS_UNITS.DISCOUNTS.TYPE.FIXED;
+    switch (discountType) {
+      case DISCOUNT_TYPE_PERCENTAGE:
+        
+        amountTobeSubtracted = (discountValue * price) / 100;   
+             
+        break;
+  
+      case DISCOUNT_TYPE_FIXED:
+        amountTobeSubtracted = discountValue;          
+        break;
+      default:
+        break;
     }
-    const priceWithDiscountApplied = price - amountTobeSubtracted;    
+
+    const priceWithDiscountApplied = price - amountTobeSubtracted; 
+    if (priceWithDiscountApplied < 0) return 0;  // In case the discounted price becomes negative, return 0 instead.
     return priceWithDiscountApplied;
   }
 
 
-
-  export const calculatePrice = (discounts, price, quantity) => {    
-    const appliedDiscount = findAppliedDiscount(discounts, quantity);
+  //returns the total price for the given item after applying the discount.
+  export const calculatePriceForItem = (appliedDiscount, price, quantity) => {   
+    //const appliedDiscount = findAppliedDiscount(discounts, quantity);
     let total = price * quantity;
-    const applyOnSingleItem = appliedDiscount[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.DISCOUNTS.APPLY_ON_SINGLE_ITEM}`];
+    if (!appliedDiscount) return total;
+    const applyOnSingleItem = appliedDiscount[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DISCOUNTS.APPLY_ON_SINGLE_ITEM}`];
     if (applyOnSingleItem) {
       const singleItemPriceWithDiscountApplied = getPriceWithDiscountApplied(appliedDiscount, price);
       total = singleItemPriceWithDiscountApplied * quantity;
@@ -291,13 +294,59 @@ export const generateButtonDetails = ({
       total = getPriceWithDiscountApplied(appliedDiscount, priceBasedOnQuantity);
     }
     
-    
     return total;
   }
 
 
 
 
+  
+
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************  
+
+
+
+  
+const totalWithAppliedNonQuantityDiscounts = (discounts, total) => {
+  if(discounts.length === 0) return total;
+  const discount = discounts[0];
+  const leftDiscounts = discounts.slice(1);
+  const totalAfterNonQuantityDiscount = getPriceWithDiscountApplied(discount, total);
+  return totalWithAppliedNonQuantityDiscounts(leftDiscounts, totalAfterNonQuantityDiscount);
+}
+
+// Calculate total price
+export const calculateTotalPrice = (products, selectedDiscounts, usedCredit) => {
+  const totalOfAllItems = products.reduce((total, item) => {
+    const { id, quantity, price } = item;
+    const discounts = selectedDiscounts.filter(discount => {
+      const discountBelongsToThisProduct = discount.product === id;
+      return discountBelongsToThisProduct;
+    });      
+    const appliedDiscount = findAppliedDiscount(discounts, quantity);
+    const totalOfThisItem = calculatePriceForItem(appliedDiscount, price, quantity);    
+    return total + totalOfThisItem;
+  }, 0);
+  //discounts that apply to final price not affected by specific items quantities
+  const nonQuantityDiscounts = selectedDiscounts.filter(discount => discount.quantity === 0);
+  const totalBeforecredit = totalWithAppliedNonQuantityDiscounts(nonQuantityDiscounts, totalOfAllItems);
+  const finalTotal = totalBeforecredit - usedCredit;
+  if (finalTotal < 0) return 0;  //if used credit is more than total
+  return finalTotal;
+};
+
+  
   
 
   //************************************************************************************************

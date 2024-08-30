@@ -1,0 +1,21 @@
+.checkout-apply-discount{
+    display: flex;
+    width: 100%;
+}
+
+.checkout-apply-discount p{
+    margin: 0;
+}
+
+.fetch-discounts-btn{
+    color: rgb(61, 61, 61);
+    padding: 5px;
+    border-radius: 10px;
+    border: 1px solid rgb(124, 124, 124);
+    width: 100%;
+    cursor: pointer;
+}
+
+ .invisible{
+    display: none;
+}

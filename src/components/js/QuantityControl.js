@@ -6,20 +6,28 @@ import { AiOutlineMinus } from "react-icons/ai";
 import {useSelector, useDispatch} from 'react-redux';
 import { decreaseOneItemQuantity, decreaseQuantity, increaseOneItemQuantity, increaseQuantity } from '../../redux/ducks/orderManager';
 import { CART, ONE_ITEM_CHECKOUT } from '../../constants/stateKeys';
+import Paths from '../../constants/navigationPages';
 
-const QuantityControl = ({ id, quantity, listIdentifier }) => {
+const QuantityControl = ({ id, quantity }) => {
   const dispatch = useDispatch();
+  const currentPage = useSelector(state => state.appVars.currentPage);
+  const isProductPage = currentPage === Paths.PRODUCT;
+  const isCartPage = currentPage === Paths.CART;
+  const isHomePage = currentPage === Paths.HOME;
+
+  // cart is showen in home page as a window or in cart page
+  const isCart = isCartPage || isHomePage;
 
   const onDecrease = () => {
-    if (listIdentifier == CART)
+    if (isCart)
       dispatch(decreaseQuantity(id));
-    if (listIdentifier == ONE_ITEM_CHECKOUT)
+    if (isProductPage)
       dispatch(decreaseOneItemQuantity(id));
   }
   const onIncrease = () => {
-    if (listIdentifier == CART)
+    if (isCart)
       dispatch(increaseQuantity(id));
-    if (listIdentifier == ONE_ITEM_CHECKOUT)
+    if (isProductPage)
       dispatch(increaseOneItemQuantity(id));
   }
   return (

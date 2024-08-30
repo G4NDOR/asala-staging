@@ -1,0 +1,60 @@
+/* Add to SelectInput.css */
+.select-input {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.select-input select {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+  appearance: none;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.select-input select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.select-input label {
+  position: absolute;
+  top: -0.5rem;
+  left: 1rem;
+  font-size: 16px;
+  color: #888;
+}
+
+/* SelectInput.css */
+
+.select-input-container {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.select-input-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.select-input-select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.select-input-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(38, 143, 255, 0.2);
+}

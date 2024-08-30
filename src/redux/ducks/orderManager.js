@@ -21,7 +21,21 @@ const RESET_INTENT_TO_PAY = 'orderManager/resetIntentToPay';
 const TRIGGER_INTENT_TO_PAY_CONFIRMED = 'orderManager/triggerIntentToPayConfirmed';
 const RESET_INTENT_TO_PAY_CONFIRMED = 'orderManager/resetIntentToPayConfirmed';
 const SET_CART_LOADED_FROM_STORAGE = 'orderManager/setCartLoadedFromStorage';
-
+const SET_PAYMENT_METHOD = 'orderManager/setPaymentMethod';
+const SET_DISCOUNTS = 'orderManager/setDiscounts';
+const ADD_DISCOUNT = 'orderManager/addDiscount';
+const REMOVE_DISCOUNT = 'orderManager/removeDiscount';
+const SET_SELECTED_DISCOUNTS = 'orderManager/setSelectedDiscounts';
+const SELECT_DISCOUNT = 'orderManager/selectDiscount';
+const DESELECT_DISCOUNT = 'orderManager/deselectDiscount';
+const SET_DISCOUNT_MESSAGE = 'orderManager/setDiscountMessage';
+const SET_DISCOUNTS_LOOKED_UP = 'orderManager/setDiscountsLookedUp';
+const SET_USED_CREDIT = 'orderManager/setUsedCredit';
+const BAN_DISCOUNT = 'orderManager/banDiscount';
+const UNBAN_DISCOUNT = 'orderManager/unbanDiscount';
+const SET_NAME = 'orderManager/setName';
+const SET_EMAIL = 'orderManager/setEmail';
+const SET_PHONE = 'orderManager/setPhone';
 
 
 
@@ -35,7 +49,18 @@ const initialState = {
     isAnimated:false,
     mainOneItemCheckoutId: '',
     intentToPay:false,
-    intentToPayConfirmed:false
+    intentToPayConfirmed:false,
+    emptyList: [],
+    paymentMethod: '',
+    discounts: [],
+    selectedDiscounts: [],
+    bannedDiscountsIds: [],
+    discountMessage: '',
+    discountsLookedUp: false,
+    usedCredit: 0,
+    name: '',
+    email: '',
+    phone: '',
 }
 
 export default function orderManager(state = initialState, action) {
@@ -225,6 +250,79 @@ export default function orderManager(state = initialState, action) {
             return { ...state, intentToPayConfirmed: false };            
         case SET_CART_LOADED_FROM_STORAGE:
             return { ...state, cartLoadedFromStorage: action.cartLoadedFromStorage };
+        case SET_PAYMENT_METHOD:
+            return { ...state, paymentMethod: action.paymentMethod };
+        case SET_DISCOUNTS:
+            return { ...state, discounts: action.discounts };
+        case ADD_DISCOUNT:
+            return { 
+               ...state,
+                discounts: [...state.discounts, action.discount]
+            };
+        case REMOVE_DISCOUNT:
+            const _discounts = state.discounts.filter(discount => discount.id!== action.discount.id);
+            return { 
+               ...state,
+                discounts: _discounts
+            };
+        case SET_SELECTED_DISCOUNTS:
+            return { 
+               ...state,
+                selectedDiscounts: action.selectedDiscounts
+            };
+        case SELECT_DISCOUNT:
+            //console.log("SELECT_DISCOUNT: ", action.discount);
+            return { 
+               ...state,
+                selectedDiscounts: [...state.selectedDiscounts, action.discount]
+            };
+        case DESELECT_DISCOUNT:
+            //console.log("DESELECT_DISCOUNT: ", action.discount);
+            const _selectedDiscounts = state.selectedDiscounts.filter(discount => discount.id !== action.discount.id);
+            return { 
+               ...state,
+                selectedDiscounts: _selectedDiscounts
+            };
+        case SET_DISCOUNT_MESSAGE:
+            return { 
+               ...state,
+                discountMessage: action.discountMessage
+            };
+        case SET_DISCOUNTS_LOOKED_UP:
+            return { 
+               ...state,
+                discountsLookedUp: action.discountsLookedUp
+            };
+        case SET_USED_CREDIT:
+            return { 
+               ...state,
+                usedCredit: action.usedCredit
+            };
+        case BAN_DISCOUNT:
+            return { 
+               ...state,
+               bannedDiscountsIds: [...state.bannedDiscountsIds, action.discountId]
+            };
+        case UNBAN_DISCOUNT:
+            return { 
+               ...state,
+               bannedDiscountsIds: state.bannedDiscountsIds.filter(discountId => discountId!== action.discountId)
+            };
+        case SET_NAME:
+            return { 
+               ...state,
+                name: action.name
+            };
+        case SET_EMAIL:
+            return { 
+               ...state,
+                email: action.email
+            };
+        case SET_PHONE:
+            return { 
+               ...state,
+                phone: action.phone
+            };
         default:
             return state;
     }
@@ -333,4 +431,78 @@ export const setCartLoadedFromStorage = (cartLoadedFromStorage) => ({
     cartLoadedFromStorage
 });
 
+export const setPaymentMethod = (paymentMethod) => ({
+    type: SET_PAYMENT_METHOD,
+    paymentMethod
+})
+
+export const setDiscounts = (discounts) => ({
+    type: SET_DISCOUNTS,
+    discounts
+})
+
+export const addDiscount = (discount) => ({
+    type: ADD_DISCOUNT,
+    discount
+})
+
+export const removeDiscount = (discount) => ({
+    type: REMOVE_DISCOUNT,
+    discount
+})
+
+export const setSelectedDiscounts = (selectedDiscounts) => ({
+    type: SET_SELECTED_DISCOUNTS,
+    selectedDiscounts
+})
+
+export const selectDiscount = (discount) => ({
+    type: SELECT_DISCOUNT,
+    discount
+})
+
+export const deselectDiscount = (discount) => ({
+    type: DESELECT_DISCOUNT,
+    discount
+})
+
+export const setDiscountMessage = (discountMessage) => ({
+    type: SET_DISCOUNT_MESSAGE,
+    discountMessage
+})
+
+export const setDiscountsLookedUp = (discountsLookedUp) => ({
+    type: SET_DISCOUNTS_LOOKED_UP,
+    discountsLookedUp
+})
+
+export const setUsedCredit = (usedCredit) => ({
+    type: SET_USED_CREDIT,
+    usedCredit
+})
+
+export const banDiscount = (discountId) => ({
+    type: BAN_DISCOUNT,
+    discountId
+})
+
+export const unbanDiscount = (discountId) => ({
+    type: UNBAN_DISCOUNT,
+    discountId
+})
+
+export const setName = (name) => ({
+    type: SET_NAME,
+    name
+})
+
+export const setEmail = (email) => ({
+    type: SET_EMAIL,
+    email
+})
+
+export const setPhone = (phone) => ({
+    type: SET_PHONE,
+    phone
+})
 

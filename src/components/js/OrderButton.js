@@ -5,33 +5,76 @@ import "../css/OrderButton.css";
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Paths from '../../constants/navigationPages';
-import { resetIntentToPay, resetIntentToPayConfirmed, triggerIntentToPay, triggerIntentToPayConfirmed } from "../../redux/ducks/orderManager";
-import { resetLoading, triggerLoading } from "../../redux/ducks/appVars";
+import { resetIntentToPay, resetIntentToPayConfirmed, setPaymentMethod, triggerIntentToPay, triggerIntentToPayConfirmed } from "../../redux/ducks/orderManager";
+import { resetLoading, setCurrentPage, triggerLoading } from "../../redux/ducks/appVars";
 import ButtonsContainer from "./ButtonsContainer";
 import SwipeConfirmation from "./SwipeConfirmation";
+import CONSTANTS from "../../constants/appConstants";
+import { calculatePriceForItem, calculateTotalPrice, findAppliedDiscount, getPriceWithDiscountApplied } from "../../utils/appUtils";
+import { FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
+import PaymentForm from "./PaymentForm";
 
-const OrderButton = ({location, test}) => {
+const OrderButton = ({test}) => {
   // Retrieve cart from Redux state
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const cart = useSelector(state => state.orderManager.cart);
   const productPageCart = useSelector(state => state.orderManager.oneItemCheckout);
+  const usedCredit = useSelector(state => state.orderManager.usedCredit);
+  const paymentMethod = useSelector(state => state.orderManager.paymentMethod);
   const cartIsEmpty = useSelector(state => state.orderManager.cartIsEmpty);
   const cartIsNotEmpty = !cartIsEmpty;
-  const navigate = useNavigate();
+  const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts);
   const adjustedForPhone = useSelector(state => state.appVars.screenWidthIsLessThan480);
-  const notAdjustedForPhone =!adjustedForPhone;
+  const isMobileScreen = adjustedForPhone;
+  const isNotMobileScreen =!isMobileScreen;
   const payClicked = useSelector(state => state.orderManager.intentToPay);
   const payNotClicked = !payClicked;
   const Confirmed = useSelector(state => state.orderManager.intentToPayConfirmed);
-  const isCartPage = (location == Paths.CART);
-  const orderButtonIsActiveInCartPage = cartIsNotEmpty; // active when cart is not empty
-  const orderButtonIsNotActiveInCartPage =!orderButtonIsActiveInCartPage;
-  const isProductPage = (location == Paths.PRODUCT);
-  const orderButtonIsActiveInProductPage = true;// because product page always has a product, by defenition it is a page for a certain product, do there's a product to buy => there should be an order button
-  const orderButtonIsNotActiveInProductPage =!orderButtonIsActiveInProductPage;
-  const hidden = isCartPage? orderButtonIsNotActiveInCartPage : orderButtonIsNotActiveInProductPage;
-  const visible = !hidden;
-  const mobileScreenConfirmation = visible && payClicked && adjustedForPhone;
+  const currentPage = useSelector(state => state.appVars.currentPage);
+  const isHomePage = currentPage == Paths.HOME;
+  const isCartPage = currentPage == Paths.CART;
+
+  //it's the cart component in the home page if the current page is the home page
+  //because order btn is called in cart component in home page, cart page and product page
+  //when in cart page => current page is cart page
+  //when in product page => current page is product page
+  //when in cart component in the home page => current page is home page
+  const isCartComponentInHomePage = isHomePage;
+
+  // if in cart page, order button is active when cart is not empty
+  // active when cart is not empty
+  const orderButtonIsActiveInCartPage = cartIsNotEmpty; 
+
+  // if in cart component in the home page, order button is active: 
+    // when the cart component in the home page is not empty AND it's a mobile screen
+  // because if it's a mobile screen,:
+    // the cart component in the home page is expanded to cover the whole screen,
+    // so it acts as a cart page
+    // people can checkout and make payment in cart component in the home page,
+    // without going to the cart page
+  // if it's not a mobile screen => it's a large screen,
+    //the cart component is only taking a small window in the screen
+    //peope have to go to the cart page to make payment
+  //new update: order button is no longer active in the cart component in the home page
+  const orderButtonIsActiveInCartComponentInHomePage = false;//isMobileScreen && cartIsNotEmpty;
+
+  //  the order btn is in cart (isCart), if it's either the cart component in the home page or the cart page
+  //otherwise, it's in the product page with the one item checkout, (not including cart items when placing order, just items shown in product page)
+  //since those are the only places where order button is visible
+  const isCart = isCartComponentInHomePage || isCartPage;
+
+  const orderButtonIsActiveInCart = isCartComponentInHomePage? orderButtonIsActiveInCartComponentInHomePage: orderButtonIsActiveInCartPage;
+
+
+  // order button is always active in the product page
+  // because product page always has a product,
+  // by defenition it is a page for a certain product,
+  // so there's a product to buy => there should be an order button
+  const orderButtonIsActiveInProductPage = true;
+  const visible = isCart? orderButtonIsActiveInCart : orderButtonIsActiveInProductPage;
+  const mobileScreenConfirmation = visible && payClicked && isMobileScreen;
+  const itemsList = isCart? cart : productPageCart;
 
   useEffect(() => {
     
@@ -42,6 +85,12 @@ const OrderButton = ({location, test}) => {
       dispatch(resetIntentToPay());
     }
   }, [])
+
+  //navigate function to change pages
+  const navigateToPage = (path) => {
+    dispatch(setCurrentPage(path));
+    navigate(path);
+  }  
   
 
   const handleCartBtnClick = () => {
@@ -49,8 +98,8 @@ const OrderButton = ({location, test}) => {
     //  console.log("finalize order");
     //  dispatch(resetIntentToPayConfirmed());
     //  dispatch(triggerIntentToPay());
-    //  if (location == Paths.HOME)
-    //    navigate(Paths.CART); // Programmatically navigate to the /cart route
+    //  if (currentPage == Paths.HOME)
+    //    navigateToPage(Paths.CART); // Programmatically navigate to the /cart route
     //} else {
     //  console.log("call server to make order");
     //  dispatch(triggerIntentToPayConfirmed());
@@ -64,7 +113,7 @@ const OrderButton = ({location, test}) => {
     dispatch(triggerLoading());
     dispatch(resetIntentToPay());
     console.log("Make payment with Square");
-    navigate(Paths.CONFIRMATION);
+    navigateToPage(Paths.CONFIRMATION);
   }
 
   const makePaymentWithCash = () => {
@@ -74,34 +123,12 @@ const OrderButton = ({location, test}) => {
       dispatch(triggerLoading());
       console.log("Make payment with cash");
       dispatch(resetIntentToPay());
-      navigate(Paths.CONFIRMATION);
+      navigateToPage(Paths.CONFIRMATION);
     }else{
       //confirmation not received from buyer
       dispatch(triggerIntentToPay());
     }
     
-  }
-
-  const calculateTotalPriceProductPageCart = () =>   {
-    //return productPageCart.reduce((total, item) => {
-    //  const { quantity, price } = item;
-    //  const discount = item.discount.percentage; // Assuming discount is a percentage in the item object.
-    //  const totalBeforeDiscounts = price * quantity;
-    //  const finalTotal = (100 - discount) * totalBeforeDiscounts / 100;
-    //  return total + finalTotal;
-    //}, 0);
-    return 1;
-  }
-
-  const calculateTotalPriceCart = () => {
-    //return cart.reduce((total, item) => {
-    //  const { quantity, price } = item;
-    //  const discount = item.discount.percentage; // Assuming discount is a percentage in the item object.
-    //  const totalBeforeDiscounts = price * quantity;
-    //  const finalTotal = (100 - discount) * totalBeforeDiscounts / 100;
-    //  return total + finalTotal;
-    //}, 0);
-    return 1;
   }
 
   const load = () => {
@@ -139,26 +166,17 @@ const OrderButton = ({location, test}) => {
   ]  
   */
 
-
-
-  // Calculate total price
-  const calculateTotalPrice = () => {
-    switch (location) {
-      case Paths.PRODUCT:
-        return calculateTotalPriceProductPageCart();
-      case Paths.CART:
-        return calculateTotalPriceCart();
-      default:
-        return 0; // Return 0 if the location is neither product page nor cart.
-    }
-  };
-  
-
-  const total = calculateTotalPrice();
+  const total = calculateTotalPrice(itemsList,selectedDiscounts, usedCredit);
 
   const onConfirm = () => {
     // The order has been confirmed
-    makeCashPayment();
+    const isOnlinePayment = paymentMethod == CONSTANTS.PAYMENT_METHODS.ONLINE;
+    if (isOnlinePayment) {
+      makeOnlinePayment()
+    }else{
+      makeCashPayment()
+    }
+    return;
   }
 
   const onCancel = () => {
@@ -168,30 +186,59 @@ const OrderButton = ({location, test}) => {
 
   const makeOnlinePayment = () => {
     dispatch(triggerLoading());
+    
     dispatch(resetIntentToPay());
     console.log("Make payment with Square");
-    navigate(Paths.CONFIRMATION);
+    navigateToPage(Paths.CONFIRMATION);
   }
 
   const makeCashPayment = () => {
     //confirmation received from buyer
     //make payment with cash
     dispatch(triggerLoading());
-    console.log("Make payment with cash");
+
+
+    
     dispatch(resetIntentToPay());
-    navigate(Paths.CONFIRMATION);
+    console.log("Make payment with cash");
+    navigateToPage(Paths.CONFIRMATION);
     
   }
 
+  const proceedWithPayment = () => {
+    // The order has been confirmed
+    const isOnlinePayment = paymentMethod == CONSTANTS.PAYMENT_METHODS.ONLINE;
+    if (isOnlinePayment) {
+      makeOnlinePayment()
+    }else{
+      makeCashPayment()
+    }
+    return;
+  }
+
   const triggerIntentToMakeCashPayment = () => {
+    
+    const paymentMethod = CONSTANTS.PAYMENT_METHODS.CASH;
     dispatch(triggerIntentToPay());
+    
+    dispatch(setPaymentMethod(paymentMethod))
+  }
+
+  const triggetIntentToMakeOnlinePayment = () => {
+    const paymentMethod = CONSTANTS.PAYMENT_METHODS.ONLINE;
+    //if (isNotMobileScreen) {
+    //  makeOnlinePayment();
+    //  return;
+    //}
+    dispatch(triggerIntentToPay());
+    dispatch(setPaymentMethod(paymentMethod))
   }
 
   const onlinePaymentButtonDetails = {
-    visible: visible,
+    visible: visible && payNotClicked,
     generalContent: `Pay Now $${total.toFixed(2)}`,
     generalClassName: "home-page-and-product-page-online-payment-button",
-    activeAction: makeOnlinePayment,
+    activeAction: triggetIntentToMakeOnlinePayment,
   }
 
   const inPersonPaymentButtonDetails = {
@@ -201,22 +248,31 @@ const OrderButton = ({location, test}) => {
     activeAction: triggerIntentToMakeCashPayment,
   }
 
-  const inPersonPaymentConfirmationButtonDetails = {
-    visible:  visible && payClicked && notAdjustedForPhone,
+  const PaymentConfirmationButtonDetails = {
+    visible:  visible && payClicked && isNotMobileScreen,
     generalContent: `Confirm $${total.toFixed(2)}`,
     generalClassName: "home-page-and-product-page-in-person-payment-confirmation-button",
-    activeAction: makeCashPayment,
+    activeAction: proceedWithPayment,
+  }
+
+  const cancelPaymentButtonDetails = {
+    visible: visible && payClicked && isNotMobileScreen,
+    generalContent: "Cancel",
+    generalClassName: "home-page-and-product-page-cancel-payment-button",
+    activeAction: onCancel,
   }
 
   const buttonsDetails = [
     onlinePaymentButtonDetails,
     inPersonPaymentButtonDetails,
-    inPersonPaymentConfirmationButtonDetails
+    PaymentConfirmationButtonDetails,
+    cancelPaymentButtonDetails
   ]
 
 
   return (
     <>
+      <PaymentForm visible={visible}/>
       <SwipeConfirmation active={mobileScreenConfirmation} onCancel={onCancel} onConfirm={onConfirm} />    
       <ButtonsContainer buttonsDetails={buttonsDetails}/>
     </>

@@ -1,0 +1,19 @@
+.checkout-contact-info{
+    width: 100%;
+}
+
+.checkout-contact-info-merchant-name {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .checkout-contact-info-content {
+    text-align: center;
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .checkout-contact-info-content span {
+    display: block;
+  }

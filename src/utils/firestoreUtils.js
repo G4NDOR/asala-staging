@@ -22,7 +22,7 @@ import {
   startAfter,
   Timestamp
 } from 'firebase/firestore';
-import { FIREBASE_CLLECTIONS_NAMES, FIREBASE_COLLECTIONS_QUERY_LIMIT, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DYNAMIC_OUTPUT_NAMES, TIMESTAMP } from '../constants/firebase';
+import { FIREBASE_CLLECTIONS_NAMES, FIREBASE_COLLECTIONS_QUERY_LIMIT, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS, FIREBASE_DYNAMIC_OUTPUT_NAMES, TIMESTAMP } from '../constants/firebase';
 import { getIpAddress } from './retreiveIP_Address';
 import DEFAULT_VALUES from '../constants/defaultValues';
 import CONSTANTS from '../constants/appConstants';
@@ -255,6 +255,7 @@ export const queryCollection = async (collectionName, field, operator, value) =>
     return data;
   } catch (error) {
     handleError(error);
+    return null;
   }
 };
 
@@ -320,13 +321,16 @@ const updateArrayField = async (docPath, field, elements, operation) => {
     const docRef = doc(db, docPath);
     const update = operation === 'add' ? arrayUnion(...elements) : arrayRemove(...elements);
     await updateDoc(docRef, { [field]: update });
+    return;
   } catch (error) {
     handleError(error);
+    return;
   }
 };
 
 export const addElementsToArrayField = async (docPath, field, elements) => {
   await updateArrayField(docPath, field, elements, 'add');
+  return;
 };
 
 export const removeElementsFromArrayField = async (docPath, field, elements) => {
@@ -400,93 +404,54 @@ export const queryAndOrder = async (collectionName, whereField, whereValue, orde
   } catch (error) {
     // Handle any errors that occur during the query
     handleError(error);
+    return null;
   }
 };
 
-
-// Query and order documents with pagination
+// Query and order documents with pagination and multiple where clauses
 // @param {string} collectionName - The name of the Firestore collection to query.
-// @param {string} whereField - The field to filter documents by.
-// @param {*} whereValue - The value to compare with the whereField.
+// @param {Array<{ field: string, value: any }>} whereClauses - An array of objects with 'field' and 'value' to filter documents.
 // @param {string} orderByField - The field to order the documents by.
 // @param {number} limitNum - The maximum number of documents to retrieve.
+// @param {boolean} ordered - Whether to order the results or not.
+// @param {boolean} limited - Whether to limit the number of results or not.
 // @param {DocumentSnapshot} lastDoc - The last document from the previous query (for pagination).
 // @returns {Promise<Object>} - A promise that resolves to an object containing the array of document data and the last document.
-// @example
-// // Sample Input:
-// const collectionName = 'products';
-// const whereField = 'category';
-// const whereValue = 'coffee';
-// const orderByField = 'price';
-// const limitNum = 3;
-// const lastDoc = null; // or the last document from a previous query
-//
-// // Sample Output:
-// // {
-// //   data: [
-// //     { id: 'doc1', name: 'Moroccan Coffee', category: 'coffee', price: 5 },
-// //     { id: 'doc2', name: 'Espresso', category: 'coffee', price: 7 },
-// //     { id: 'doc3', name: 'Cappuccino', category: 'coffee', price: 6 },
-// //   ],
-// //   lastDoc: <DocumentSnapshot> // The last document in the query results
-// // }
-export const queryAndOrderWithPagination = async (collectionName, whereField, whereValue, orderByField, limitNum, choose=false, ordered = false, limited=true, lastDoc = null) => {
+export const queryAndOrderWithPagination = async (
+  collectionName,
+  whereClauses = [],
+  orderByField = null,
+  limitNum = null,
+  ordered = false,
+  limited = true,
+  lastDoc = null
+) => {
   try {
-    // Create a query against the specified collection, filtering, ordering, and paginating as required
-    let q = null;
-    if(choose && ordered && limited) {        
-      q = query(
-      collection(db, collectionName),
-      where(whereField, '==', whereValue),
-      orderBy(orderByField),
-      limit(limitNum)
-      );
-    } else if (choose && ordered && !limited) {
-      q = query(
-      collection(db, collectionName),
-      where(whereField, '==', whereValue),
-      orderBy(orderByField)
-      );
-    } else if (choose &&!ordered && limited) {
-      q = query(
-      collection(db, collectionName),
-      where(whereField, '==', whereValue),
-      limit(limitNum)
-      );
-    } else if (choose &&!ordered &&!limited) {
-      q = query(
-      collection(db, collectionName),
-      where(whereField, '==', whereValue)
-      );
-    } else if (!choose && ordered && limited) { 
-      q = query(
-      collection(db, collectionName),
-      orderBy(orderByField),
-      limit(limitNum)
-      );
-    } else if (!choose && ordered &&!limited) {
-      q = query(
-      collection(db, collectionName),
-      orderBy(orderByField)
-      );
-    } else if (!choose &&!ordered && limited) {
-      q = query(
-      collection(db, collectionName),
-      limit(limitNum)
-      );
-    } else {
-      q = query(
-      collection(db, collectionName)
-      );
+    // Create a reference to the collection
+    let q = collection(db, collectionName);
+
+    // Apply multiple where clauses if provided
+    whereClauses.forEach(({ field, value, operation}) => {
+      const _operation = operation || '==';
+      q = query(q, where(field, _operation, value));
+    });
+
+    // Apply ordering if requested
+    if (ordered && orderByField) {
+      q = query(q, orderBy(orderByField));
     }
 
+    // Apply limit if requested
+    if (limited && limitNum) {
+      q = query(q, limit(limitNum));
+    }
 
-    // If a last document is provided, paginate by starting after it
-    if (limited && lastDoc) {
+    // Apply pagination if lastDoc is provided
+    if (lastDoc) {
       q = query(q, startAfter(lastDoc));
     }
 
-    // Execute the query and get a snapshot of the results
+    // Execute the query and get the snapshot
     const querySnapshot = await getDocs(q);
 
     // Initialize an array to store the data from the documents
@@ -505,9 +470,12 @@ export const queryAndOrderWithPagination = async (collectionName, whereField, wh
     return { data, lastDoc: lastVisibleDoc };
   } catch (error) {
     // Handle any errors that occur during the query
+    console.error('Error querying documents: ', error);
     handleError(error);
+    return { data: null, lastDoc: null };
   }
 };
+
 
 
 
@@ -718,8 +686,6 @@ const loadCartItemsFromFirebaseAndLocalStorage = async (customerId) => {
   const cartFromLocalStorage = getCartFromLocalStorage();//returns {itemId1: quantity1, itemId2: quantity2, ...}
   const itemsListFromLocalStorageCart = getItemsListFromLocalStorageCart(cartFromLocalStorage);//returns [{id:itemId, quantity: itemQuantity},...]
   const productObjListFromLocalStorage = await getProductsListFromFirebaseUsingItemsListInCartObj(itemsListFromLocalStorageCart);//returns [productObj1, productObj2, ...]
-  console.log("productObjListFromLocalStorage is: ", productObjListFromLocalStorage);
-  console.log("productObjListFromLocalStorage is: ", productObjListFromLocalStorage);
   if (!customerId) return defaultCart;
   const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
   // if there's cart info in local storage, use it instead of default value: []
@@ -733,7 +699,6 @@ const loadCartItemsFromFirebaseAndLocalStorage = async (customerId) => {
     
     const fetchedCart = await getDocument(docPath);
     const noCartInFirebase =!fetchedCart;
-    console.log("noCartInFirebase is: ", noCartInFirebase);
     const itemsListInCartObjFromFirebase = noCartInFirebase? []: fetchedCart[`${itemsListFeildNameInCartObj}`];//returns [{id:itemId, quantity: itemQuantity},...]
     if (noCartInFirebase) {
       //no cart in firebase, 
@@ -783,6 +748,16 @@ export const updateCartItemsInFirebaseFromProductObjList = async (customerId, pr
 }
 */
 
+export const loadCustomerReviews = async (productId) => {
+  //const reviewsListFeildNameInProductObj = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.REVIEWS;
+  //const docPath = `${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}/${productId}`;
+  //const fetchedProduct = await getDocument(docPath);
+  //const noReviewsInFirebase =!fetchedProduct;
+  //if (noReviewsInFirebase) return []; //if no reviews in firebase, return empty array
+  //const reviewsListInProductObj = fetchedProduct[`${reviewsListFeildNameInProductObj}`];//returns [{id: reviewId, customerId: customerId, content: reviewContent, rating: reviewRating},...]
+  return [];
+}
+
 //updates cart items based on the customer's id
 //takes customer id and a list of product obj{id:itemId, quantity: itemQuantity, available: bool,...}
 //turns it into a structore to be stored in firebase as a list of {id: itemId, quantity: itemQuantity}
@@ -796,8 +771,6 @@ export const updateCartItemsInFirebaseFromProductObjList = async (cartItems) => 
   const cartItemIdFieldName = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.ID;
   const cartItemQuantityFieldName = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.CARTS.ITEMS.QUANTITY;
   const cartItemsList = cartItems.map(item => {
-    console.log("itemQuantityFieldName: ", itemQuantityFieldName);
-    console.log("item quantity: ", item[`${itemQuantityFieldName}`]);
     const itemObj = {
       [cartItemIdFieldName]: item[`${itemIdFieldName}`],
       [cartItemQuantityFieldName]: item[`${itemQuantityFieldName}`]
@@ -807,7 +780,6 @@ export const updateCartItemsInFirebaseFromProductObjList = async (cartItems) => 
   const updates = {
     [itemsFieldName]: cartItemsList
   };
-  console.log("updates: " , updates);
   await updateDocument(docPath, updates);
 }
 
@@ -895,9 +867,7 @@ export const saveOrUpdateCartItemToLocalStorage = (cart, merge = false) => {
     newCart[itemLocalStorageKey] = itemQuantity;
   });
   if (!merge){
-    console.log("newCart: ", newCart);
     localStorage.setItem(key, JSON.stringify(newCart));//{'cart': {itemId1: quantity1, itemId2: quantity2,...}}
-    console.log("Success");
     return;
   }
   const cartLocalStorage = getCartFromLocalStorage();//{itemId1: quantity1, itemId2: quantity2,...}
@@ -915,7 +885,7 @@ export const loadHomeData = async () => {
     //++++++++++++++++++++++++++++++++++++++++++++++++
     //load welcome section images
     const welcomeImagesData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_IMAGES}`);//array of images
-    const welcomeImages = welcomeImagesData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
+    const welcomeImages = welcomeImagesData? welcomeImagesData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`]: [];
     //sample image object
     //image = {
     //  'title': "Welcome",
@@ -929,11 +899,13 @@ export const loadHomeData = async () => {
     //++++++++++++++++++++++++++++++++++++++++++++++++
     //Load welcome section title
     const welcomeSectionTitleData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_TITLE}`);
-    const welcomeSectionTitle = welcomeSectionTitleData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
+    const titleDefaultValue = DEFAULT_VALUES.TITLE;
+    const welcomeSectionTitle = welcomeSectionTitleData? welcomeSectionTitleData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`]: titleDefaultValue;
     //++++++++++++++++++++++++++++++++++++++++++++++++
     //Load welcome section content
     const welcomeSectionContentData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_CONTENT}`);
-    const welcomeSectionContent = welcomeSectionContentData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`];
+    const contentDefaultValue = DEFAULT_VALUES.CONTENT;
+    const welcomeSectionContent = welcomeSectionContentData? welcomeSectionContentData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`]: contentDefaultValue;
 
 
 
@@ -988,16 +960,24 @@ export const loadHomeData = async () => {
 }
 
 //Load products section content
-export const loadProducts = async (ladtDoc=null) => {
-  let retreivedData = await queryAndOrderWithPagination(`${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}`,FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.AVAILABLE,true,'',FIREBASE_COLLECTIONS_QUERY_LIMIT.PRODUCTS,true,false,true,ladtDoc);//getCollection("products");
+export const loadProducts = async (lastDoc=null) => {
+  const collectionName = FIREBASE_CLLECTIONS_NAMES.PRODUCTS;
+  const whereClauses = [];
+  const orderByField = null;
+  const limitNum = FIREBASE_COLLECTIONS_QUERY_LIMIT.PRODUCTS;
+  const ordered = false;
+  const limited = true;
+  const availableFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.AVAILABLE;
+  whereClauses.push({field: availableFieldName, operation: "==", value: true});
+  let retreivedData = await queryAndOrderWithPagination(collectionName, whereClauses, orderByField, limitNum, ordered, limited, lastDoc);
   let products = retreivedData.data;
   if (!products)
     products = [];
   return {products, lastDoc: retreivedData.lastDoc};
 }
 
-export const loadSearchResultsProducts = async (searchQuery, ladtDoc=null) => {
-  let retreivedData = await searchByText(FIREBASE_CLLECTIONS_NAMES.PRODUCTS, searchQuery, FIREBASE_COLLECTIONS_QUERY_LIMIT.PRODUCTS, true, ladtDoc);
+export const loadSearchResultsProducts = async (searchQuery, lastDoc=null) => {
+  let retreivedData = await searchByText(FIREBASE_CLLECTIONS_NAMES.PRODUCTS, searchQuery, FIREBASE_COLLECTIONS_QUERY_LIMIT.PRODUCTS, true, lastDoc);
   let products = retreivedData.data;
   if (!products)
     products = [];
@@ -1007,7 +987,7 @@ export const loadSearchResultsProducts = async (searchQuery, ladtDoc=null) => {
 export const loadProductPageData = async (productId, producerId, recommendationsIds) => {
   let producer = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.PRODUCERS}/${producerId}`);
   const recommendations = await loadRecommendationsForProduct(recommendationsIds);
-  const customerReviews = await queryCollection(`${FIREBASE_CLLECTIONS_NAMES.REVIEWS}`, "product-id", "==", productId);
+  const customerReviews = await loadCustomerReviews(productId);//await queryCollection(`${FIREBASE_CLLECTIONS_NAMES.REVIEWS}`, "product-id", "==", productId);
 
   if (!producer) 
     producer = DEFAULT_VALUES.PRODUCER_DETAILS;
@@ -1021,8 +1001,14 @@ export const loadProductPageData = async (productId, producerId, recommendations
   return data;
 }
 
-export const loadAnnouncements = async (ladtDoc=null) => {
-  let retreivedData = await queryAndOrderWithPagination(`${FIREBASE_CLLECTIONS_NAMES.ANNOUNCEMENTS}`,'','','', FIREBASE_COLLECTIONS_QUERY_LIMIT.ANNOUNCEMENTS, false,false,true,ladtDoc);
+export const loadAnnouncements = async (lastDoc=null) => {
+  const collectionName = FIREBASE_CLLECTIONS_NAMES.ANNOUNCEMENTS;
+  const whereClauses = [];
+  const orderByField = null;
+  const limitNum = FIREBASE_COLLECTIONS_QUERY_LIMIT.ANNOUNCEMENTS;
+  const ordered = false;
+  const limited = true;
+  let retreivedData = await queryAndOrderWithPagination(collectionName, whereClauses, orderByField, limitNum, ordered, limited, lastDoc);
   let announcements = retreivedData.data;
   if (!announcements)
     announcements = [];
@@ -1045,6 +1031,40 @@ export const loadRecommendationsForProduct = async (recommendationsIds) => {
   return recommendations;
 }
 
+export const loadDiscountsFromFirebase = async (customerId, productsIds) => {
+  const collectionName = `${FIREBASE_CLLECTIONS_NAMES.DISCOUNTS}`;
+  const whereClauses = [];
+  const orderByField = null;
+  const limitNum = null;
+  const ordered = false;
+  const limited = false;
+  const lastDoc = null;
+
+  const inOperation = 'in';
+  //check for discounts that belong to this customer or the discounts that are public for all customers.
+  //whether the customer field in dicount document matches the customerId or the public dicount 'all'.
+  const customerFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.DISCOUNTS.CUSTOMER;
+  const publicDiscountName = FIREBASE_DOCUMENTS_FEILDS_UNITS.DISCOUNTS.CUSTOMER.ALL;
+  const CustomerFieldOptions = [customerId, publicDiscountName];
+  whereClauses.push({field: customerFieldName, operation: inOperation, value: CustomerFieldOptions});
+  //check for discounts that apply to those products or the discounts that are general and apply to all products
+  //whether the products field in dicount document matches any one of those products' ids or the general dicount 'all'.
+  
+  const productsFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.DISCOUNTS.PRODUCT;
+  const generalDicountName = FIREBASE_DOCUMENTS_FEILDS_UNITS.DISCOUNTS.PRODUCT.ALL;
+  const ProductsFieldOptions = [ generalDicountName, ...productsIds]
+  whereClauses.push({field: productsFieldName, operation: inOperation, value: ProductsFieldOptions});
+  //get only the active discounts not the desactivated ones.
+  const equalToOperation = '==';
+  const activeFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.DISCOUNTS.ACTIVE;
+  whereClauses.push({field: activeFieldName, operation: equalToOperation, value: true});
+  
+  const retreivedData = await queryAndOrderWithPagination(collectionName, whereClauses, orderByField, limitNum, ordered, limited, lastDoc);
+  let discounts = retreivedData.data;
+  if (!discounts)
+    discounts = [];
+  return discounts;
+}
 
 /*
 

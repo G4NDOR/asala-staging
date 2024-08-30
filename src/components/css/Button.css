@@ -170,6 +170,23 @@
 
 /* ================================================================= */
 
+/* ================================================================= */
+/* cancel payment button */
+
+.home-page-and-product-page-cancel-payment-button{
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  background-color: #f3372a;
+}
+
+.home-page-and-product-page-cancel-payment-button:hover{
+  background-color: #ca3126;
+}
+
+
+/* ================================================================= */
+
 
 
 

@@ -1,15 +1,18 @@
 /* GoHomeBtn.css */
 .go-home-btn {
     position: relative;
-
+    width: 40px;
+    height: 40px;
     background-color: #007bff;
     color: white;
     border-radius: 50%;
-    padding: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     font-size: 30px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   
   .go-home-btn:hover {
@@ -75,14 +78,16 @@
 @media (max-width: 768px) {
     .go-home-btn {
       font-size: 30px;
-      padding: 8px;
     }
   }
   
   @media (max-width: 480px) {
     .go-home-btn {
       font-size: 28px;
-      padding: 6px;
     }
+  }
+
+  .invisible{
+    display: none;
   }
   

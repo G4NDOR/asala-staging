@@ -1,4 +1,5 @@
 import { combineReducers, createStore } from "redux";
+import admin from "./ducks/admin";
 import appVars from "./ducks/appVars";
 import homePageManager from "./ducks/homePageManager";
 import orderManager from "./ducks/orderManager";
@@ -8,7 +9,8 @@ const reducer = combineReducers({
     orderManager: orderManager,
     productPageManager: productPageManager,
     homePageManager: homePageManager,
-    appVars:appVars
+    appVars:appVars,
+    admin:admin,
 })
 
 

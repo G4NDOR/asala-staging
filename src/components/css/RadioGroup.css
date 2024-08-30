@@ -1,0 +1,44 @@
+/* Add to RadioGroup.css */
+.radio-group {
+  margin-bottom: 1.5rem;
+}
+
+.radio-group .radio-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.radio-group input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.radio-group input[type="radio"]:checked {
+  border-color: #007bff;
+}
+
+.radio-group input[type="radio"]:checked::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background-color: #007bff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.radio-group label {
+  margin-left: 10px;
+  font-size: 16px;
+  color: #333;
+}

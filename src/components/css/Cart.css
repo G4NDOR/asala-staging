@@ -2,8 +2,8 @@
 
 .cart-container {
   position: fixed;
-  top: 20px;
   right: 20px;
+  top: 20px;
 }
 
 .cart-icon {
@@ -27,27 +27,19 @@
   width: 40vw;
   max-width: 480px;
   min-width: 400px;
-  max-height: 400px;
+  max-height: 70vh;
   background-color: #ffffff;
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   animation: slide-down 0.3s ease;
-  z-index: 1001;
   display: flex;
   flex-direction: column;
   overflow-x: hidden; /* Hide scrollbars */
 }
 
-.close-btn{
-  position: absolute;
-  top: 15px;
-  right: -150px;
-  font-size: 20px;
-  cursor: pointer;
-  display:none;
-}
+
 
 @keyframes slide-down {
   from {
@@ -148,19 +140,21 @@
   display: block;
 }
 
+@media (max-width: 768px) {
+  .cart-container {
+      bottom: auto;
+      right: 15px;
+      top: 15px;
+      left: auto;
+  }
+}
+
 
 @media (max-width: 480px) {
   .cart-content {
-    width: 100vw;
     right:-20px;
     top:-20px;
-    height: 100vh;
-    max-height: none;
-    min-width: 300px;
   }
 
-  .close-btn{
-    right: 15px;
-    display: block;
-  }
+
 }

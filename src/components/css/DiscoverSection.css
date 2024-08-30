@@ -2,6 +2,7 @@
   padding: 50px 20px;
   background-color: #f7f7f7;
   text-align: center;
+  width: 100%;
 }
 
 .content-wrapper {
@@ -90,4 +91,8 @@
     display: flex; /* Ensure items inside slide are centered */
     justify-content: center; /* Center slide items horizontally */
   }
+}
+
+.slick-arrow .slick-prev{
+display: none !important;
 }

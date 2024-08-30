@@ -1,0 +1,15 @@
+.receipt-subtotal,
+.receipt-discount,
+.receipt-delivery,
+.receipt-tax,
+.receipt-total,
+.receipt-savings {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+}
+
+.receipt-total {
+  font-size: 18px;
+  font-weight: bold;
+}

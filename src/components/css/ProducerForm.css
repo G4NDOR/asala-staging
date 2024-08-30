@@ -1,0 +1,31 @@
+/* ProducerForm.css */
+
+.producer-form {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    max-width: 600px;
+    margin: auto;
+  }
+  
+  .producer-form h1 {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .submit-button {
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .submit-button:hover {
+    background-color: #0056b3;
+  }
+  

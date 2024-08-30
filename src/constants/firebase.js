@@ -16,6 +16,7 @@ export const FIREBASE_CLLECTIONS_NAMES = {
     REVIEWS: 'reviews',
     DYNAMIC_OUTPUT: 'dynamic-output',
     CARTS: 'carts',
+    DISCOUNTS: 'discounts',
 }
 
 export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
@@ -64,6 +65,23 @@ export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
         TIMESTAMP: 'time-created',
         UPDATED_AT: 'updated-at',
     },
+    DISCOUNTS: {
+        ID: 'id',
+        NAME: 'name',
+        TYPE: 'type',
+        VALUE: 'value',
+        EXPIRATION: 'expiration',
+        ACTIVE: 'active',
+        PRODUCT: 'product',
+        CUSTOMER: 'customer',
+        TIMESTAMP: 'time-created',
+        APPLY_ON_SINGLE_ITEM: 'apply-on-single-item',
+        QUANTITY: 'quantity',
+        MAX_USES: 'max-uses',
+        DESCRIPTION: 'description',
+        IS_DEFAULT_VALUE: 'is-default-value',
+        OPPOSING_DISCOUNTS: 'opposing-discounts',
+    },
 }
 
 export const FIREBASE_COLLECTIONS_QUERY_LIMIT = {
@@ -104,7 +122,20 @@ export const FIREBASE_DOCUMENTS_FEILDS_UNITS = {
                 PERCENTAGE: 'percentage',
             },
         },
-    }
+    },
+    DISCOUNTS: {
+        TYPE: {
+            FIXED: 'fixed',
+            PERCENTAGE: 'percentage',
+        },
+        CUSTOMER: {
+            ALL: 'all',
+            //or customer id
+        },
+        PRODUCT: {
+            ALL: 'all',
+        },
+    },    
 }
 
 //feild value of a feild

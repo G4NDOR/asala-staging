@@ -2,10 +2,11 @@ import React from 'react'
 import '../css/SwipeConfirmation.css'
 import CONSTANTS from '../../constants/appConstants'
 import { useSwipeable } from'react-swipeable';
+import ConfirmationInfo from './ConfirmationInfo';
 
-const SwipeAnimation = ({horizontal}) => {
+const SwipeAnimation = ({horizontal, right}) => {
     const style = {
-        transform: horizontal? 'rotateZ(-90deg)' : '',
+        transform: horizontal? (right? 'rotateZ(90deg)': 'rotateZ(-90deg)'):'',
         
     }
 
@@ -24,7 +25,7 @@ export default function SwipeConfirmation({active, onConfirm, onCancel}) {
   const disabled =!active;
 
   const confirmationHandlers = useSwipeable({
-    onSwipedUp: (eventData) => {
+    onSwipedRight: (eventData) => {
         onConfirm();
     }
     
@@ -38,14 +39,17 @@ export default function SwipeConfirmation({active, onConfirm, onCancel}) {
 
     return (
         <div className={`swipe-confirmation-page ${disabled? 'swipe-confirmation-page-disabled': ''}`} style={{zIndex:`${CONSTANTS.Z_INDEXES.SWIPE_CONFIRMATION}`}}>
-            <div {...cancelationHandlers} className="swipe-cancelation">
-                <SwipeAnimation horizontal={true}/>
-                
-                <span className='swipe-cancelation-lable' >Cancel</span>
-            </div>
-            <div {...confirmationHandlers} className="swipe-confirmation" >
-                <SwipeAnimation horizontal={false}/>
-                <span className='swipe-confirmation-lable' >Confirm</span>
+            <ConfirmationInfo />
+            <div className='swipe-confirmation-cover'>
+                <div {...cancelationHandlers} className="swipe-cancelation">
+                    <SwipeAnimation horizontal={true} right={false}/>
+                    
+                    <span className='swipe-cancelation-lable' >Cancel</span>
+                </div>
+                <div {...confirmationHandlers} className="swipe-confirmation" >
+                    <SwipeAnimation horizontal={true} right={true}/>
+                    <span className='swipe-confirmation-lable' >Confirm</span>
+                </div>                
             </div>
         </div>
   )
