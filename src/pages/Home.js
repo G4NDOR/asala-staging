@@ -27,6 +27,8 @@ import ConfirmationInfo from "../components/js/ConfirmationInfo";
 import Form from "../components/js/Form";
 import EmailInput from "../components/js/EmailInput";
 import PhoneNumberInput from "../components/js/PhoneNumberInput";
+import Message from "../components/js/Message";
+import Messages from "../components/js/Messages";
 
 
 
@@ -235,8 +237,9 @@ const Home = () => {
           //<ConfirmationInfo paymentMethod={CONSTANTS.PAYMENT_METHODS.CASH}/>
         }
         {
-          //<Form />
+          <Form />
         }
+        <Messages/>
       </div>
     </div>
   );

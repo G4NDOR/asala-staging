@@ -1,0 +1,76 @@
+/* Container for the message */
+.message {
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    transform: translateY(0);
+    opacity: 1;
+    align-self: stretch;
+    background-color: #f8f9fa;
+  }
+  
+  /* Severity styles */
+  .message.info {
+    /* Primary blue */
+    color: #007bff;
+    border: 1px solid #007bff;
+    
+  }
+  
+  .message.success {
+    /* Success green */
+    
+    color: #28a745;
+    border: 1px solid #28a745;
+  }
+  
+  .message.warning {
+    /* Warning yellow */
+    
+    color: #bd910f;
+    border: 1px solid #ffc107;
+  }
+  
+  .message.error {
+    /* Error red */
+    
+    color: #dc3545;
+    border: 1px solid #dc3545;
+  }
+  
+  /* Message text styling */
+  .message-text {
+    flex-grow: 1;
+    font-weight: 500;
+  }
+  
+  /* Close button styling */
+  .close-btn {
+    background: none;
+    border: none;
+    color: rgb(0, 0, 0);
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 20px;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s ease-in-out;
+  }
+  
+  .close-btn:hover {
+    color: #e0e0e0;
+  }
+  
+  /* Message exit animation */
+  .message.exit {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  

@@ -4,7 +4,8 @@ const CONSTANTS = {
         HOME_BUTTON: 1000,
         LOADING_SCREEN: 9999,
         SEARCH_BAR: 1000,
-        SWIPE_CONFIRMATION: 1002
+        SWIPE_CONFIRMATION: 1002,
+        MESSAGES: 1003,
     },
     LOCAL_STORAGE: {
         KEYS: {
@@ -30,6 +31,12 @@ const CONSTANTS = {
         APPLE_PAY: 'Apple Pay',
         ONLINE: 'Online',
         CASH: 'Cash'
+    },
+    SEVERITIES: {
+        WARNING: 'warning',
+        ERROR: 'error',
+        INFO: 'info',
+        SUCCESS:'success'
     },
 };
 

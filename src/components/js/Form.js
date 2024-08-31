@@ -47,7 +47,7 @@ function Form() {
           { label: 'Radio 2', value: '2' },
         ]}
         value={radioValue}
-        onChange={(e) => setRadioValue(e.target.value)}
+        onChange={setRadioValue}
       />
       <CheckboxGroup
         label="Checkbox Group"

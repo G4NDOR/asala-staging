@@ -4,6 +4,7 @@ import { FaArrowDown, FaCircleNotch } from 'react-icons/fa';
 import { addItems, resetLoadingMore, triggerLoadingMore } from '../../redux/ducks/homePageManager';
 import '../css/LoadMoreBtn.css';
 import { loadProducts } from '../../utils/firestoreUtils';
+import { addMessage } from '../../redux/ducks/appVars';
 
 const LoadMoreBtn = ({ loadMoreItems, hasMoreItems }) => {
   const dispatch = useDispatch();
@@ -12,6 +13,7 @@ const LoadMoreBtn = ({ loadMoreItems, hasMoreItems }) => {
   
 
   const handleClick = async () => {
+    dispatch(addMessage({content: 'Loading more items...', severity: 'info'  }));
     if (loading || !hasMoreItems) return;
     dispatch(triggerLoadingMore());
     const data = await loadProducts(lastDoc);

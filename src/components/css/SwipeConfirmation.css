@@ -1,24 +1,44 @@
 .swipe-confirmation-page{
   display: flex;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   min-height: 100vh;
+  overflow-y: auto;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   background-color: #f8f9fa;
 }
 
+.confirmation-page-content-wrapper{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+  min-height: 100vh;
+}
+
+.swipe-confirmation-info-wrapper{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: absolute;
+  min-height: 100vh;
+  top: 0;
+  left: 0;
+}
+
 .swipe-confirmation-cover{
   display: flex;
   justify-content: stretch;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.246);
   
 }
@@ -34,7 +54,10 @@
     align-items: center;
     width : 50%;
     height: 10vh;
-    align-self: center;
+    align-self: flex-start;
+    position: fixed;
+    top: 40vh;
+    left: 0;
     /*
     border-radius: 25px;
     box-shadow:inset 2px 2px 15px 5px;
@@ -61,7 +84,10 @@
     align-items: center;
     width : 50%;
     height: 10vh;
-    align-self: center;
+    align-self: flex-start;
+    position: fixed;
+    top: 40vh;
+    right: 0;
     
 }
 

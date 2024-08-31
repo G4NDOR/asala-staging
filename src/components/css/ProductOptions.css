@@ -1,0 +1,6 @@
+.product-page-product-options-section{
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+
+}

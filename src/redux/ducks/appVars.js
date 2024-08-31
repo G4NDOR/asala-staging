@@ -13,6 +13,8 @@ const SET_WISH_LIST = 'appVars/setWishList';
 const ADD_TO_WISH_LIST = 'appVars/addToWishList';
 const SET_HOME_PAGE_VISITED = 'appVars/setHomePageVisited';
 const SET_CURRENT_PAGE = 'appVars/setCurrentPage';
+const ADD_MESSAGE = 'appVars/addMessage';
+const REMOVE_MESSAGE = 'appVars/removeMessage';
 
 
 const initialState = {
@@ -24,6 +26,7 @@ const initialState = {
     wishList: [],  // Assuming wishList is a boolean value
     homePageVisited: false, 
     currentPage: Paths.HOME,  // Assuming currentPage is a string
+    messages: [],  // Assuming messages is an array of objects containing messages
 };
 
 export default function appVars(state = initialState, action) {
@@ -78,7 +81,20 @@ export default function appVars(state = initialState, action) {
                ...state,
                 currentPage: action.currentPage
             };
-            
+        case ADD_MESSAGE:
+            const ids = Object.keys(state.messages);
+            const biggestId = Math.max(...(ids.length > 0 ? ids: [0]),);
+            const newId = biggestId? (biggestId + 1): 1;
+            return { 
+               ...state,
+                messages: {...state.messages, [newId]: action.message}
+            };
+        case REMOVE_MESSAGE:
+            const { [action.index]: _, ...newMessages } = state.messages;
+            return { 
+                ...state,
+                messages: newMessages
+            };
         // Add other actions here as needed
         default:
             return state;
@@ -132,4 +148,14 @@ export const setHomePageVisited = (homePageVisited) => ({
 export const setCurrentPage = (currentPage) => ({
     type: SET_CURRENT_PAGE,
     currentPage: currentPage
+});
+
+export const addMessage = (message) => ({
+    type: ADD_MESSAGE,
+    message: message
+});
+
+export const removeMessage = (index) => ({
+    type: REMOVE_MESSAGE,
+    index: index
 });

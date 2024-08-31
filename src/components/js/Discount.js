@@ -55,10 +55,55 @@ export default function Discount({visible=true}) {
         if ((discount1['opposing-discounts'].length == 0) && (discount2['opposing-discounts'].length == 0)) return true;
         const discount1Id = discount1.id;
         const discount2Id = discount2.id;
-        
         const canNotBeAppliedTogether = discount1['opposing-discounts'].includes(discount2Id) || discount2['opposing-discounts'].includes(discount1Id) || discount1['opposing-discounts'].includes('all') || discount2['opposing-discounts'].includes('all');
         const canBeAppliedTogether =!canNotBeAppliedTogether;
         return canBeAppliedTogether;
+    }
+
+    const addGeneralDiscount = (discount, products) => {
+        //it is a general discount => it can apply on any product
+        //remove it from discounts array and add variants of it based on each product to the discounts array
+        dispatch(removeDiscount(discount));
+        //the new discounts that gets created out of the general discount for each item in the cart
+        //newDiscountsUnrestricted the new discounts without the 'opposing-discounts' field
+        const newDiscountsUnrestricted = [];
+        const newDiscountsIds = []
+
+        //makes several discounts variants of the general discount
+        //makes a variant for each product in the cart( or items list)
+        //makes the variants without 'opposing-discounts' field
+        //and adds them to the newDiscountsUnrestricted array
+        //also adds their ids to the newDiscountsIds array for later use
+        products.forEach(product => {
+            const newDiscount = {
+                ...discount,
+                product: product.id,
+                id: `${discount.id}_${product.id}`,
+                name: `${discount.name} (${product.name})`,
+            };
+            newDiscountsUnrestricted.push(newDiscount);
+            newDiscountsIds.push(newDiscount.id);
+        })
+
+        //for each discount that doesn't have 'opposing-discounts' field
+        //it will create a list of opposing discounts (which are the other variants of the general discount)
+        // and will update the opposing-discounts field with:
+        // the opposing discounts from the general discount + the opposing discounts from the list it created
+        //and adds them to the discounts array that displays to the user to select from
+        newDiscountsUnrestricted.forEach(discount => {
+            const opposingDiscountsIds = newDiscountsIds.filter(id => id!== discount.id);
+            const newDiscount = {
+                ...discount,
+                "opposing-discounts": [
+                    ...discount['opposing-discounts'],
+                    ...opposingDiscountsIds
+                ] 
+            }
+            dispatch(addDiscount(newDiscount))
+        });
+
+
+        
     }
 
     const onChange = (discountId) => {
@@ -87,21 +132,7 @@ export default function Discount({visible=true}) {
                 showMessageToUser(discount);
             } else if(discount.product == 'all') {
                 //it is a general discount => it can apply on any product
-                //remove it from discounts array and add variants of it based on each product to the discounts array
-                dispatch(removeDiscount(discount));
-                products.forEach(product => {
-                    const newDiscount = {
-                        ...discount,
-                        product: product.id,
-                        id: `${discount.id}_${product.id}`,
-                        name: `${discount.name} (${product.name})`,
-                        "opposing-discounts": [
-                            ...discount['opposing-discounts'],
-                            'all'
-                        ]
-                    };
-                    dispatch(addDiscount(newDiscount))
-                })
+                addGeneralDiscount(discount, products);
 
                 
             } else {
@@ -136,6 +167,8 @@ export default function Discount({visible=true}) {
     const showMessageToUser = () => {
         console.log('show message to user');
     }
+
+
 
 
 

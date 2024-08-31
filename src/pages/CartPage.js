@@ -141,13 +141,12 @@ const CartPage = () => {
     <div className="cart-page-container" style={{}}>
       <LoadingAnimation/>
       <GoHomeBtn/>
-      <span className="close-btn" onClick={closeCart}>X</span>
+      <span className="cart-page-close-btn" onClick={closeCart}>X</span>
       <h3 style={{padding:'8px'}}>Your Cart</h3>
       
       <div className="cart-items-wrapper">
         <CheckOutItemsList />
-      </div>
-      <AddressSelector visible={!cartIsEmpty}/>
+        <AddressSelector visible={!cartIsEmpty}/>
       <section className={`cart-page-my-slider-section ${cartIsEmpty? 'invisible':''}`}>
         <Slider {...DEFAULT_VALUES.SLIDER_SETTINGS}>
           {
@@ -160,7 +159,9 @@ const CartPage = () => {
       }
       {
         //<Payment/> when payment is integrated into the website
-      }
+      }        
+      </div>
+
     </div>
   );
 };

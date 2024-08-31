@@ -23,6 +23,7 @@ import AddressSlide from "../components/js/AddressSlide";
 import { getOperatingTime, isOperatingTime } from "../utils/appUtils";
 import { FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../constants/firebase";
 import ProductPageProductInfoSection from "../components/js/ProductPageProductInfoSection";
+import ProductOptions from "../components/js/ProductOptions";
 
 const ProductPage = () => {
   const dispatch = useDispatch();
@@ -150,6 +151,7 @@ const ProductPage = () => {
 
       <div className="product-details">
         <h1 className="product-name">{productFullName}</h1>
+        <ProductOptions variants={('variants' in product?product.variants:[])} />
         <ProductPageProductInfoSection type={prepTimeType} info={prepTimeString}/>
         <ProductPageProductInfoSection type={daysType} info={availabilityInfoString}/>        
         <div className="producer-info">

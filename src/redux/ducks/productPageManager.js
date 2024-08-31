@@ -13,6 +13,11 @@ const SET_SELECTED_ADDRESS_ID = 'productPageManager/setSelectedAddressId';
 const SET_RECOMMENDATIONS = 'productPageManager/setRecommendations';
 const SET_ADDRESSES = 'productPageManager/setAddresses';
 const ADD_ADDRESS = 'productPageManager/addAddress';
+const SELECT_VARIANT = 'productPageManager/selectVariant';
+const DESELCT_VARIANT = 'productPageManager/deselectVariant';
+const SET_START_INDEX = 'productPageManager/setStartIndex';
+const SET_END_INDEX = 'productPageManager/setEndIndex';
+
 
 const initialState = {
     product: DEFAULT_VALUES.PRODUCT, // Store product information here
@@ -22,7 +27,10 @@ const initialState = {
     producerImg: DEFAULT_VALUES.IMAGES[0],
     selectedAddressId: DEFAULT_VALUES.SELECTED_ADDRESS_ID,
     addresses: [], // Array of customer addresses
-    recommendations: []
+    recommendations: [],
+    selectedVariants: {}, // Array of selected variant values
+    startIndex: 0,//index that will give the highest level of variants in selctedVariants
+    endIndex: 0,//index that will give the lowest level of variants in selctedVariants
 };
 
 
@@ -86,7 +94,31 @@ export default function productPageManager(state = initialState, action) {
                  };
             }
 
-
+        case SELECT_VARIANT:
+            return { 
+               ...state,
+                selectedVariants: {...state.selectedVariants, [action.index]: action.variant}
+            };
+        case DESELCT_VARIANT:
+            const variantKey = action.variantId;
+            const newSelectedVariants = { ...state.selectedVariants }; // Create a shallow copy of the selectedVariants
+            
+            delete newSelectedVariants[variantKey]; // Remove the key from the copied object
+            
+            return {
+                ...state,
+                selectedVariants: newSelectedVariants // Return the updated state
+            };
+        case SET_START_INDEX:
+            return { 
+               ...state,
+                startIndex: action.startIndex
+            };
+        case SET_END_INDEX:
+            return { 
+               ...state,
+                endIndex: action.endIndex
+            };
         // Add more action creators as needed for other actions related to the product page
         // Add more cases as needed for other actions related to the product page
         default:
@@ -141,5 +173,26 @@ export const setAddresses = (addresses) => ({
 export const addAddress = (address) => ({
     type: ADD_ADDRESS,
     address: address
+});
+
+export const selectVariant = (variant, index) => ({
+    type: SELECT_VARIANT,
+    variant: variant,
+    index: index
+});
+
+export const deselectVariant = (variantId) => ({
+    type: DESELCT_VARIANT,
+    variantId: variantId
+});
+
+export const setStartIndex = (startIndex) => ({
+    type: SET_START_INDEX,
+    startIndex: startIndex
+});
+
+export const setEndIndex = (endIndex) => ({
+    type: SET_END_INDEX,
+    endIndex: endIndex
 });
 
