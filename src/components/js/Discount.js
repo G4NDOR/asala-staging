@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import CONSTANTS from '../../constants/appConstants';
 import DEFAULT_VALUES from '../../constants/defaultValues';
 import Paths from '../../constants/navigationPages';
 import { CART, ONE_ITEM_CHECKOUT } from '../../constants/stateKeys';
+import { addMessage } from '../../redux/ducks/appVars';
 import { addDiscount, banDiscount, deselectDiscount, removeDiscount, selectDiscount, setDiscountMessage, setDiscounts, setDiscountsLookedUp, setSelectedDiscounts, setUsedCredit } from '../../redux/ducks/orderManager';
 import { loadDiscountsFromFirebase } from '../../utils/firestoreUtils';
 import '../css/Discount.css'
@@ -32,11 +34,15 @@ export default function Discount({visible=true}) {
       const listIdentifier = getListIdentifier();
       const products = useSelector((state) => state['orderManager'][`${listIdentifier}`]);
 
-    const productsIds = products.map(product => product.id);
+    const productsIds = products.map(product => {
+        //if the product is a variant it will have an id with the format: productId_variant1Id_variant2Id...
+        const delimiter  = '_';
+        const productId = product.id.split(delimiter )[0];
+        return productId;
+    });
     const selectedDiscountsIds = selectedDiscounts.map(discount => discount.id);
     const options = discounts.map(discount => ({ value: discount.id, label: discount.name }));
     const customer = useSelector(state => state.appVars.customerDetails);
-    console.log('customer: ', customer)
     const credit = customer.credit || null;
     const creditId = 'credit';
     const creditLabel = `$${credit} store credit`;
@@ -49,6 +55,14 @@ export default function Discount({visible=true}) {
     const visibleInHome = isMobile;
     const visibleInCartOrProductPages = true;
     const _visible = isHomePage? visibleInHome : visibleInCartOrProductPages;
+
+    useEffect(() => {
+    
+      return () => {
+        dispatch(setDiscountsLookedUp(false));
+      }
+    }, [])
+    
     
     const canBeAppliedTogether = (discount1, discount2) => {
         //check if discounts can be applied together
@@ -165,7 +179,11 @@ export default function Discount({visible=true}) {
 
 
     const showMessageToUser = () => {
-        console.log('show message to user');
+        const message = {
+            content: "Cannot apply this discount to more than one product!",
+            severity: CONSTANTS.SEVERITIES.WARNING
+        }
+        dispatch(addMessage(message))
     }
 
 

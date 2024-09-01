@@ -39,6 +39,17 @@
   overflow-x: hidden; /* Hide scrollbars */
 }
 
+.cart-component-header-wrapper{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.cart-component-close-btn{
+  margin: 10px 10px 0 0;
+}
+
 
 
 @keyframes slide-down {

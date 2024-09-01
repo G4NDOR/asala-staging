@@ -34,13 +34,27 @@
 /* ================================================================= */
 /* buy item button in the product card in the home page takes a customer to the product page  when clicked  */
 
-.home-page-product-card-buy-item-button {
+.product-page-buy-item-button {
   background-color: #28a745;
   font-weight:600;
 }
 
-.home-page-product-card-buy-item-button:hover {
+.product-page-buy-item-button:hover {
   background-color: #218838;
+}
+
+/* ================================================================= */
+
+/* ================================================================= */
+/* buy item button in the product card in the home page takes a customer to the product page  when clicked  */
+
+.home-page-product-card-go-to-product-page-button {
+  background-color: #1fb8b8;
+  font-weight:600;
+}
+
+.home-page-product-card-go-to-product-page-button:hover {
+  background-color: #1ca8a8;
 }
 
 /* ================================================================= */
@@ -48,12 +62,12 @@
 /* ================================================================= */
 /* add to cart button, adds item to the cart */
 
-.home-page-product-card-add-to-cart-button {
+.add-to-cart-button {
   background-color: #d19900;
   font-weight:600;
 }
 
-.home-page-product-card-add-to-cart-button:hover {
+.add-to-cart-button:hover {
   background-color: #b18305;
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "../styles/ProductPage.css";
 import ImageSlider from "../components/js/ImageSlider";
 import CheckOutItemsList from "../components/js/CheckOutItemsList";
@@ -10,9 +10,10 @@ import Paths from '../constants/navigationPages';
 import DEFAULT_VALUES from "../constants/defaultValues";
 import GoHomeBtn from "../components/js/GoHomeBtn";
 import UpSell from "../components/js/UpSell";
-import { addOneItemCheckout, clearOneItemCheckout } from "../redux/ducks/orderManager";
+import Cart from "../components/js/Cart";
+import { addItemToCart, addOneItemCheckout, clearOneItemCheckout, resetAnimation, triggerAnimation, triggerUnseenChanges } from "../redux/ducks/orderManager";
 import OrderButton from "../components/js/OrderButton";
-import { resetLoading, triggerLoading } from "../redux/ducks/appVars";
+import { addMessage, resetLoading, triggerLoading } from "../redux/ducks/appVars";
 import LoadingAnimation from "../components/js/LoadingAnimation";
 import { setAddress, setProducerImg, setRecommendations } from "../redux/ducks/productPageManager";
 import { loadProductPageData } from "../utils/firestoreUtils";
@@ -24,12 +25,18 @@ import { getOperatingTime, isOperatingTime } from "../utils/appUtils";
 import { FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../constants/firebase";
 import ProductPageProductInfoSection from "../components/js/ProductPageProductInfoSection";
 import ProductOptions from "../components/js/ProductOptions";
+import ButtonsContainer from "../components/js/ButtonsContainer";
+import CONSTANTS from "../constants/appConstants";
+import Messages from "../components/js/Messages";
 
 const ProductPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const scrollRef = useRef(null);
+  const [scroll, setScroll] = useState(false);
   let product = DEFAULT_VALUES.PRODUCT;
   product = useSelector(state => state.productPageManager.product);
+  const products = useSelector(state => state.orderManager.oneItemCheckout);
   const productId = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.ID}`];
   const productName = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.NAME}`];
   const productFullName = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.FULL_NAME}`];
@@ -46,12 +53,23 @@ const ProductPage = () => {
   const producerImg = useSelector(state => state.productPageManager.producerImg);
   const customerId = useSelector(state => state.appVars.customerId);
   const customer = useSelector(state => state.appVars.customerDetails);
+  const cartIsOpen = useSelector(state => state.orderManager.cartIsOpen);
   const homePageVisited = useSelector(state => state.appVars.homePageVisited);
   const homePageNotVisited = !homePageVisited;
   const addresses = useSelector(state => state.productPageManager.addresses);;
   const [showNotes, setShowNotes] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const recommendations = useSelector(state => state.productPageManager.recommendations);
+  const selectedVariants = useSelector(state => state.productPageManager.selectedVariants);
+  
+  const selectedVariantsArray = Object.values(selectedVariants);
+  const theSelectedChildVariant = selectedVariantsArray.length > 0? selectedVariantsArray[selectedVariantsArray.length - 1]: {price: null};
+  const variantsSelected = theSelectedChildVariant.price !== null;
+  const variantsFields = useSelector(state => state.productPageManager.variantsFields);
+  const startIndex = useSelector(state => state.productPageManager.startIndex);
+  const selectedOptionalAdditionsObj = useSelector(state => state.productPageManager.selectedOptionalAdditions);
+  const selectedOptionalAdditionsArrays = Object.values(selectedOptionalAdditionsObj);
+  const selectedOptionalAdditions = selectedOptionalAdditionsArrays.flat();
   // Get available time for the product
   const days = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS}`];
   const daysType = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS;
@@ -62,6 +80,7 @@ const ProductPage = () => {
   const weAreInOperatingTime = isOperatingTime(days, hours, daysSpecificHoursNotSet);  
   const placingOrderAllowed = productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock;
   const upsell = (recommendations.length > 0) && placingOrderAllowed;
+  
 
     
     // check if preorder is set
@@ -93,8 +112,17 @@ const ProductPage = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if(scroll && scrollRef.current){
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+      setScroll(false);
+    }
+  }, [scroll, scrollRef])
+  
+
   const load = async () => {
-    dispatch(addOneItemCheckout(product));
+    //for default selection, not supported anymore
+    //dispatch(addOneItemCheckout(product));
     const data = await loadProductPageData(productId ,ProducerId, recommendationsIds);
     dispatch(setProducerImg(data.producer['image-src']));
     //console.log('data',data);
@@ -109,10 +137,6 @@ const ProductPage = () => {
       navigate(Paths.HOME);
     }
   }, [product, navigate]);
-
-  useEffect(() => {
-    console.log("addresses", addresses);
-  }, [addresses]);
   
   
 
@@ -131,15 +155,100 @@ const ProductPage = () => {
     return null; // Or you can return a loading spinner or placeholder
   }
 
+  //util functions for button actions
+  const BUY_ITEM_BUTTON_ACTION_NAME = 'buy-item';
+  const ADD_TO_CART_BUTTON_ACTION_NAME = 'add-to-cart';
+
+  const addProductToCheckout = ({actionName}) =>{
+    if(!variantsSelected) {
+      const message = {content: 'Please select a product option!', severity: CONSTANTS.SEVERITIES.WARNING}
+      dispatch(addMessage(message));
+      return;
+    };
+    let id = product.id;
+    let name = product.name;
+    let price = theSelectedChildVariant.price;
+    let variants = [];
+    for (let i = 0; i < selectedVariantsArray.length; i++) {
+      const variant = selectedVariantsArray[i];
+      variants.push(variant)
+      const field = variantsFields[i + startIndex];
+      id += `_${variant.id}`;
+      name += ` - ${variant[field]}`;
+    }
+    console.log('selectedOptionalAdditions: ', selectedOptionalAdditions);
+    selectedOptionalAdditions.forEach(optionalAddition => {
+      id += `_${optionalAddition.id}`;
+      price += optionalAddition.price;
+    });
+    
+    const quantity = 1;
+    const newProduct = {...product, id, name, price, quantity, variants, ['optional-additions']: selectedOptionalAdditions};
+    if (actionName == ADD_TO_CART_BUTTON_ACTION_NAME){
+      //giving it the product set in this page
+      addToCart({product: newProduct});
+    } else if (actionName == BUY_ITEM_BUTTON_ACTION_NAME){
+      goToProductPageCheckoutSection({product: newProduct});
+    }
+  }
+
+  const goToProductPageCheckoutSection = ({product}) => {
+    dispatch(addOneItemCheckout(product));
+    setTimeout(() => {
+      setScroll(true); 
+    }, 0)
+  }
+
+  const addToCart = ({product}) => {
+    const cartIsClosed = !cartIsOpen;
+    dispatch(addItemToCart(product));
+    dispatch(triggerAnimation());
+    if(cartIsClosed){
+      dispatch(triggerUnseenChanges());
+    }
+    setTimeout(() => {
+      dispatch(resetAnimation());
+    }, 300); // Match this duration to your CSS animation duration
+  }
+
+  const BuyItemButtonDetails = {
+    visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock,
+    activeContent: "Buy Now",
+    generalClassName: "product-page-buy-item-button",
+    activeAction: addProductToCheckout,
+    params:{
+      actionName:BUY_ITEM_BUTTON_ACTION_NAME
+    }    
+  }
+  const AddToCartButtonDetails = {
+    visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock,
+    activeContent: "Add to Cart",
+    generalClassName: "add-to-cart-button",
+    activeAction: addProductToCheckout,
+    params:{
+      actionName:ADD_TO_CART_BUTTON_ACTION_NAME
+    }
+  }
+
+  const buttonsDetails = [
+    BuyItemButtonDetails,
+    AddToCartButtonDetails,
+  ]
+
   return (
     <div className="product-page">
       <LoadingAnimation/>
       <GoHomeBtn/>
+      <Cart />
       <AddressSelector/>
       <section className="my-slider-section">
         <Slider {...DEFAULT_VALUES.SLIDER_SETTINGS}>
           {
-            addresses.map((v,i) => <AddressSlide key={i} address={v} id={i} />)
+            
+            addresses.map((v,i) => {
+              //console.log('address ************', v, i)
+              return <AddressSlide key={i} address={v} id={i} />;
+            })
           }
         </Slider>
       </section>
@@ -154,6 +263,7 @@ const ProductPage = () => {
         <ProductOptions variants={('variants' in product?product.variants:[])} />
         <ProductPageProductInfoSection type={prepTimeType} info={prepTimeString}/>
         <ProductPageProductInfoSection type={daysType} info={availabilityInfoString}/>        
+        <ButtonsContainer buttonsDetails={buttonsDetails} />
         <div className="producer-info">
           <img
             src={producerImg}
@@ -176,17 +286,20 @@ const ProductPage = () => {
             {showFullDescription ? "< Read Less" : "Read More >"}
           </div>
         </div>
+        {
+          upsell?
+          <UpSell />:
+          null
+        }        
       </div>
-      {
-        upsell?
-        <UpSell />:
-        null
-      }
+
       {
         checkoutAvailable?
-        <div className="order-summary" >
+        <div className={`order-summary ${products.length > 0? '':'invisible'}`} >
           <h2 style={{marginLeft:'15px'}}>Order Summary</h2>
-          <CheckOutItemsList />
+          <div ref={scrollRef} className="Checkout-section-wrapper">
+            <CheckOutItemsList parent={Paths.PRODUCT} />
+          </div>
           <OrderButton />
           {
             //<Payment/> when payment is integrated into the website
@@ -194,6 +307,7 @@ const ProductPage = () => {
         </div>:
         null        
       }
+      <Messages />
     </div>
   );
 };

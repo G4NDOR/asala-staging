@@ -1,14 +1,15 @@
 /* src/App.css */
 
-body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #f8f9fa;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    width: 100vw;
-    overflow-x: hidden;
-  }
+.home-page-container-wrapper{
+  font-family: "Arial; sans-serif";
+  max-wiDth: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+  background-color: #e9e9e9;
+}
   
   h1 {
     text-align: center;
@@ -21,9 +22,11 @@ body {
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
-    min-height: 100vh;
     position: relative;
     background-color: #f8f9fa;
+    width: 90vw;
+    max-width: 1000px;
+    
   }
   
 ul {
@@ -34,7 +37,7 @@ ul {
 .image-slider-wrapper{
   position: relative;
   width: 100%;
-  height: 100vh; /* Full screen height */
+  height: auto; /* Full screen height */
   overflow: hidden;
 }
 
@@ -98,11 +101,13 @@ ul {
 
   .welcome-text .title {
     font-size: 2rem; /* Slightly smaller title on tablets and phones */
-}
+  }
 
-.welcome-text .paragraph {
-    font-size: 1rem; /* Slightly smaller paragraph text */
-}
+  .welcome-text .paragraph {
+      font-size: 1rem; /* Slightly smaller paragraph text */
+  }
+
+
 }
 
 /* Further adjustments for very small screens (e.g., phones) */

@@ -5,29 +5,29 @@ import { setAddress, setSelectedAddressId } from '../../redux/ducks/productPageM
 import DEFAULT_VALUES from '../../constants/defaultValues';
 
 export default function AddressSlide({address, id}) {
-    const dispatch = useDispatch();
-    const stateAddress = useSelector(state => state.productPageManager.address);
-    const selectedAddressId = useSelector(state => state.productPageManager.selectedAddressId);
-    const selected = stateAddress == address;
+  const dispatch = useDispatch();
+  const stateAddress = useSelector(state => state.productPageManager.address);
+  const selectedAddressId = useSelector(state => state.productPageManager.selectedAddressId);
+  const selected = stateAddress == address;
 
-    useEffect(() => {
-        console.log('address changed', stateAddress);
-      //if(selected) selectAddress();
-      //else deselectAddress();
-    
-      return () => {
-        
-      }
-    }, [stateAddress])
-    
-
-    const selectAddress = () => {
-        dispatch(setAddress(address));
+  useEffect(() => {
+    console.log('address changed', stateAddress, id);
+    ////if(selected) selectAddress();
+    //else deselectAddress();
+  
+    return () => {
+      
     }
+  }, [stateAddress])
+  
 
-    const deselectAddress = () => {
-        dispatch(setSelectedAddressId(DEFAULT_VALUES.SELECTED_ADDRESS_ID));
-    }
+  const selectAddress = () => {
+    dispatch(setAddress(address));
+  }
+
+  const deselectAddress = () => {
+    dispatch(setSelectedAddressId(DEFAULT_VALUES.SELECTED_ADDRESS_ID));
+  }
 
   return (
     <div onClick={selectAddress} className={`address-slide ${selected? 'selected':''}`} >{address}</div>

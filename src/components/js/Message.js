@@ -3,11 +3,12 @@ import { useDispatch } from 'react-redux';
 import { removeMessage } from '../../redux/ducks/appVars';
 import '../css/Message.css';
 import { useSwipeable } from'react-swipeable';
+import CONSTANTS from '../../constants/appConstants';
 
 const Message = ({ key, id, message}) => {
     const dispatch = useDispatch();
     const [visible, setVisible] = useState(true);
-    const { content, severity = 'info' } = message;
+    const { content, severity = CONSTANTS.SEVERITIES.INFO } = message;
 
   const handleClose = () => {
     setVisible(false);

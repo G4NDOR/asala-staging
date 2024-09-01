@@ -99,10 +99,16 @@ const Cart = () => {
       </div>
       {isOpen && (
         <div className="cart-content">
-          <span className="close-btn" onClick={toggleCart}>X</span>
-          <h3 style={{padding:'8px'}}>Your Cart</h3>
-          <CheckOutItemsList/>
-          <OrderButton/>
+          <div className="cart-component-header-wrapper" >
+            <h3 style={{padding:'8px'}}>Your Cart</h3>            
+            <span className="cart-component-close-btn" onClick={toggleCart}>X</span>
+          </div>
+          <CheckOutItemsList parent={Paths.CART}/>
+          {
+            cartIsEmpty?
+            <p className="cart-empty-text">Your cart is empty</p>:
+            null
+          }
           <ButtonsContainer buttonsDetails={buttonsDetails}/>        
         </div>
       )}

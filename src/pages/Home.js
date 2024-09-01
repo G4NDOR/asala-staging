@@ -175,30 +175,14 @@ const Home = () => {
   ]
 */
 
-  const appStyle = {
-    //padding: '20px',
-    fontFamily: "Arial, sans-serif",
-    maxWiDth: '100vw',
-    overFlow: 'hidden'
-  };
-
-  const containerStyle = {
-    //width: '90%',
-    //maxWidth: '1200px',
-    //padding: '20px 0',
-    display: 'flex',
-    flexDirection: 'column',
-    backgroundColor: '#f8f9fa'
-  };
-
   return (
-    <div style={appStyle}>
+    <div className="home-page-container-wrapper" >
       {
         <LoadingAnimation/>
         //<L2/>
       }
       
-      <div className="container" style={containerStyle}>
+      <div className="container">
         
         
         <SearchItem />

@@ -2,9 +2,10 @@
 
 .product-page {
   font-family: Arial, sans-serif;
-  padding: 20px;
   display: flex;
   flex-direction: column;
+  width: 90vw;
+  max-width: 1000px;
 }
 
 .address-bar {
@@ -40,6 +41,8 @@
 
 .product-details {
   margin-top: 20px;
+  max-width: 600px;
+  align-self: center;
 }
 
 .product-name {
@@ -114,11 +117,18 @@
   width: 100%; /* Full-width slider */
   margin: 0 auto; /* Center the slider */
   padding: 0 0; /* Optional padding */
+  
 }
 
 div.slick-list {
 padding: 0;
 gap: 10px;
+
+}
+
+.slick-track{
+  
+  display: flex;
 }
 
 
@@ -130,6 +140,12 @@ gap: 10px;
   height: 300px; /* Adjust as needed */
   background-color: #f5f5f5; /* Optional background color */
   color: #333;
+}
+
+.Checkout-section-wrapper{
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
 }
 
 

@@ -250,7 +250,7 @@ const OrderButton = ({test}) => {
 
   const PaymentConfirmationButtonDetails = {
     visible:  visible && payClicked && isNotMobileScreen,
-    generalContent: `Confirm $${total.toFixed(2)}`,
+    generalContent: `Confirm $${total.toFixed(2)} ${paymentMethod}`,
     generalClassName: "home-page-and-product-page-in-person-payment-confirmation-button",
     activeAction: proceedWithPayment,
   }

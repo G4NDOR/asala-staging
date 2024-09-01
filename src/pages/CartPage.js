@@ -16,6 +16,7 @@ import AddressSelector from "../components/js/AddressSelector";
 import Slider from "react-slick";
 import DEFAULT_VALUES from "../constants/defaultValues";
 import AddressSlide from "../components/js/AddressSlide";
+import Messages from "../components/js/Messages";
 
 const CartPage = () => {
   const dispatch = useDispatch();
@@ -145,7 +146,12 @@ const CartPage = () => {
       <h3 style={{padding:'8px'}}>Your Cart</h3>
       
       <div className="cart-items-wrapper">
-        <CheckOutItemsList />
+        <CheckOutItemsList parent={Paths.CART}/>
+        {
+          cartIsEmpty?
+          <p className="cart-empty-text">Your cart is empty</p>:
+          null
+        }        
         <AddressSelector visible={!cartIsEmpty}/>
       <section className={`cart-page-my-slider-section ${cartIsEmpty? 'invisible':''}`}>
         <Slider {...DEFAULT_VALUES.SLIDER_SETTINGS}>
@@ -161,7 +167,7 @@ const CartPage = () => {
         //<Payment/> when payment is integrated into the website
       }        
       </div>
-
+      <Messages />
     </div>
   );
 };

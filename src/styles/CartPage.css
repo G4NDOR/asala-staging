@@ -7,6 +7,8 @@
   overflow-x: hidden;
   min-height: 100vh;
   background-color: #ffffff;
+  width: 90vw;
+  max-width: 1000px;
 }
 
 

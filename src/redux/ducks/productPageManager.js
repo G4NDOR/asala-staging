@@ -15,8 +15,11 @@ const SET_ADDRESSES = 'productPageManager/setAddresses';
 const ADD_ADDRESS = 'productPageManager/addAddress';
 const SELECT_VARIANT = 'productPageManager/selectVariant';
 const DESELCT_VARIANT = 'productPageManager/deselectVariant';
+const SET_VARIANT_FIELD = 'productPageManager/setVariantField';
 const SET_START_INDEX = 'productPageManager/setStartIndex';
 const SET_END_INDEX = 'productPageManager/setEndIndex';
+const ADD_OPTIONAL_ADDITION = 'productPageManager/addOptionalAddition';
+const REMOVE_OPTIONAL_ADDITION = 'productPageManager/removeOptionalAddition';
 
 
 const initialState = {
@@ -28,9 +31,11 @@ const initialState = {
     selectedAddressId: DEFAULT_VALUES.SELECTED_ADDRESS_ID,
     addresses: [], // Array of customer addresses
     recommendations: [],
-    selectedVariants: {}, // Array of selected variant values
+    selectedVariants: {}, //
+    variantsFields: {}, // store fields of product that are adjusted with variants
     startIndex: 0,//index that will give the highest level of variants in selctedVariants
     endIndex: 0,//index that will give the lowest level of variants in selctedVariants
+    selectedOptionalAdditions: {},//
 };
 
 
@@ -109,6 +114,11 @@ export default function productPageManager(state = initialState, action) {
                 ...state,
                 selectedVariants: newSelectedVariants // Return the updated state
             };
+        case SET_VARIANT_FIELD:
+            return { 
+               ...state,
+                variantsFields: {...state.variantsFields, [action.index]: action.field}
+            };        
         case SET_START_INDEX:
             return { 
                ...state,
@@ -119,8 +129,27 @@ export default function productPageManager(state = initialState, action) {
                ...state,
                 endIndex: action.endIndex
             };
-        // Add more action creators as needed for other actions related to the product page
-        // Add more cases as needed for other actions related to the product page
+        case ADD_OPTIONAL_ADDITION:
+            const array = [...state.selectedOptionalAdditions[action.addition.type] || []];
+            const newArray = [...array.filter(addition=>addition.id!== action.addition.id), action.addition];
+            return { 
+               ...state,
+                selectedOptionalAdditions: {...state.selectedOptionalAdditions, [action.addition.type]: newArray}
+            };
+        case REMOVE_OPTIONAL_ADDITION:
+            const additions = state.selectedOptionalAdditions[action.addition.type];
+            const indexToRemove = additions ? additions.indexOf(action.addition) : -1;                        
+            if (indexToRemove!== -1) {
+                const array = [...additions];
+                array.splice(indexToRemove, 1);
+                return { 
+                   ...state,
+                    selectedOptionalAdditions: {...state.selectedOptionalAdditions, [action.addition.type]: array}
+                };
+            }
+            return state; // If the addition is not found in the array, return the state as is.
+
+         // Add more action creators here for other actions related to the product page manager slice of state.
         default:
             return state;
     }
@@ -186,6 +215,12 @@ export const deselectVariant = (variantId) => ({
     variantId: variantId
 });
 
+export const setVariantField = (field, index) => ({
+    type: SET_VARIANT_FIELD,
+    field: field,
+    index: index
+});
+
 export const setStartIndex = (startIndex) => ({
     type: SET_START_INDEX,
     startIndex: startIndex
@@ -194,5 +229,15 @@ export const setStartIndex = (startIndex) => ({
 export const setEndIndex = (endIndex) => ({
     type: SET_END_INDEX,
     endIndex: endIndex
+});
+
+export const addOptionalAddition = (addition) => ({
+    type: ADD_OPTIONAL_ADDITION,
+    addition: addition
+});
+
+export const removeOptionalAddition = (addition) => ({
+    type: REMOVE_OPTIONAL_ADDITION,
+    addition: addition
 });
 

@@ -4,12 +4,14 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  
 }
 
 .cart-item {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 10px;
   width:auto;
 }
@@ -35,6 +37,7 @@
 .cart-item-price {
   font-size: 0.9rem;
   color: #888;
+  cursor: pointer;
 }
 
 .cart-item-total {
@@ -66,6 +69,47 @@
 
 .before-discounts-text{
   text-decoration: line-through; /* Adds a line through the text */
+}
+
+.optional-additions-wrapper{
+  display: flex;
+  flex-direction: column;
+  animation: none;
+  overflow: hidden;
+}
+
+.optional-additions-wrapper span{
+  margin-left: 1rem;
+  color: #333;
+  margin-bottom: 0.3rem;
+}
+
+
+
+@keyframes expand {
+  from {
+    max-height: 0; /* Start collapsed */
+  }
+  to {
+    max-height: 1000px; /* Large enough to fit all content */
+  }
+}
+
+@keyframes collapse {
+  from {
+    max-height: 1000px; /* Large enough to fit all content */
+  }
+  to {
+    max-height: 0; /* Collapse to 0 height */
+  }
+}
+
+.optional-additions-wrapper.open {
+  animation: expand 0.5s ease forwards; /* Adjust timing as needed */
+}
+
+.optional-additions-wrapper.closed {
+  animation: collapse 0.5s ease forwards; /* Adjust timing as needed */
 }
 
 @media (max-width: 480px) {

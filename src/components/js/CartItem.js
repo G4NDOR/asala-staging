@@ -1,6 +1,6 @@
 // src/components/CartItem.js
 
-import React from "react";
+import React, { useState } from "react";
 import "../css/CartItem.css";
 import QuantityControl from "./QuantityControl";
 import { FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
@@ -8,24 +8,35 @@ import DEFAULT_VALUES from "../../constants/defaultValues";
 import { calculatePriceForItem, findAppliedDiscount } from "../../utils/appUtils";
 import { useSelector } from "react-redux";
 
+const _optionalAdditions = [
+  { id: 1, name: 'ketchup', price: 5.99, active: true, type: 'sauces', 'add-by-default': true },
+  { id: 2, name: 'onion', price: 3.99, active: true, type: 'vegetables', 'add-by-default': true },
+  { id: 3, name: 'cheese', price: 7.99, active: true, type: 'cheeses', 'add-by-default': false },
+  { id: 4, name: 'pepperoni', price: 8.99, active: true, type: 'toppings', 'add-by-default': false },
+  { id: 5, name: 'lettuce', price: 2.99, active: true, type:'vegetables', 'add-by-default': true },
+  { id: 6, name: 'tomatoes', price: 2.99, active: true, type:'vegetables', 'add-by-default': true },
+];
+
 const CartItem = ({ item }) => {
   //const { image, name, price } = item;
   const { id, quantity, name, price } = item;
   const image = item['image-src'];
+  const [showOptionalAdditions, setShowOptionalAdditions] = useState(false);
   
 
   const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts);
   
   const thisProductSelectedDiscounts = selectedDiscounts.filter(discount => {
-    const discountBelongsToThisProduct = discount.product === id;
+    const delimiter = '_';
+    const noVariantProductId = id.split(delimiter)[0];
+    const discountBelongsToThisProduct = discount.product === noVariantProductId;
     return discountBelongsToThisProduct;
   });
   const discounts = thisProductSelectedDiscounts;
-  console.log('Cart item: discounts', discounts);
+  const optionalAdditions = item['optional-additions'] || [];
   
   const appliedDiscount = findAppliedDiscount(discounts, quantity);
   const appliedDiscountDoesNotExist = !appliedDiscount;
-  console.log('Cart item: applied discount', appliedDiscount);
   //name of a field of a feild, name of a nested feild
   
 
@@ -52,12 +63,13 @@ const CartItem = ({ item }) => {
   return (
     <div className="cart-item-wrapper">
       <div className="cart-item">
+      <QuantityControl id={id} quantity={quantity}/>
         <img src={image} alt={name} className="cart-item-image" />
         <div className="cart-item-details">
           <p className="cart-item-name">
             {quantity}x {name}
           </p>
-          <p className="cart-item-price">
+          <p className="cart-item-price" onClick={()=>setShowOptionalAdditions(!showOptionalAdditions)} >
             $
             {
               price.toFixed(2)
@@ -87,8 +99,16 @@ const CartItem = ({ item }) => {
             )            
           }
         </div>
+        
       </div>
-      <QuantityControl id={id} quantity={quantity}/>
+      
+      <div className={`optional-additions-wrapper ${showOptionalAdditions? 'open': 'closed'}`} >
+        {
+          optionalAdditions.map((addition, index) => (
+            <span>{addition.name} - ${addition.price.toFixed(2)}</span>
+          ))
+        }
+      </div>
     </div>
   );
 };

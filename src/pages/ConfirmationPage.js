@@ -7,6 +7,7 @@ import '../styles/ConfirmationPage.css';
 import { useDispatch } from 'react-redux';
 import { resetLoading, setCurrentPage, triggerLoading } from '../redux/ducks/appVars';
 import LoadingAnimation from '../components/js/LoadingAnimation';
+import Messages from '../components/js/Messages';
 
 const ConfirmationPage = () => {
   const dispatch = useDispatch();
@@ -70,6 +71,7 @@ const ConfirmationPage = () => {
           Continue Shopping
         </button>
       </div>
+      <Messages />
     </div>
   );
 };

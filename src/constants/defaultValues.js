@@ -425,7 +425,7 @@ const DEFAULT_VALUES = {
             fade: true,
             speed: 1000,
             cssEase: 'linear',
-            arrows: true,
+            arrows: false,
           }
         }
       ]

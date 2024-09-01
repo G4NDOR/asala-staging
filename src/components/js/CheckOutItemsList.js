@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import '../css/CheckOutItemsList.css';
 import CartItem from './CartItem';
 import {useSelector} from 'react-redux';
@@ -11,26 +11,30 @@ import ChargeInfo from './ChargeInfo';
 import CONSTANTS from '../../constants/appConstants';
 import { calculatePriceForItem, calculateTotalPrice, findAppliedDiscount, getPriceWithDiscountApplied } from '../../utils/appUtils';
 
-const CheckOutItemsList = () => {
-
+const CheckOutItemsList = ({parent}) => {
   const CHARGE_INFO_TYPES = CONSTANTS.CHARGE_INFO_TYPES;
   const currentPage = useSelector(state => state.appVars.currentPage);
   const isHomePage = currentPage === Paths.HOME;
   const isCartPage = currentPage === Paths.CART;
+  const isNotCartPage = !isCartPage;
+  const isCartComponent = parent == Paths.CART && isNotCartPage;
+  const isNotCartComponent = !isCartComponent;
 
-  //we are in cart view and not product page
-  //if it's either the home page or cart page  
-  const inCart = isCartPage || isHomePage;
-  const isProductPage = currentPage === Paths.PRODUCT;
+  //we are in cart view and not product page checkout section
+  //if it's either the parent that called  this componen (CheckOutItemsList) is cart
+  const inCart = parent == Paths.CART;
+  console.log('inCart', inCart);
+  const isProductCheckout = parent === Paths.PRODUCT;
   const getListIdentifier = () => {
     if(inCart) return CART;
-    if(isProductPage) return ONE_ITEM_CHECKOUT;
+    if(isProductCheckout) return ONE_ITEM_CHECKOUT;
     return null
   }
 
   const listIdentifier = getListIdentifier();
   const products = useSelector((state) => state['orderManager'][`${listIdentifier? listIdentifier:EMPTY_LIST}`]);
   const cartIsEmpty = useSelector(state => state.orderManager.cartIsEmpty);
+  console.log('cartIsEmpty', cartIsEmpty);
   const cartLoadedFromStorage = useSelector(state => state.orderManager.cartLoadedFromStorage);
   const cart = useSelector(state => state.orderManager.cart);
   const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts);
@@ -40,14 +44,13 @@ const CheckOutItemsList = () => {
   
   const Finalcharge = { type: CHARGE_INFO_TYPES.TOTAL, value: total }
 
+  if(products.length == 0) return null;
   
   return (
     <>
       {
         <div className='items-list' style={{}}>
-          <ul style={{
-
-          }}>
+          <ul>
             {
               products.map((product, index) => (
                 <CartItem key={index} item={product} />
@@ -55,9 +58,9 @@ const CheckOutItemsList = () => {
             }
             <ChargeInfo visible={!cartIsEmpty} charge={Finalcharge}/>
           </ul>
-          
-          <Discount visible={!cartIsEmpty}/>
+          <Discount visible={!cartIsEmpty && isNotCartComponent}/>
         </div>
+          
       }    
       {
         inCart && cartIsEmpty?

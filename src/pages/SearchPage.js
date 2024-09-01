@@ -11,6 +11,7 @@ import LoadingAnimation from '../components/js/LoadingAnimation';
 import ProductCard from '../components/js/ProductCard';
 import ProductsContainer from '../components/js/ProductsContainer'
 import SearchItem from '../components/js/SearchItem';
+import Messages from '../components/js/Messages';
 
 export default function SearchPage() {
     const dispatch = useDispatch();
@@ -55,6 +56,7 @@ export default function SearchPage() {
             <p style={{position:'absolute',top:'40%'}} >No items Found</p>
             
         }
+        <Messages />
     </div>
   )
 }

@@ -82,10 +82,10 @@ const ProductCard = ({product}) => {
     }
 
   // buttons needed for the product card
-  const BuyItemButtonDetails = {
+  const GoToProductPageButtonDetails = {
     visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock,
-    activeContent: "Buy Now",
-    generalClassName: "home-page-product-card-buy-item-button",
+    activeContent: "More",
+    generalClassName: "home-page-product-card-go-to-product-page-button",
     activeAction: goToProductPage,
     params:{
       product
@@ -150,7 +150,7 @@ const ProductCard = ({product}) => {
   
 
   const buttonsDetails = [
-    BuyItemButtonDetails,
+    GoToProductPageButtonDetails,
     AddToCartButtonDetails,
     notInStockButtonDetails,
     ItemUnavailableButtonDetails,

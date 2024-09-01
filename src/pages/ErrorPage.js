@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/ErrorPage.css';
 import { useNavigate } from 'react-router-dom'; // Assuming you're using react-router for navigation
+import Messages from '../components/js/Messages';
 
 const ErrorPage = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const ErrorPage = () => {
         <p className="error-message">Something went wrong. Please try again later.</p>
         <button className="error-button" onClick={handleGoHome}>Go Home</button>
       </div>
+      <Messages />
     </div>
   );
 };
