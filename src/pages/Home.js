@@ -221,7 +221,7 @@ const Home = () => {
           //<ConfirmationInfo paymentMethod={CONSTANTS.PAYMENT_METHODS.CASH}/>
         }
         {
-          <Form />
+          //<Form />
         }
         <Messages/>
       </div>
