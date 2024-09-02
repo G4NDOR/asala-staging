@@ -5,24 +5,22 @@ import DEFAULT_VALUES from '../../constants/defaultValues';
 import Paths from '../../constants/navigationPages';
 import { CART, ONE_ITEM_CHECKOUT } from '../../constants/stateKeys';
 import { addMessage } from '../../redux/ducks/appVars';
-import { addDiscount, banDiscount, deselectDiscount, removeDiscount, selectDiscount, setDiscountMessage, setDiscounts, setDiscountsLookedUp, setSelectedDiscounts, setUsedCredit } from '../../redux/ducks/orderManager';
+import { addDiscount, deselectDiscount, removeDiscount, selectDiscount, setDiscountMessage, setDiscounts, setDiscountsLookedUp, setUsedCredit } from '../../redux/ducks/orderManager';
 import { loadDiscountsFromFirebase } from '../../utils/firestoreUtils';
 import '../css/Discount.css'
 import CheckboxGroup from './CheckboxGroup';
 
-export default function Discount({visible=true}) {
+export default function Discount({visible=true, parent}) {
     const dispatch = useDispatch();
     const label = "Discounts / Credit";
     const fetchDiscountsLabelInitial = "Find discounts/credit available";
     const fetchDiscountsLabelLoading = "looking...";
-    const discounts = useSelector(state => state.orderManager.discounts);
-    const message = useSelector(state => state.orderManager.discountMessage);
-    const fetched = useSelector(state => state.orderManager.discountsLookedUp);
-    const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts);
-    const bannedDiscountsIds = useSelector(state => state.orderManager.bannedDiscountsIds);
+    const discounts = useSelector(state => state.orderManager.discounts[parent]);
+    const message = useSelector(state => state.orderManager.discountMessage[parent]);
+    const fetched = useSelector(state => state.orderManager.discountsLookedUp[parent]);
+    const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts[parent]);
     const customerId = useSelector(state => state.appVars.customerId);
-    const currentPage = useSelector(state => state.appVars.currentPage);
-    const isInProductPageCheckout = currentPage === Paths.PRODUCT;
+    const isInProductPageCheckout = parent === Paths.PRODUCT;
     //get a list identifier that is used as a key to get the right list
     //returns a key that gives access to the cart products or to the products list in the product page checkout
     //based on the current page (whether this Discount component is rendered in cart or in product page checkout )
@@ -48,18 +46,12 @@ export default function Discount({visible=true}) {
     const creditLabel = `$${credit} store credit`;
     const creditOption = { value: creditId, label: creditLabel };
     if (credit && credit > 0) options.push(creditOption);
-    const isMobile = useSelector(state => state.appVars.screenWidthIsLessThan480);
     const [fetchDiscountsLabel, setFetchDiscountsLabel] = useState(fetchDiscountsLabelInitial)
-    
-    const isHomePage = currentPage === Paths.HOME;
-    const visibleInHome = isMobile;
-    const visibleInCartOrProductPages = true;
-    const _visible = isHomePage? visibleInHome : visibleInCartOrProductPages;
 
     useEffect(() => {
     
       return () => {
-        dispatch(setDiscountsLookedUp(false));
+        //dispatch(setDiscountsLookedUp(false, parent));
       }
     }, [])
     
@@ -77,7 +69,7 @@ export default function Discount({visible=true}) {
     const addGeneralDiscount = (discount, products) => {
         //it is a general discount => it can apply on any product
         //remove it from discounts array and add variants of it based on each product to the discounts array
-        dispatch(removeDiscount(discount));
+        dispatch(removeDiscount(discount, parent));
         //the new discounts that gets created out of the general discount for each item in the cart
         //newDiscountsUnrestricted the new discounts without the 'opposing-discounts' field
         const newDiscountsUnrestricted = [];
@@ -113,7 +105,7 @@ export default function Discount({visible=true}) {
                     ...opposingDiscountsIds
                 ] 
             }
-            dispatch(addDiscount(newDiscount))
+            dispatch(addDiscount(newDiscount, parent))
         });
 
 
@@ -129,11 +121,11 @@ export default function Discount({visible=true}) {
             //deselecting a discount
             //or credit
             if (discount.id == creditId) dispatch(setUsedCredit(0));
-            dispatch(deselectDiscount(discount));
+            dispatch(deselectDiscount(discount, parent));
         } else if (discount.id == creditId) {
             //selecting credit
             dispatch(setUsedCredit(discount.value));
-            dispatch(selectDiscount(discount));
+            dispatch(selectDiscount(discount, parent));
         }else {
             //selecting a discount
             const selectionNotAllowed = selectedDiscounts.find(selectedDiscount => {
@@ -152,8 +144,11 @@ export default function Discount({visible=true}) {
             } else {
                 //selecting a discount
                 //show message what quantity it applies on
-                
-                dispatch(selectDiscount(discount));                
+                const quantity = discount.quantity;
+                const isQuantitySpecific = quantity > 1;
+                const message = { content: `Discount applied${isQuantitySpecific? ` (applies on x${quantity} or more)`: ''}`, severity: CONSTANTS.SEVERITIES.INFO };
+                dispatch(addMessage(message))                
+                dispatch(selectDiscount(discount, parent));                
             }
             
         }
@@ -164,17 +159,17 @@ export default function Discount({visible=true}) {
 
         //fetch discounts from server
         const fetchedDiscounts = await loadDiscountsFromFirebase(customerId, productsIds);
-        dispatch(setDiscountsLookedUp(true));
+        dispatch(setDiscountsLookedUp(true, parent));
         if (fetchedDiscounts.length === 0) {
-            dispatch(setDiscountMessage("No discounts available."));
+            dispatch(setDiscountMessage("No discounts available.", parent));
             setTimeout(() => {
-                dispatch(setDiscountMessage(""));
-                dispatch(setDiscountsLookedUp(false));
+                dispatch(setDiscountMessage("", parent));
+                dispatch(setDiscountsLookedUp(false, parent));
                 setFetchDiscountsLabel(fetchDiscountsLabelInitial);
             }, 10000);
             return;
         }
-        dispatch(setDiscounts(fetchedDiscounts))
+        dispatch(setDiscounts(fetchedDiscounts, parent))
     }
 
 
@@ -194,7 +189,7 @@ export default function Discount({visible=true}) {
     
 
   return (
-    <div className={`checkout-apply-discount ${(visible && _visible)? '':'invisible'}`}>
+    <div className={`checkout-apply-discount ${(visible)? '':'invisible'}`}>
         <button onClick={load} className={`fetch-discounts-btn ${(fetched)? 'invisible':''}`}>
             {fetchDiscountsLabel}
         </button>

@@ -10,6 +10,7 @@
     display: flex;
     flex-direction: column;
     background-color: #f8f9fa;
+    background-color: #ffffff;;
   }
 
 .confirmation-info-order-summary{

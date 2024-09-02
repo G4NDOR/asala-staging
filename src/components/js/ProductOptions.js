@@ -105,7 +105,7 @@ const OptionalAddition = ({type, optionalAdditions}) => {
     return <CheckboxGroup label={label} options={options} values={values} onChange={onChange} />;
 }
 
-export default function ProductOptions({variants, optionalAdditions}) {
+export default function ProductOptions({variants = [], optionalAdditions = []}) {
     const _variants = [
         // Parent variants with price null
         { id: 1, active: true, price: null, color: 'blue', 'add-by-default': true },
@@ -136,6 +136,8 @@ export default function ProductOptions({variants, optionalAdditions}) {
         { id: 5, name: 'lettuce', price: 2.99, active: true, type:'vegetables', 'add-by-default': true },
         { id: 6, name: 'tomatoes', price: 2.99, active: true, type:'vegetables', 'add-by-default': true },
     ];
+    const VariantsHeader = 'Product Options';
+    const OptionalAdditionsHeader = 'Add-ons';
     const dispatch = useDispatch();
     const [initialized, setInitialized] = useState(false);
     const [variantsContent, setVariantsContent] = useState(null);
@@ -169,7 +171,7 @@ export default function ProductOptions({variants, optionalAdditions}) {
         //and a smaller level could be a size
         //each color variant will have different sizes (several size variants)
         const productFieldsObj = {};
-        const activeVariants = _variants.filter(variant=>{
+        const activeVariants = variants.filter(variant=>{
             //only consider variants that are active, inactive variants are not used, (chosen by the producer of the product)
             if (variant.active){
                 //get an array of the fields of the variant
@@ -303,15 +305,14 @@ export default function ProductOptions({variants, optionalAdditions}) {
 
   return (
     <div className='product-page-product-options-section'>
-        <h2>Product Options</h2>
+        <h2 className={variants.length == 0? 'invisible':''}>{VariantsHeader}</h2>
         {
             variantsContent
         }
-        <h2>Add-ons</h2>
+        <h2 className={optionalAdditions.length == 0? 'invisible':''}>{OptionalAdditionsHeader}</h2>
         {
             optionalAdditionsContent
         }
-        <button onClick={()=>{console.log(selectedVariants)}} >Debug</button>
     </div>
   )
 }

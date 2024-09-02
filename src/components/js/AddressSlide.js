@@ -3,6 +3,8 @@ import '../css/AddressSlide.css'
 import { useSelector, useDispatch } from'react-redux'
 import { setAddress, setSelectedAddressId } from '../../redux/ducks/productPageManager';
 import DEFAULT_VALUES from '../../constants/defaultValues';
+import CONSTANTS from '../../constants/appConstants';
+import { addMessage } from '../../redux/ducks/appVars';
 
 export default function AddressSlide({address, id}) {
   const dispatch = useDispatch();
@@ -22,7 +24,11 @@ export default function AddressSlide({address, id}) {
   
 
   const selectAddress = () => {
-    dispatch(setAddress(address));
+    if (address !== stateAddress) {
+      dispatch(setAddress(address));
+      const message = { content: `Changed address to: ${address}`, severity: CONSTANTS.SEVERITIES.INFO };
+      dispatch(addMessage(message))         
+    }
   }
 
   const deselectAddress = () => {

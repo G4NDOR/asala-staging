@@ -9,7 +9,7 @@ import CheckoutTotalSection from './CheckoutTotalSection';
 import Discount from './Discount';
 import ChargeInfo from './ChargeInfo';
 import CONSTANTS from '../../constants/appConstants';
-import { calculatePriceForItem, calculateTotalPrice, findAppliedDiscount, getPriceWithDiscountApplied } from '../../utils/appUtils';
+import { calculatePriceForItem, calculateTotalListPriceWithAppliedDiscountsAndUsedCredit, findAppliedDiscount, getPriceWithDiscountApplied } from '../../utils/appUtils';
 
 const CheckOutItemsList = ({parent}) => {
   const CHARGE_INFO_TYPES = CONSTANTS.CHARGE_INFO_TYPES;
@@ -19,11 +19,12 @@ const CheckOutItemsList = ({parent}) => {
   const isNotCartPage = !isCartPage;
   const isCartComponent = parent == Paths.CART && isNotCartPage;
   const isNotCartComponent = !isCartComponent;
+  const payClicked = useSelector(state => state.orderManager.intentToPay);
+
 
   //we are in cart view and not product page checkout section
   //if it's either the parent that called  this componen (CheckOutItemsList) is cart
   const inCart = parent == Paths.CART;
-  console.log('inCart', inCart);
   const isProductCheckout = parent === Paths.PRODUCT;
   const getListIdentifier = () => {
     if(inCart) return CART;
@@ -33,18 +34,18 @@ const CheckOutItemsList = ({parent}) => {
 
   const listIdentifier = getListIdentifier();
   const products = useSelector((state) => state['orderManager'][`${listIdentifier? listIdentifier:EMPTY_LIST}`]);
+  const listIsNotEmpty = products.length > 0;
   const cartIsEmpty = useSelector(state => state.orderManager.cartIsEmpty);
-  console.log('cartIsEmpty', cartIsEmpty);
   const cartLoadedFromStorage = useSelector(state => state.orderManager.cartLoadedFromStorage);
   const cart = useSelector(state => state.orderManager.cart);
-  const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts);
+  const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts[parent]);
   const usedCredit = useSelector(state => state.orderManager.usedCredit);
 
-    const total = calculateTotalPrice(products, selectedDiscounts, usedCredit);
+    const total = calculateTotalListPriceWithAppliedDiscountsAndUsedCredit(products, selectedDiscounts, usedCredit);
   
   const Finalcharge = { type: CHARGE_INFO_TYPES.TOTAL, value: total }
 
-  if(products.length == 0) return null;
+  if((products.length == 0) || (payClicked && isNotCartComponent)) return null;
   
   return (
     <>
@@ -53,12 +54,12 @@ const CheckOutItemsList = ({parent}) => {
           <ul>
             {
               products.map((product, index) => (
-                <CartItem key={index} item={product} />
+                <CartItem parent={parent} key={index} item={product} />
               ))
             }
-            <ChargeInfo visible={!cartIsEmpty} charge={Finalcharge}/>
+            <ChargeInfo parent={parent} visible={listIsNotEmpty} charge={Finalcharge}/>
           </ul>
-          <Discount visible={!cartIsEmpty && isNotCartComponent}/>
+          <Discount parent={parent} visible={listIsNotEmpty && isNotCartComponent}/>
         </div>
           
       }    

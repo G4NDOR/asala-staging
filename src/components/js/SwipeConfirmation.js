@@ -21,7 +21,7 @@ const SwipeAnimation = ({horizontal, right}) => {
     )
 }
 
-export default function SwipeConfirmation({active, onConfirm, onCancel}) {
+export default function SwipeConfirmation({active, onConfirm, onCancel, parent}) {
   const disabled =!active;
 
   const confirmationHandlers = useSwipeable({
@@ -41,13 +41,7 @@ export default function SwipeConfirmation({active, onConfirm, onCancel}) {
         <div className={`swipe-confirmation-page ${disabled? 'swipe-confirmation-page-disabled': ''}`} style={{zIndex:`${CONSTANTS.Z_INDEXES.SWIPE_CONFIRMATION}`}}>
             <div className="confirmation-page-content-wrapper">
                 <div className='swipe-confirmation-info-wrapper'>
-                    <ConfirmationInfo />
-                    <ConfirmationInfo />
-                    <ConfirmationInfo />
-                    <ConfirmationInfo />
-                    <ConfirmationInfo />
-                    <ConfirmationInfo />
-                    <ConfirmationInfo />
+                    <ConfirmationInfo parent={parent} />
                     <div className='swipe-confirmation-cover'>
                 
                     </div>                

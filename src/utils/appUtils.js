@@ -240,6 +240,18 @@ export const generateButtonDetails = ({
   //************************************************************************************************  
 
 
+  //finds the discounts that apply to the specified product
+  export const findDiscountsForProduct = (discounts, productId) => {
+    console.log('selected discounts', discounts)
+    const discountsThatBelongToThisProduct = discounts.filter(discount => {
+      const delimiter = '_';//assuming the product id is in the format 'productId_variantId' e.g.
+      const noVariantProductId = productId.split(delimiter)[0];
+      const discountBelongsToThisProduct = discount.product === noVariantProductId;
+      return discountBelongsToThisProduct;
+    });
+    return discountsThatBelongToThisProduct;
+  }
+
   //checks if the discount should be applied based on the quantity of the item purchased.
   export const findAppliedDiscount = (discounts, quantity) => {
     let appliedDiscount = null;
@@ -315,9 +327,29 @@ export const generateButtonDetails = ({
   //************************************************************************************************
   //************************************************************************************************  
 
+// takes the products list, discounts list and used credit
+//  RETURNS Calculated final total price that the customer will pay
+export const calculateTotalListPriceWithAppliedDiscountsAndUsedCredit = (products, selectedDiscounts, usedCredit) => {
+  const totalBeforecredit = calculateTotalListPriceWithAppliedDiscounts(products, selectedDiscounts);
+  const finalTotal = totalBeforecredit - usedCredit;
+  if (finalTotal < 0) return 0;  //if used credit is more than total
+  return finalTotal;
+}; 
 
-
+//takes the products list, discounts list
+// RETURNS total price with applied discounts (non quantity discounts, and quantity discounts)
+export const calculateTotalListPriceWithAppliedDiscounts = (products, selectedDiscounts) => {
+  const totalOfAllItemsWithAppliedQuantityDiscounts = calculateTotalListPriceWithAppliedQuantityDiscounts(products, selectedDiscounts)
   
+  //discounts that apply to final price not affected by specific items quantities
+  const nonQuantityDiscounts = selectedDiscounts.filter(discount => discount.quantity === 0);
+  const totalBeforecredit = totalWithAppliedNonQuantityDiscounts(nonQuantityDiscounts, totalOfAllItemsWithAppliedQuantityDiscounts);
+  //console.log('totalBeforecredit', totalBeforecredit)
+  return totalBeforecredit;
+}
+
+// takes total price after applying quantity discounts (discounts that apply on a specific item)
+// RETURNS total price with applied non quantity discounts (discounts that apply on the whole order, not on specific items)
 const totalWithAppliedNonQuantityDiscounts = (discounts, total) => {
   if(discounts.length === 0) return total;
   const discount = discounts[0];
@@ -326,25 +358,30 @@ const totalWithAppliedNonQuantityDiscounts = (discounts, total) => {
   return totalWithAppliedNonQuantityDiscounts(leftDiscounts, totalAfterNonQuantityDiscount);
 }
 
-// Calculate total price
-export const calculateTotalPrice = (products, selectedDiscounts, usedCredit) => {
-  const totalOfAllItems = products.reduce((total, item) => {
+
+// takes products list, discounts list
+// RETURNS total price with applied quantity discounts (discounts that apply on a specific item)
+export const calculateTotalListPriceWithAppliedQuantityDiscounts = (products, selectedDiscounts) => {
+  const totalOfAllItemsWithAppliedQuantityDiscounts = products.reduce((total, item) => {
     const { id, quantity, price } = item;
-    const discounts = selectedDiscounts.filter(discount => {
-      const discountBelongsToThisProduct = discount.product === id;
-      return discountBelongsToThisProduct;
-    });      
-    const appliedDiscount = findAppliedDiscount(discounts, quantity);
+    const discountsForThisProduct = findDiscountsForProduct(selectedDiscounts, id);      
+    const appliedDiscount = findAppliedDiscount(discountsForThisProduct, quantity);
     const totalOfThisItem = calculatePriceForItem(appliedDiscount, price, quantity);    
     return total + totalOfThisItem;
   }, 0);
-  //discounts that apply to final price not affected by specific items quantities
-  const nonQuantityDiscounts = selectedDiscounts.filter(discount => discount.quantity === 0);
-  const totalBeforecredit = totalWithAppliedNonQuantityDiscounts(nonQuantityDiscounts, totalOfAllItems);
-  const finalTotal = totalBeforecredit - usedCredit;
-  if (finalTotal < 0) return 0;  //if used credit is more than total
-  return finalTotal;
-};
+  return totalOfAllItemsWithAppliedQuantityDiscounts;
+}
+
+//takes products list
+// RETURNS total price based on itemss prices and quantities, without discounts (discounts are not applied)
+export const calculateTotalListPriceWithoutDiscounts = (products) => {
+  const totalOfAllItems = products.reduce((total, item) => {
+    const { quantity, price } = item;
+    const totalOfThisItem = price * quantity;        
+    return total + totalOfThisItem;
+  }, 0);
+  return totalOfAllItems;
+}
 
   
   

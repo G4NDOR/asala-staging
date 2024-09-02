@@ -4,22 +4,24 @@ import '../css/CheckoutContactInfo.css'
 export default function CheckoutContactInfo({info}) {
     //general information
     const {
-        merchantName,
+        merchants,// array of strings
         receiptId,
         date,
-        customerName,
-        customerContact,
+        address,
+        customerContacts,//array of strings
         returnPolicy,
-        contactInfo,
+        contactInfo,// array of strings
     } = info;
 
     // strings to be displayed in html elements
-    const merchantNameString = `${merchantName}`;
+    const delimiter = ' | ';
+    const merchantNameString = merchants.join(delimiter);;
     const idString = receiptId? `Receipt ID: ${receiptId}`: null;
     const dateString = `Date: ${date}`;
-    const contactInfoString = `Contact: ${contactInfo}`;
-    const customerInfoString = `Customer: ${customerName} | ${customerContact}`;
-    const returnPolicyString = `Return Policy: ${returnPolicy}`;    
+    const contactInfoString = `Contact: ${contactInfo.join(delimiter)}`;
+    const customerInfoString = `Customer: ${customerContacts.join(delimiter)}`;
+    const returnPolicyString = `Return Policy: ${returnPolicy}`;  
+    const addressString = `Delivery to: ${address}`;  
 
     const infoStrings = [
         merchantNameString,
@@ -27,6 +29,7 @@ export default function CheckoutContactInfo({info}) {
         dateString,
         contactInfoString,
         customerInfoString,
+        addressString,
         returnPolicyString,
     ]
     const filtredInfoStrings = infoStrings.filter(info => info !== null);

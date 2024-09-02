@@ -2,8 +2,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-
-  padding: 20px;
   overflow-x: hidden;
   min-height: 100vh;
   background-color: #ffffff;
@@ -16,11 +14,10 @@
 .cart-items-wrapper{
   display: flex;
   flex-direction: column;
-  padding: 10px;
   border-radius: 4px;
-  min-width: 500px;
   max-width: 800px;
-  width: 50%;
+  width: 100%;
+  max-width: 100vw;
 }
 
 .cart-empty-text{
@@ -47,9 +44,8 @@
 /* Adjustments for medium screens (tablets) */
 @media (max-width: 768px) {
   .cart-items-wrapper {
-    width: 80%; /* Adjusted width for mobile */
+    
     padding: 0;
-    max-width: 770px;
   }
   .container{
     padding: 0;

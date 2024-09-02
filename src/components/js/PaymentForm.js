@@ -40,9 +40,9 @@ export default function PaymentForm({visible}) {
   return (
     <div className={classNameString} >
         <span className='payment-form-header'>{headerString}</span>
-        <TextInput label={'name'} value={name} onChange={(e)=>onChangeName(e.target.value)} />
-        <EmailInput label={'email'} value={email} onChange={(e)=>onChangeEmail(e.target.value)} />
-        <PhoneNumberInput label={'phone'} value={phone} onChange={(e)=>onChangePhone(e.target.value)} />
+        <TextInput label={'name'} finalValue={name} onChange={onChangeName} />
+        <EmailInput label={'email'} finalValue={email} onChange={onChangeEmail} />
+        <PhoneNumberInput label={'phone'} finalValue={phone} onChange={onChangePhone} />
     </div>
   )
 }

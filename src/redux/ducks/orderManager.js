@@ -1,3 +1,5 @@
+import Paths from "../../constants/navigationPages";
+
 const SET_CART_IS_OPEN= 'orderManager/setCartIsOpen'
 
 const REMOVE_ITEM = 'orderManager/removeItem';
@@ -52,11 +54,23 @@ const initialState = {
     intentToPayConfirmed:false,
     emptyList: [],
     paymentMethod: '',
-    discounts: [],
-    selectedDiscounts: [],
+    discounts: {
+        [`${Paths.CART}`]:[],
+        [`${Paths.PRODUCT}`]:[]
+    },
+    selectedDiscounts: {
+        [`${Paths.CART}`]:[],
+        [`${Paths.PRODUCT}`]:[]
+    },
     bannedDiscountsIds: [],
-    discountMessage: '',
-    discountsLookedUp: false,
+    discountMessage: {
+        [`${Paths.CART}`]:'',
+        [`${Paths.PRODUCT}`]:''
+    },
+    discountsLookedUp: {
+        [`${Paths.CART}`]:false,
+        [`${Paths.PRODUCT}`]:false
+    },
     usedCredit: 0,
     name: '',
     email: '',
@@ -253,45 +267,42 @@ export default function orderManager(state = initialState, action) {
         case SET_PAYMENT_METHOD:
             return { ...state, paymentMethod: action.paymentMethod };
         case SET_DISCOUNTS:
-            return { ...state, discounts: action.discounts };
+            return { ...state, discounts: {...state.discounts, [action.parent]: action.discounts} };
         case ADD_DISCOUNT:
             return { 
                ...state,
-                discounts: [...state.discounts, action.discount]
+                discounts: {...state.discounts, [action.parent]: [...state.discounts[action.parent], action.discounts]}
             };
         case REMOVE_DISCOUNT:
-            const _discounts = state.discounts.filter(discount => discount.id!== action.discount.id);
             return { 
                ...state,
-                discounts: _discounts
+                discounts: {...state.discounts, [action.parent]: state.discounts[action.parent].filter(discount => discount.id!== action.discount.id)}
             };
         case SET_SELECTED_DISCOUNTS:
             return { 
                ...state,
-                selectedDiscounts: action.selectedDiscounts
+                selectedDiscounts: {...state.selectedDiscounts, [action.parent]: action.selectedDiscounts}
             };
         case SELECT_DISCOUNT:
             //console.log("SELECT_DISCOUNT: ", action.discount);
             return { 
                ...state,
-                selectedDiscounts: [...state.selectedDiscounts, action.discount]
+                selectedDiscounts: {...state.selectedDiscounts, [action.parent]: [...state.selectedDiscounts[action.parent], action.discount]}
             };
         case DESELECT_DISCOUNT:
-            //console.log("DESELECT_DISCOUNT: ", action.discount);
-            const _selectedDiscounts = state.selectedDiscounts.filter(discount => discount.id !== action.discount.id);
             return { 
                ...state,
-                selectedDiscounts: _selectedDiscounts
+                selectedDiscounts: {...state.selectedDiscounts, [action.parent]: state.selectedDiscounts[action.parent].filter(discount => discount.id!== action.discount.id)}
             };
         case SET_DISCOUNT_MESSAGE:
             return { 
                ...state,
-                discountMessage: action.discountMessage
+                discountMessage: { ...state.discountMessage, [action.parent]: action.discountMessage}
             };
         case SET_DISCOUNTS_LOOKED_UP:
             return { 
                ...state,
-                discountsLookedUp: action.discountsLookedUp
+                discountsLookedUp: { ...state.discountsLookedUp, [action.parent]: action.discountsLookedUp}
             };
         case SET_USED_CREDIT:
             return { 
@@ -436,44 +447,52 @@ export const setPaymentMethod = (paymentMethod) => ({
     paymentMethod
 })
 
-export const setDiscounts = (discounts) => ({
+export const setDiscounts = (discounts, parent) => ({
     type: SET_DISCOUNTS,
-    discounts
+    discounts,
+    parent
 })
 
-export const addDiscount = (discount) => ({
+export const addDiscount = (discount, parent) => ({
     type: ADD_DISCOUNT,
-    discount
+    discount,
+    parent
 })
 
-export const removeDiscount = (discount) => ({
+export const removeDiscount = (discount, parent) => ({
     type: REMOVE_DISCOUNT,
-    discount
+    discount,
+    parent
 })
 
-export const setSelectedDiscounts = (selectedDiscounts) => ({
+export const setSelectedDiscounts = (selectedDiscounts, parent) => ({
     type: SET_SELECTED_DISCOUNTS,
-    selectedDiscounts
+    selectedDiscounts,
+    parent
 })
 
-export const selectDiscount = (discount) => ({
+export const selectDiscount = (discount, parent) => ({
     type: SELECT_DISCOUNT,
-    discount
+    discount,
+    parent
 })
 
-export const deselectDiscount = (discount) => ({
+export const deselectDiscount = (discount, parent) => ({
     type: DESELECT_DISCOUNT,
-    discount
+    discount,
+    parent
 })
 
-export const setDiscountMessage = (discountMessage) => ({
+export const setDiscountMessage = (discountMessage, parent) => ({
     type: SET_DISCOUNT_MESSAGE,
-    discountMessage
+    discountMessage,
+    parent
 })
 
-export const setDiscountsLookedUp = (discountsLookedUp) => ({
+export const setDiscountsLookedUp = (discountsLookedUp, parent) => ({
     type: SET_DISCOUNTS_LOOKED_UP,
-    discountsLookedUp
+    discountsLookedUp,
+    parent
 })
 
 export const setUsedCredit = (usedCredit) => ({
@@ -481,12 +500,12 @@ export const setUsedCredit = (usedCredit) => ({
     usedCredit
 })
 
-export const banDiscount = (discountId) => ({
+export const banDiscount = (discountId, parent) => ({
     type: BAN_DISCOUNT,
     discountId
 })
 
-export const unbanDiscount = (discountId) => ({
+export const unbanDiscount = (discountId, parent) => ({
     type: UNBAN_DISCOUNT,
     discountId
 })

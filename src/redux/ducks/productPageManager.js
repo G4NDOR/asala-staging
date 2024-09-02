@@ -95,7 +95,7 @@ export default function productPageManager(state = initialState, action) {
             else {
                 return { 
                     ...state, 
-                     addresses: [...state.addresses, action.address] // Add new address to the array
+                    addresses: [...state.addresses, action.address] // Add new address to the array
                  };
             }
 

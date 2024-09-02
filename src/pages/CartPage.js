@@ -23,11 +23,14 @@ const CartPage = () => {
   const navigate = useNavigate();
   const addresses = useSelector(state => state.productPageManager.addresses);
   const cartIsEmpty = useSelector((state) => state.orderManager.cartIsEmpty);
+  const cartIsNotEmpty =!cartIsEmpty;
   const cart = useSelector(state => state.orderManager.cart);
   const cartLoadedFromStorage = useSelector(state => state.orderManager.cartLoadedFromStorage);
   const homePageVisited = useSelector(state => state.appVars.homePageVisited);
   const homePageNotVisited = !homePageVisited;
   const currentPage = useSelector(state => state.appVars.currentPage);
+  const payClicked = useSelector(state => state.orderManager.intentToPay);
+  const payNotClicked =!payClicked;
   const isCartPage = currentPage == Paths.CART;
 
   useEffect(() => {
@@ -152,8 +155,8 @@ const CartPage = () => {
           <p className="cart-empty-text">Your cart is empty</p>:
           null
         }        
-        <AddressSelector visible={!cartIsEmpty}/>
-      <section className={`cart-page-my-slider-section ${cartIsEmpty? 'invisible':''}`}>
+        <AddressSelector visible={cartIsNotEmpty && payNotClicked}/>
+      <section className={`cart-page-my-slider-section ${(cartIsEmpty || payClicked)? 'invisible':''}`}>
         <Slider {...DEFAULT_VALUES.SLIDER_SETTINGS}>
           {
             addresses.map((v,i) => <AddressSlide key={i} address={v} id={i} />)
@@ -161,7 +164,7 @@ const CartPage = () => {
         </Slider>
       </section>      
       {
-        <OrderButton />
+        <OrderButton parent={Paths.CART}/>
       }
       {
         //<Payment/> when payment is integrated into the website

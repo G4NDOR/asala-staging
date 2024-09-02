@@ -62,6 +62,9 @@ const ProductPage = () => {
   const recommendations = useSelector(state => state.productPageManager.recommendations);
   const selectedVariants = useSelector(state => state.productPageManager.selectedVariants);
   
+  const productVariants = product.variants || [];
+  const productHasVariants = productVariants.length > 0;
+  const productDoesNotHaveVariants =!productHasVariants;
   const selectedVariantsArray = Object.values(selectedVariants);
   const theSelectedChildVariant = selectedVariantsArray.length > 0? selectedVariantsArray[selectedVariantsArray.length - 1]: {price: null};
   const variantsSelected = theSelectedChildVariant.price !== null;
@@ -159,15 +162,12 @@ const ProductPage = () => {
   const BUY_ITEM_BUTTON_ACTION_NAME = 'buy-item';
   const ADD_TO_CART_BUTTON_ACTION_NAME = 'add-to-cart';
 
-  const addProductToCheckout = ({actionName}) =>{
-    if(!variantsSelected) {
-      const message = {content: 'Please select a product option!', severity: CONSTANTS.SEVERITIES.WARNING}
-      dispatch(addMessage(message));
-      return;
-    };
+  const getProductToAdd = () => {
+    const productDoesNotHaveOpttionalAdditions = selectedOptionalAdditions.length === 0;
+    if (productDoesNotHaveVariants && productDoesNotHaveOpttionalAdditions) return product;
     let id = product.id;
     let name = product.name;
-    let price = theSelectedChildVariant.price;
+    let price = productHasVariants? theSelectedChildVariant.price: product.price;
     let variants = [];
     for (let i = 0; i < selectedVariantsArray.length; i++) {
       const variant = selectedVariantsArray[i];
@@ -176,14 +176,24 @@ const ProductPage = () => {
       id += `_${variant.id}`;
       name += ` - ${variant[field]}`;
     }
-    console.log('selectedOptionalAdditions: ', selectedOptionalAdditions);
     selectedOptionalAdditions.forEach(optionalAddition => {
       id += `_${optionalAddition.id}`;
       price += optionalAddition.price;
     });
-    
     const quantity = 1;
-    const newProduct = {...product, id, name, price, quantity, variants, ['optional-additions']: selectedOptionalAdditions};
+    const updates = {id, name, price, quantity, variants, ['optional-additions']: selectedOptionalAdditions}
+    const newProduct = {...product, ...updates};
+    return newProduct;
+  }
+
+  const addProductToCheckout = ({actionName}) =>{
+    const variantsNotSelected = !variantsSelected;
+    if(productHasVariants && variantsNotSelected) {
+      const message = {content: 'Please select a product option!', severity: CONSTANTS.SEVERITIES.WARNING}
+      dispatch(addMessage(message));
+      return;
+    };
+    const newProduct = getProductToAdd();
     if (actionName == ADD_TO_CART_BUTTON_ACTION_NAME){
       //giving it the product set in this page
       addToCart({product: newProduct});
@@ -300,7 +310,7 @@ const ProductPage = () => {
           <div ref={scrollRef} className="Checkout-section-wrapper">
             <CheckOutItemsList parent={Paths.PRODUCT} />
           </div>
-          <OrderButton />
+          <OrderButton parent={Paths.PRODUCT}/>
           {
             //<Payment/> when payment is integrated into the website
           }

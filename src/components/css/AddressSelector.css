@@ -4,7 +4,8 @@
     display: flex;
     flex-direction: column;
     margin-bottom: 20px;
-    align-self: stretch;
+    align-self: center;
+    width: 90%;
   }
   
   .address-notes {

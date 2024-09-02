@@ -6,25 +6,31 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Paths from '../../constants/navigationPages';
 import { resetIntentToPay, resetIntentToPayConfirmed, setPaymentMethod, triggerIntentToPay, triggerIntentToPayConfirmed } from "../../redux/ducks/orderManager";
-import { resetLoading, setCurrentPage, triggerLoading } from "../../redux/ducks/appVars";
+import { addMessage, resetLoading, setCurrentPage, triggerLoading } from "../../redux/ducks/appVars";
 import ButtonsContainer from "./ButtonsContainer";
 import SwipeConfirmation from "./SwipeConfirmation";
 import CONSTANTS from "../../constants/appConstants";
-import { calculatePriceForItem, calculateTotalPrice, findAppliedDiscount, getPriceWithDiscountApplied } from "../../utils/appUtils";
+import { calculatePriceForItem, calculateTotalListPriceWithAppliedDiscountsAndUsedCredit, findAppliedDiscount, getPriceWithDiscountApplied } from "../../utils/appUtils";
 import { FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
 import PaymentForm from "./PaymentForm";
+import ConfirmationInfo from "./ConfirmationInfo";
 
-const OrderButton = ({test}) => {
+const OrderButton = ({test, parent}) => {
   // Retrieve cart from Redux state
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const name = useSelector(state => state.orderManager.name);
+  const email = useSelector(state => state.orderManager.email);
+  const phone = useSelector(state => state.orderManager.phone);
+  const address = useSelector(state => state.productPageManager.address);
+  const addresses = useSelector(state => state.productPageManager.addresses);
   const cart = useSelector(state => state.orderManager.cart);
   const productPageCart = useSelector(state => state.orderManager.oneItemCheckout);
   const usedCredit = useSelector(state => state.orderManager.usedCredit);
   const paymentMethod = useSelector(state => state.orderManager.paymentMethod);
   const cartIsEmpty = useSelector(state => state.orderManager.cartIsEmpty);
   const cartIsNotEmpty = !cartIsEmpty;
-  const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts);
+  const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts[parent]);
   const adjustedForPhone = useSelector(state => state.appVars.screenWidthIsLessThan480);
   const isMobileScreen = adjustedForPhone;
   const isNotMobileScreen =!isMobileScreen;
@@ -64,17 +70,16 @@ const OrderButton = ({test}) => {
   //since those are the only places where order button is visible
   const isCart = isCartComponentInHomePage || isCartPage;
 
-  const orderButtonIsActiveInCart = isCartComponentInHomePage? orderButtonIsActiveInCartComponentInHomePage: orderButtonIsActiveInCartPage;
-
 
   // order button is always active in the product page
   // because product page always has a product,
   // by defenition it is a page for a certain product,
   // so there's a product to buy => there should be an order button
   const orderButtonIsActiveInProductPage = true;
-  const visible = isCart? orderButtonIsActiveInCart : orderButtonIsActiveInProductPage;
+  const visible = isCartPage? orderButtonIsActiveInCartPage : orderButtonIsActiveInProductPage;
   const mobileScreenConfirmation = visible && payClicked && isMobileScreen;
-  const itemsList = isCart? cart : productPageCart;
+  const itemsList = isCartPage? cart : productPageCart;
+
 
   useEffect(() => {
     
@@ -166,7 +171,7 @@ const OrderButton = ({test}) => {
   ]  
   */
 
-  const total = calculateTotalPrice(itemsList,selectedDiscounts, usedCredit);
+  const total = calculateTotalListPriceWithAppliedDiscountsAndUsedCredit(itemsList,selectedDiscounts, usedCredit);
 
   const onConfirm = () => {
     // The order has been confirmed
@@ -234,18 +239,55 @@ const OrderButton = ({test}) => {
     dispatch(setPaymentMethod(paymentMethod))
   }
 
+  const validateIntentToPay = ({paymentMethod}) => {
+    if (address === '') {
+      const message = { content: 'Please select an address!', severity: CONSTANTS.SEVERITIES.ERROR }
+      dispatch(addMessage(message))
+      return false;
+    }
+    if (name === '') {
+      const message = { content: 'Name is required!', severity: CONSTANTS.SEVERITIES.ERROR }
+      dispatch(addMessage(message))
+      return false;
+    } 
+    if (email === '') {
+      const message = { content: 'Email is required!', severity: CONSTANTS.SEVERITIES.ERROR }
+      dispatch(addMessage(message))
+      return false;
+    }
+    if (phone === '') {
+      const message = { content: 'Phone Number is required!', severity: CONSTANTS.SEVERITIES.ERROR }
+      dispatch(addMessage(message))
+      return false;
+    }
+    console.log('email: ' + email)
+    const isOnlinePayment = paymentMethod == CONSTANTS.PAYMENT_METHODS.ONLINE;
+    if (isOnlinePayment) {
+      triggetIntentToMakeOnlinePayment()
+    }else{
+      triggerIntentToMakeCashPayment()
+    }
+    return;
+  }
+
   const onlinePaymentButtonDetails = {
     visible: visible && payNotClicked,
     generalContent: `Pay Now $${total.toFixed(2)}`,
     generalClassName: "home-page-and-product-page-online-payment-button",
-    activeAction: triggetIntentToMakeOnlinePayment,
+    activeAction: validateIntentToPay,
+    params:{
+      paymentMethod: CONSTANTS.PAYMENT_METHODS.ONLINE,
+    }
   }
 
   const inPersonPaymentButtonDetails = {
     visible: visible && payNotClicked,
     generalContent: "Cash",
     generalClassName: "home-page-and-product-page-in-person-payment-button",
-    activeAction: triggerIntentToMakeCashPayment,
+    activeAction: validateIntentToPay,
+    params:{
+      paymentMethod: CONSTANTS.PAYMENT_METHODS.CASH,
+    }
   }
 
   const PaymentConfirmationButtonDetails = {
@@ -272,8 +314,9 @@ const OrderButton = ({test}) => {
 
   return (
     <>
-      <PaymentForm visible={visible}/>
-      <SwipeConfirmation active={mobileScreenConfirmation} onCancel={onCancel} onConfirm={onConfirm} />    
+      <ConfirmationInfo parent={parent} visible={visible && payClicked && isNotMobileScreen} />
+      <PaymentForm visible={visible && payNotClicked}/>
+      <SwipeConfirmation parent={parent} active={mobileScreenConfirmation} onCancel={onCancel} onConfirm={onConfirm} />    
       <ButtonsContainer buttonsDetails={buttonsDetails}/>
     </>
   );

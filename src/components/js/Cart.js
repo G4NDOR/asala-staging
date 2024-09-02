@@ -4,8 +4,6 @@ import React, { useEffect, useState } from "react";
 //import CSS
 import "../css/Cart.css";
 //import Components
-import CartItem from "./CartItem";
-import OrderButton from "./OrderButton";
 import CheckOutItemsList from "./CheckOutItemsList";
 //import Redux
 import {useSelector, useDispatch} from 'react-redux';

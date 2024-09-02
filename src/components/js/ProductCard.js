@@ -1,10 +1,11 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import CONSTANTS from "../../constants/appConstants";
 import DEFAULT_VALUES from "../../constants/defaultValues";
 import { FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
 import Paths from "../../constants/navigationPages";
-import { addToWishList, setCurrentPage, triggerLoading } from "../../redux/ducks/appVars";
+import { addMessage, addToWishList, setCurrentPage, triggerLoading } from "../../redux/ducks/appVars";
 import { setProductSelectedId } from "../../redux/ducks/homePageManager";
 import { addItemToCart, resetAnimation, triggerAnimation, triggerUnseenChanges } from "../../redux/ducks/orderManager";
 import { setProduct } from "../../redux/ducks/productPageManager";
@@ -98,6 +99,7 @@ const ProductCard = ({product}) => {
     activeAction: ({product}) => {
       const cartIsClosed = !cartIsOpen;
       dispatch(addItemToCart(product));
+
       dispatch(triggerAnimation());
       if(cartIsClosed){
           dispatch(triggerUnseenChanges());

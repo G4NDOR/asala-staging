@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 import { useDispatch, useSelector } from 'react-redux';
+import CONSTANTS from '../../constants/appConstants';
 import DEFAULT_VALUES from '../../constants/defaultValues';
+import { addMessage } from '../../redux/ducks/appVars';
 import { addAddress, setAddress, setNotes } from '../../redux/ducks/productPageManager';
 import '../css/AddressSelector.css';
 
@@ -10,19 +12,12 @@ const AddressSelector = ({visible=true}) => {
   const address = useSelector(state => state.productPageManager.address);
   const notes = useSelector(state => state.productPageManager.notes);
   const apiKey = DEFAULT_VALUES.API_KEY;//process.env.GOOGLE_API_KEY
-
-  useEffect(() => {
-    console.log('address: useeffect addressSelector',address);
-  
-    return () => {
-      
-    }
-  }, [address]);
   
   const onAddresschnaged = (address) => {
-    console.log('address changed', address);
     const value = address.label;
+    const message = { content: `Changed address to: ${value}`, severity: CONSTANTS.SEVERITIES.INFO };
     dispatch(setAddress(value));
+    dispatch(addMessage(message))
     dispatch(addAddress(value));
   }
 

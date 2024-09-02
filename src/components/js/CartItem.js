@@ -5,7 +5,7 @@ import "../css/CartItem.css";
 import QuantityControl from "./QuantityControl";
 import { FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
 import DEFAULT_VALUES from "../../constants/defaultValues";
-import { calculatePriceForItem, findAppliedDiscount } from "../../utils/appUtils";
+import { calculatePriceForItem, findAppliedDiscount, findDiscountsForProduct } from "../../utils/appUtils";
 import { useSelector } from "react-redux";
 
 const _optionalAdditions = [
@@ -17,21 +17,16 @@ const _optionalAdditions = [
   { id: 6, name: 'tomatoes', price: 2.99, active: true, type:'vegetables', 'add-by-default': true },
 ];
 
-const CartItem = ({ item }) => {
+const CartItem = ({ item, parent }) => {
   //const { image, name, price } = item;
   const { id, quantity, name, price } = item;
   const image = item['image-src'];
   const [showOptionalAdditions, setShowOptionalAdditions] = useState(false);
   
 
-  const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts);
+  const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts[parent]);
   
-  const thisProductSelectedDiscounts = selectedDiscounts.filter(discount => {
-    const delimiter = '_';
-    const noVariantProductId = id.split(delimiter)[0];
-    const discountBelongsToThisProduct = discount.product === noVariantProductId;
-    return discountBelongsToThisProduct;
-  });
+  const thisProductSelectedDiscounts = findDiscountsForProduct( selectedDiscounts, id);
   const discounts = thisProductSelectedDiscounts;
   const optionalAdditions = item['optional-additions'] || [];
   
@@ -57,13 +52,17 @@ const CartItem = ({ item }) => {
   }
 
   const discountString = getDiscountString();
+  const getOptionalAdditionString = (addition) => {
+    return`${addition.name} - $${addition.price.toFixed(2)}`
+  }
+  const noOptionalAdditionsString = 'No add-ons'
 
 
 
   return (
     <div className="cart-item-wrapper">
       <div className="cart-item">
-      <QuantityControl id={id} quantity={quantity}/>
+      
         <img src={image} alt={name} className="cart-item-image" />
         <div className="cart-item-details">
           <p className="cart-item-name">
@@ -100,13 +99,19 @@ const CartItem = ({ item }) => {
           }
         </div>
         
+        <QuantityControl parent={parent} id={id} quantity={quantity}/>
       </div>
       
       <div className={`optional-additions-wrapper ${showOptionalAdditions? 'open': 'closed'}`} >
         {
           optionalAdditions.map((addition, index) => (
-            <span>{addition.name} - ${addition.price.toFixed(2)}</span>
+            <span>{getOptionalAdditionString(addition)}</span>
           ))
+        }
+        {
+          optionalAdditions.length === 0?
+          <span>{noOptionalAdditionsString}</span>:
+          null
         }
       </div>
     </div>
