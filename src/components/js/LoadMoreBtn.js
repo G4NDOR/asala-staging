@@ -13,7 +13,7 @@ const LoadMoreBtn = ({ loadMoreItems, hasMoreItems }) => {
   
 
   const handleClick = async () => {
-    dispatch(addMessage({content: 'Loading more items...', severity: 'info'  }));
+    //dispatch(addMessage({content: 'Loading more items...', severity: 'info'  }));
     if (loading || !hasMoreItems) return;
     dispatch(triggerLoadingMore());
     const data = await loadProducts(lastDoc);

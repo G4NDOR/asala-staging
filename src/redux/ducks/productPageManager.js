@@ -23,7 +23,7 @@ const REMOVE_OPTIONAL_ADDITION = 'productPageManager/removeOptionalAddition';
 
 
 const initialState = {
-    product: DEFAULT_VALUES.PRODUCT, // Store product information here
+    product: null, // Store product information here
     isDescriptionExpanded: false, // Boolean for description section state
     notes:"",
     address:DEFAULT_VALUES.ADDRESS, 

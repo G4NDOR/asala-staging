@@ -22,16 +22,21 @@ import WishButton from "./WishButton";
 const ProductCard = ({product}) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const wishList = useSelector(state => state.appVars.wishList);
+  const cartIsOpen = useSelector(state => state.orderManager.cartIsOpen);
+  const customerId = useSelector(state => state.appVars.customerId);
+
+
+  if (!product || product == null) return null;
+
   const { id, name, price, description, status, wishes, available, producer } = product;
   const images = product['images-src'];
   const image = product['image-src'];
   const producerName = producer[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.NAME}`];
   const productIsRealeasedToPublic = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.AVAILABLE}`];
   const wishListCount = wishes.length;
-  const wishList = useSelector(state => state.appVars.wishList);
   const calculatedWishes = wishListCount + (wishList.includes(id)? 1 : 0);
-  const cartIsOpen = useSelector(state => state.orderManager.cartIsOpen);
-  const customerId = useSelector(state => state.appVars.customerId);
+
   const alreadyWished = wishes.includes(customerId);
   const alreadyWishedInLocal = alreadyWished? alreadyWished: wishList.includes(id);
   const notWished =!alreadyWishedInLocal;
@@ -42,9 +47,13 @@ const ProductCard = ({product}) => {
 
 
   // Get available time for the product
+  const daysSpecificHoursSet = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS_SPECIFIC_HOURS_SET}`];
+  const daysSpecificHoursNotSet = !daysSpecificHoursSet;
+  const schedule = product.schedule;
   const days = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS}`];
   const hours = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.HOURS}`];
-  const operatingTime = getOperatingTime(days, hours);//['Mo,Tu,We', '8-12'] => 'Mo,Tu,We 8-12'
+  const operatingTimesArray = getOperatingTime(schedule, daysSpecificHoursSet);//['Mo,Tu,We', '8-12'] => 'Mo,Tu,We 8-12'
+  const operatingTime = operatingTimesArray.map((element, index) => (<span key={index}>{element}</span>));
   
   // check if preorder is set
   const preOrderSet = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREORDER_SET}`];
@@ -53,8 +62,7 @@ const ProductCard = ({product}) => {
   const availabilityInfoString = preOrderSet? preOrderInfoString : operatingTime;
 
   // are we in operating time for this product
-  const daysSpecificHoursNotSet = !product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS_SPECIFIC_HOURS_SET}`];
-  const weAreInOperatingTime = isOperatingTime(days, hours, daysSpecificHoursNotSet);
+  const weAreInOperatingTime = isOperatingTime(schedule);
   const weAreNotInOperatingTime =!weAreInOperatingTime;
 
   //prepare time
@@ -99,7 +107,6 @@ const ProductCard = ({product}) => {
     activeAction: ({product}) => {
       const cartIsClosed = !cartIsOpen;
       dispatch(addItemToCart(product));
-
       dispatch(triggerAnimation());
       if(cartIsClosed){
           dispatch(triggerUnseenChanges());
@@ -114,7 +121,7 @@ const ProductCard = ({product}) => {
   }
   const notInStockButtonDetails = {
     visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productNotInStock,
-    generalContent: "Sold out",
+    generalContent: "Out of Stock",
     generalClassName: "home-page-product-card-not-in-stock-button",
     activeAction: goToProductPage,
     params:{
@@ -173,7 +180,7 @@ const ProductCard = ({product}) => {
           </span>
         </p>
         <p className="product-description">{description}</p>
-        <p className="product-availablity">{availabilityInfoString}</p>
+        <p className="product-availability">{availabilityInfoString}</p>
         <p className="product-producer">by {producerName}</p>
         <ButtonsContainer buttonsDetails={buttonsDetails}/>
       </div>

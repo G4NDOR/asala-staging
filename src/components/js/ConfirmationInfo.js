@@ -2,7 +2,7 @@ import React from 'react'
 import { useSelector } from 'react-redux';
 import CONSTANTS from '../../constants/appConstants';
 import Paths from '../../constants/navigationPages';
-import { calculateTotalListPriceWithAppliedDiscountsAndUsedCredit, calculateTotalListPriceWithoutDiscounts } from '../../utils/appUtils';
+import { calculateTotalListPriceWithAppliedDiscountsAndUsedCredit, calculateTotalListPriceWithoutDiscounts, formatPhoneNumberStyle2 } from '../../utils/appUtils';
 import '../css/ConfirmationInfo.css'
 import CheckoutContactInfo from './CheckoutContactInfo';
 import CheckoutItemMini from './CheckoutItemMini';
@@ -60,7 +60,8 @@ export default function ConfirmationInfo({visible=true, parent}) {
     //customer contact information
     const customerContact = [];
     customerContact.push(customerName);
-    customerContact.push(customerPhone);
+    const formattedCustomerPhone = formatPhoneNumberStyle2(customerPhone);
+    customerContact.push(formattedCustomerPhone);
     customerContact.push(customerEmail);
     const contactInfo = [];
     const merchantPhone = "123-456-7890";//TO DO: replace with actual merchant phone

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import '../css/CheckOutItemsList.css';
 import CartItem from './CartItem';
 import {useSelector} from 'react-redux';
-import { saveOrUpdateCartItemToLocalStorage, updateCartItemsInFirebaseFromProductObjList } from '../../utils/firestoreUtils';
+import { saveOrUpdateCartItemToLocalStorage } from '../../utils/firestoreUtils';
 import { CART, EMPTY_LIST, ONE_ITEM_CHECKOUT } from '../../constants/stateKeys';
 import Paths from '../../constants/navigationPages';
 import CheckoutTotalSection from './CheckoutTotalSection';

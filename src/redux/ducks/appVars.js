@@ -15,6 +15,7 @@ const SET_HOME_PAGE_VISITED = 'appVars/setHomePageVisited';
 const SET_CURRENT_PAGE = 'appVars/setCurrentPage';
 const ADD_MESSAGE = 'appVars/addMessage';
 const REMOVE_MESSAGE = 'appVars/removeMessage';
+const SET_MESSAGE = 'appVars/setMessage';
 
 
 const initialState = {
@@ -27,6 +28,7 @@ const initialState = {
     homePageVisited: false, 
     currentPage: Paths.HOME,  // Assuming currentPage is a string
     messages: [],  // Assuming messages is an array of objects containing messages
+    limit: 3
 };
 
 export default function appVars(state = initialState, action) {
@@ -82,19 +84,26 @@ export default function appVars(state = initialState, action) {
                 currentPage: action.currentPage
             };
         case ADD_MESSAGE:
-            const ids = Object.keys(state.messages);
-            const biggestId = Math.max(...(ids.length > 0 ? ids: [0]),);
-            const newId = biggestId? (biggestId + 1): 1;
+            const newMessages = [...state.messages, action.message];
+            if (newMessages.length > state.limit) {
+                newMessages.shift();  // Remove the oldest message
+            }
             return { 
                ...state,
-                messages: {...state.messages, [newId]: action.message}
-            };
-        case REMOVE_MESSAGE:
-            const { [action.index]: _, ...newMessages } = state.messages;
-            return { 
-                ...state,
                 messages: newMessages
             };
+        case REMOVE_MESSAGE:
+            const  lessMessages = state.messages.splice(action.index, 1);
+            return { 
+                ...state,
+                messages: lessMessages
+            };
+        case SET_MESSAGE:
+            return { 
+               ...state,
+                messages: [action.message]
+            };
+
         // Add other actions here as needed
         default:
             return state;
@@ -158,4 +167,9 @@ export const addMessage = (message) => ({
 export const removeMessage = (index) => ({
     type: REMOVE_MESSAGE,
     index: index
+});
+
+export const setMessage = (message) => ({
+    type: SET_MESSAGE,
+    message: message
 });

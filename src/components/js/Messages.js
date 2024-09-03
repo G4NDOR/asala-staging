@@ -6,14 +6,13 @@ import Message from './Message'
 
 export default function Messages() {
     const dispatch = useDispatch();
-    const messagesObj = useSelector(state => state.appVars.messages);
-    const messagesIds = Object.keys(messagesObj);    
+    const messages = useSelector(state => state.appVars.messages); 
     
   
     return (
     <div className='messages-wrapper' style={{zIndex: CONSTANTS.Z_INDEXES.MESSAGES}} >
         {
-            messagesIds.map((id, index) => ( <Message key={index} id={id} message={messagesObj[id]}/>))
+            messages.map((message, index) => ( <Message key={index} id={index} message={message}/>))
         }
     </div>
   )

@@ -63,8 +63,9 @@
   
 .product-availability {
   font-size: 0.9rem;
-  color: #007bff;
   margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
 }
   
   .product-producer {

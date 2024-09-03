@@ -1,6 +1,6 @@
 /* Container for the message */
 .message {
-    padding: 10px 15px;
+    padding: 3px 15px;
     border-radius: 8px;
     margin: 5px 0;
     display: flex;

@@ -38,6 +38,16 @@ const CONSTANTS = {
         INFO: 'info',
         SUCCESS:'success'
     },
+    UNIQUE_IDS: {
+        VARIANT: {
+            type: 'variants',
+            prefix: 'var',
+        },
+        OPTIONAL_ADDITION: {
+            type: 'optional-additions',
+            prefix: 'opt',
+        }
+    }
 };
 
 export default CONSTANTS;

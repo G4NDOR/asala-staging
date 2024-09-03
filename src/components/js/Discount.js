@@ -6,6 +6,7 @@ import Paths from '../../constants/navigationPages';
 import { CART, ONE_ITEM_CHECKOUT } from '../../constants/stateKeys';
 import { addMessage } from '../../redux/ducks/appVars';
 import { addDiscount, deselectDiscount, removeDiscount, selectDiscount, setDiscountMessage, setDiscounts, setDiscountsLookedUp, setUsedCredit } from '../../redux/ducks/orderManager';
+import { getCleanedProductsIds } from '../../utils/appUtils';
 import { loadDiscountsFromFirebase } from '../../utils/firestoreUtils';
 import '../css/Discount.css'
 import CheckboxGroup from './CheckboxGroup';
@@ -32,12 +33,7 @@ export default function Discount({visible=true, parent}) {
       const listIdentifier = getListIdentifier();
       const products = useSelector((state) => state['orderManager'][`${listIdentifier}`]);
 
-    const productsIds = products.map(product => {
-        //if the product is a variant it will have an id with the format: productId_variant1Id_variant2Id...
-        const delimiter  = '_';
-        const productId = product.id.split(delimiter )[0];
-        return productId;
-    });
+    const productsIds = getCleanedProductsIds(products);
     const selectedDiscountsIds = selectedDiscounts.map(discount => discount.id);
     const options = discounts.map(discount => ({ value: discount.id, label: discount.name }));
     const customer = useSelector(state => state.appVars.customerDetails);

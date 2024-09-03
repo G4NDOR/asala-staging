@@ -65,26 +65,27 @@ const ChargeInfo = ({ charge, visible = true }) => {
         return chargeInfoValueString;
     }
 
-    const getClassNameString = (type) => {
+    const getClassNameString = (type, invisible) => {
+        const notInvisible = !invisible;
         let classNameString = '';
         switch (type) {
             case SUBTOTAL:
-                classNameString = `receipt-subtotal ${visible? '': 'invisible'}`;
+                classNameString = `receipt-subtotal ${visible && notInvisible? '': 'invisible'}`;
                 break;
             case DISCOUNT:
-                classNameString = `receipt-discount ${visible? '': 'invisible'}`;
+                classNameString = `receipt-discount ${visible && notInvisible? '': 'invisible'}`;
                 break;
             case DELIVERY:
-                classNameString = `receipt-delivery ${visible? '': 'invisible'}`;
+                classNameString = `receipt-delivery ${visible && notInvisible? '': 'invisible'}`;
                 break;
             case TAX:
-                classNameString = `receipt-tax ${visible? '': 'invisible'}`;
+                classNameString = `receipt-tax ${visible && notInvisible? '': 'invisible'}`;
                 break;
             case TOTAL:
-                classNameString = `receipt-total ${visible? '': 'invisible'}`;
+                classNameString = `receipt-total ${visible && notInvisible? '': 'invisible'}`;
                 break;
             case SAVINGS:
-                classNameString = `receipt-savings ${visible? '': 'invisible'}`;
+                classNameString = `receipt-savings ${visible && notInvisible? '': 'invisible'}`;
                 break;
             default:
                 break;
@@ -92,9 +93,15 @@ const ChargeInfo = ({ charge, visible = true }) => {
         return classNameString;
     }
 
+    const getChargeInvisibility = (type) => {
+        return (type === SAVINGS) && (chargeValue === 0);
+    }
+
+    const chargeInvisibility = getChargeInvisibility(chargeType);
+
     const chargeInfoTitleString = getChargeInfoTitleString(chargeType);
     const chargeInfoValueString = getChargeInfoValueString(chargeType, chargeValue);
-    const classNameString = getClassNameString(chargeType);
+    const classNameString = getClassNameString(chargeType, chargeInvisibility);
 
     return (
         <div className={classNameString}>

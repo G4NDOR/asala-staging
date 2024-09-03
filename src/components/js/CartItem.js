@@ -5,7 +5,7 @@ import "../css/CartItem.css";
 import QuantityControl from "./QuantityControl";
 import { FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
 import DEFAULT_VALUES from "../../constants/defaultValues";
-import { calculatePriceForItem, findAppliedDiscount, findDiscountsForProduct } from "../../utils/appUtils";
+import { calculatePriceForItem, findAppliedDiscount, findDiscountsForProduct, isOperatingTime } from "../../utils/appUtils";
 import { useSelector } from "react-redux";
 
 const _optionalAdditions = [
@@ -22,6 +22,22 @@ const CartItem = ({ item, parent }) => {
   const { id, quantity, name, price } = item;
   const image = item['image-src'];
   const [showOptionalAdditions, setShowOptionalAdditions] = useState(false);
+  const itemReleasedToPublic = item.available;
+  const itemIsPresent = item.status == FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.STATUS.present;
+  const weAreInOperatingTime = isOperatingTime(item.schedule);
+  const itemInStock = item['in-stock'];
+  const getError = () => {
+    if (!itemReleasedToPublic) return { error: "Removed", string: "Removed" };
+    if (!itemIsPresent) return { error: "Not-present-yet", string: "Not present yet" };
+    if (!weAreInOperatingTime) return { error: "Not-operating-time", string: "Not operating time" };
+    if (!itemInStock) return { error: "Not-in-stock", string: "Not in stock" };
+    return {error: '', string: '' };
+  }  
+  const error = getError();
+  const nameString = name //+ ' - ' + ;
+  const visible = itemReleasedToPublic && itemIsPresent && weAreInOperatingTime && itemInStock;
+
+
   
 
   const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts[parent]);
@@ -63,10 +79,10 @@ const CartItem = ({ item, parent }) => {
     <div className="cart-item-wrapper">
       <div className="cart-item">
       
-        <img src={image} alt={name} className="cart-item-image" />
+        <img src={image} alt={nameString} className="cart-item-image" />
         <div className="cart-item-details">
-          <p className="cart-item-name">
-            {quantity}x {name}
+          <p className={`cart-item-name`}>
+            {quantity}x {nameString} <span className={error.error}> - {error.string}</span>
           </p>
           <p className="cart-item-price" onClick={()=>setShowOptionalAdditions(!showOptionalAdditions)} >
             $
@@ -99,7 +115,7 @@ const CartItem = ({ item, parent }) => {
           }
         </div>
         
-        <QuantityControl parent={parent} id={id} quantity={quantity}/>
+        <QuantityControl visible={visible} parent={parent} id={id} quantity={quantity}/>
       </div>
       
       <div className={`optional-additions-wrapper ${showOptionalAdditions? 'open': 'closed'}`} >

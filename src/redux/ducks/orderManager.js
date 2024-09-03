@@ -1,4 +1,5 @@
 import Paths from "../../constants/navigationPages";
+import { saveOrUpdateCartItemToLocalStorage } from "../../utils/firestoreUtils";
 
 const SET_CART_IS_OPEN= 'orderManager/setCartIsOpen'
 
@@ -92,6 +93,7 @@ export default function orderManager(state = initialState, action) {
             const updatedCartIncrease = state.cart.map(item => 
                 item.id === action.id ? { ...item, quantity: item.quantity + 1 } : item
             );
+            saveOrUpdateCartItemToLocalStorage(updatedCartIncrease);
             return { 
                 ...state, 
                 cart: updatedCartIncrease,
@@ -108,12 +110,14 @@ export default function orderManager(state = initialState, action) {
                 }
                 return item;
             }).filter(item => item !== null); // Remove marked items
+            saveOrUpdateCartItemToLocalStorage(updatedCartDecrease);
             return { 
                 ...state, 
                 cart: updatedCartDecrease,
                 cartIsEmpty: updatedCartDecrease.length === 0 
             };
         case CLEAR_CART:
+            saveOrUpdateCartItemToLocalStorage([]);
             return { 
                 ...state, 
                 cart: [],
@@ -130,6 +134,7 @@ export default function orderManager(state = initialState, action) {
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 );
+                saveOrUpdateCartItemToLocalStorage(updatedCart);
                 return {
                     ...state,
                     cart: updatedCart,
@@ -140,6 +145,7 @@ export default function orderManager(state = initialState, action) {
                 // Otherwise, add the new item to the cart
                 const newItem = { ...action.item, quantity: 1 };
                 const newCart = [...state.cart, newItem];
+                saveOrUpdateCartItemToLocalStorage(newCart);
                 return {
                     ...state,
                     cart: newCart,

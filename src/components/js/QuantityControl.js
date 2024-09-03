@@ -8,7 +8,7 @@ import { decreaseOneItemQuantity, decreaseQuantity, increaseOneItemQuantity, inc
 import { CART, ONE_ITEM_CHECKOUT } from '../../constants/stateKeys';
 import Paths from '../../constants/navigationPages';
 
-const QuantityControl = ({ id, quantity, parent }) => {
+const QuantityControl = ({ id, quantity, parent, visible }) => {
   const dispatch = useDispatch();
   const isProductPage = parent === Paths.PRODUCT;
   const isCart = parent == Paths.CART;
@@ -29,7 +29,7 @@ const QuantityControl = ({ id, quantity, parent }) => {
     <div className="quantity-control">
       <AiOutlineMinus className='quantity-button'  onClick={onDecrease}/>
       <span className="quantity-display">{quantity}</span>
-      <AiOutlinePlus className='quantity-button' onClick={onIncrease}/>
+      <AiOutlinePlus className={`quantity-button ${visible? '':'invisible'}`} onClick={onIncrease}/>
     </div>
   );
 };

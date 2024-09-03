@@ -72,10 +72,7 @@ const Home = () => {
     //update cart when changed
     //console.log('cart updated: ', cart);
     //console.log('cart loaded from storage: ', cartLoadedFromStorage);
-    if (cartLoadedFromStorage) {
-      saveOrUpdateCartItemToLocalStorage(cart);
-      updateCartItemsInFirebaseFromProductObjList(cart);
-    };
+
   
     return () => {
       //save changes to firestore when leaving cart view

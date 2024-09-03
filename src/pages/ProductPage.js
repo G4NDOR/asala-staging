@@ -37,68 +37,21 @@ const ProductPage = () => {
   let product = DEFAULT_VALUES.PRODUCT;
   product = useSelector(state => state.productPageManager.product);
   const products = useSelector(state => state.orderManager.oneItemCheckout);
-  const productId = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.ID}`];
-  const productName = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.NAME}`];
-  const productFullName = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.FULL_NAME}`];
-  const recommendationsIds = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.MATCHING_PRODUCTS}`];
-  const producerInfo = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PRODUCER}`];
-  const ProducerId = producerInfo[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.PRODUCER.ID}`];
   const isDescriptionExpanded = useSelector(state => state.productPageManager.isDescriptionExpanded);
-  const productIsRealeasedToPublic = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.AVAILABLE}`];
-  const productExists = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.STATUS}`] == FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.STATUS.present;
-  const productInStock = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.IN_STOCK}`];
-  const prepTime = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREP_TIME_IN_MINUTES}`]
-  const prepTimeString = `${prepTime} ${FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.PREP_TIME_IN_MINUTES}`;
-  const prepTimeType = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREP_TIME_IN_MINUTES;
   const producerImg = useSelector(state => state.productPageManager.producerImg);
   const customerId = useSelector(state => state.appVars.customerId);
   const customer = useSelector(state => state.appVars.customerDetails);
   const cartIsOpen = useSelector(state => state.orderManager.cartIsOpen);
-  const homePageVisited = useSelector(state => state.appVars.homePageVisited);
-  const homePageNotVisited = !homePageVisited;
   const addresses = useSelector(state => state.productPageManager.addresses);;
-  const [showNotes, setShowNotes] = useState(false);
-  const [showFullDescription, setShowFullDescription] = useState(false);
   const recommendations = useSelector(state => state.productPageManager.recommendations);
   const selectedVariants = useSelector(state => state.productPageManager.selectedVariants);
-  
-  const productVariants = product.variants || [];
-  const productHasVariants = productVariants.length > 0;
-  const productDoesNotHaveVariants =!productHasVariants;
-  const selectedVariantsArray = Object.values(selectedVariants);
-  const theSelectedChildVariant = selectedVariantsArray.length > 0? selectedVariantsArray[selectedVariantsArray.length - 1]: {price: null};
-  const variantsSelected = theSelectedChildVariant.price !== null;
+  const homePageVisited = useSelector(state => state.appVars.homePageVisited);
   const variantsFields = useSelector(state => state.productPageManager.variantsFields);
   const startIndex = useSelector(state => state.productPageManager.startIndex);
   const selectedOptionalAdditionsObj = useSelector(state => state.productPageManager.selectedOptionalAdditions);
-  const selectedOptionalAdditionsArrays = Object.values(selectedOptionalAdditionsObj);
-  const selectedOptionalAdditions = selectedOptionalAdditionsArrays.flat();
-  // Get available time for the product
-  const days = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS}`];
-  const daysType = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS;
-  const hours = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.HOURS}`];
-  const operatingTime = getOperatingTime(days, hours);//['Mo,Tu,We', '8-12'] => 'Mo,Tu,We 8-12'  
-  // are we in operating time for this product
-  const daysSpecificHoursNotSet = !product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS_SPECIFIC_HOURS_SET}`];
-  const weAreInOperatingTime = isOperatingTime(days, hours, daysSpecificHoursNotSet);  
-  const placingOrderAllowed = productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock;
-  const upsell = (recommendations.length > 0) && placingOrderAllowed;
+  const [showNotes, setShowNotes] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
   
-
-    
-    // check if preorder is set
-    const preOrderSet = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREORDER_SET}`];
-    const preOderPeriod = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREORDER_PERIOD_IN_HOURS}`];
-    const preOrderInfoString = `pre Order (${preOderPeriod}${FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.PREORDER_PERIOD_IN_HOURS})`;
-    const availabilityInfoString = preOrderSet? preOrderInfoString : operatingTime;
-
-    //allow customer to checkout if the product is released to the public
-    //AND product Exists
-    //AND the merchant is in operating time to sell this product
-    //AND the product is in stock
-    const checkoutAvailable = productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock;
-
-
   useEffect(() => {
     //console.log(product);
     //behind scenes work
@@ -121,6 +74,75 @@ const ProductPage = () => {
       setScroll(false);
     }
   }, [scroll, scrollRef])
+
+  useEffect(() => {
+    if (!product || product['is-default-value'] || homePageNotVisited) {
+      navigate(Paths.HOME);
+    }
+  }, [product, navigate]);
+
+  // If product is not available, return null or a loading state
+  if (!product || product == null) {
+    return null; // Or you can return a loading spinner or placeholder
+  }
+
+
+  const productId = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.ID}`];
+  const productName = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.NAME}`];
+  const productFullName = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.FULL_NAME}`];
+  const recommendationsIds = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.MATCHING_PRODUCTS}`];
+  const producerInfo = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PRODUCER}`];
+  const ProducerId = producerInfo[`${FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.PRODUCER.ID}`];
+  const productIsRealeasedToPublic = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.AVAILABLE}`];
+  const productExists = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.STATUS}`] == FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.STATUS.present;
+  const productInStock = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.IN_STOCK}`];
+  const prepTime = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREP_TIME_IN_MINUTES}`]
+  const prepTimeString = `${prepTime} ${FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.PREP_TIME_IN_MINUTES}`;
+  const prepTimeType = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREP_TIME_IN_MINUTES;
+
+  const homePageNotVisited = !homePageVisited;
+
+
+  
+  const productVariants = product.variants || [];
+  const productHasVariants = productVariants.length > 0;
+  const productDoesNotHaveVariants =!productHasVariants;
+  const selectedVariantsArray = Object.values(selectedVariants);
+  const theSelectedChildVariant = selectedVariantsArray.length > 0? selectedVariantsArray[selectedVariantsArray.length - 1]: {price: null};
+  const variantsSelected = theSelectedChildVariant.price !== null;
+
+  const selectedOptionalAdditionsArrays = Object.values(selectedOptionalAdditionsObj);
+  const selectedOptionalAdditions = selectedOptionalAdditionsArrays.flat();
+  // Get available time for the product
+  const days = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS}`];
+  const daysType = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS;
+  const hours = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.HOURS}`];
+  const daysSpecificHoursSet = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.DAYS_SPECIFIC_HOURS_SET}`];
+  const daysSpecificHoursNotSet = !daysSpecificHoursSet;
+  const schedule = product.schedule;
+  const operatingTimesArray = getOperatingTime(schedule, daysSpecificHoursSet);//['Mo,Tu,We', '8-12'] => 'Mo,Tu,We 8-12'
+  const operatingTime = operatingTimesArray.map((element, index) => (<span key={index}>{element}</span>));
+  // are we in operating time for this product
+  const weAreInOperatingTime = isOperatingTime(schedule);  
+  const placingOrderAllowed = productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock;
+  const upsell = (recommendations.length > 0) && placingOrderAllowed;
+  
+
+    
+    // check if preorder is set
+    const preOrderSet = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREORDER_SET}`];
+    const preOderPeriod = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREORDER_PERIOD_IN_HOURS}`];
+    const preOrderInfoString = `pre Order (${preOderPeriod}${FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.PREORDER_PERIOD_IN_HOURS})`;
+    const availabilityInfoString = preOrderSet? preOrderInfoString : operatingTime;
+
+    //allow customer to checkout if the product is released to the public
+    //AND product Exists
+    //AND the merchant is in operating time to sell this product
+    //AND the product is in stock
+    const checkoutAvailable = productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock;
+
+
+
   
 
   const load = async () => {
@@ -135,11 +157,7 @@ const ProductPage = () => {
   
 
 
-  useEffect(() => {
-    if (!product || product['is-default-value'] || homePageNotVisited) {
-      navigate(Paths.HOME);
-    }
-  }, [product, navigate]);
+
   
   
 
@@ -153,10 +171,7 @@ const ProductPage = () => {
     setShowFullDescription(!showFullDescription);
   };
 
-  // If product is not available, return null or a loading state
-  if (!product || product == null) {
-    return null; // Or you can return a loading spinner or placeholder
-  }
+
 
   //util functions for button actions
   const BUY_ITEM_BUTTON_ACTION_NAME = 'buy-item';

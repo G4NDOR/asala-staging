@@ -26,6 +26,7 @@ import { FIREBASE_CLLECTIONS_NAMES, FIREBASE_COLLECTIONS_QUERY_LIMIT, FIREBASE_D
 import { getIpAddress } from './retreiveIP_Address';
 import DEFAULT_VALUES from '../constants/defaultValues';
 import CONSTANTS from '../constants/appConstants';
+import { getCleanedProductId, getCleanedProductsIds, getVariantsIdsAndOptionalAdditionsIdsFromProductId, isOperatingTime } from './appUtils';
 
 // Common process to handle errors
 const handleError = (error) => {
@@ -408,9 +409,11 @@ export const queryAndOrder = async (collectionName, whereField, whereValue, orde
   }
 };
 
+
+
 // Query and order documents with pagination and multiple where clauses
 // @param {string} collectionName - The name of the Firestore collection to query.
-// @param {Array<{ field: string, value: any }>} whereClauses - An array of objects with 'field' and 'value' to filter documents.
+// @param {Array<{ field: string, value: any, operation?: string }>} whereClauses - An array of objects with 'field', 'value', and optional 'operation' to filter documents.
 // @param {string} orderByField - The field to order the documents by.
 // @param {number} limitNum - The maximum number of documents to retrieve.
 // @param {boolean} ordered - Whether to order the results or not.
@@ -430,11 +433,62 @@ export const queryAndOrderWithPagination = async (
     // Create a reference to the collection
     let q = collection(db, collectionName);
 
+    // Helper function to perform batched queries
+    const performBatchedQueries = async (field, operation, values) => {
+      const batchSize = 30; // Firebase limits the 'in', 'not-in', and 'array-contains-any' queries to 30 elements max
+      let batchedData = [];
+      let lastBatchDoc = null;
+
+      // Break down the values array into batches and perform queries for each batch
+      for (let i = 0; i < values.length; i += batchSize) {
+        const batchValues = values.slice(i, i + batchSize);
+        let batchQuery = query(q, where(field, operation, batchValues));
+
+        // Apply ordering if requested
+        if (ordered && orderByField) {
+          batchQuery = query(batchQuery, orderBy(orderByField));
+        }
+
+        // Apply limit if requested
+        if (limited && limitNum) {
+          batchQuery = query(batchQuery, limit(limitNum));
+        }
+
+        // Apply pagination if lastDoc is provided
+        if (lastBatchDoc) {
+          batchQuery = query(batchQuery, startAfter(lastBatchDoc));
+        }
+
+        // Execute the batch query
+        const batchSnapshot = await getDocs(batchQuery);
+        
+        // Loop through each document in the snapshot and push its data to the batchedData array
+        batchSnapshot.forEach((doc) => {
+          batchedData.push({ id: doc.id, ...doc.data() });
+          lastBatchDoc = doc; // Update last visible document
+        });
+      }
+
+      return { data: batchedData, lastDoc: lastBatchDoc };
+    };
+
     // Apply multiple where clauses if provided
-    whereClauses.forEach(({ field, value, operation}) => {
-      const _operation = operation || '==';
-      q = query(q, where(field, _operation, value));
-    });
+    for (let { field, value, operation = '==' } of whereClauses) {
+      // If the operation is 'in', 'not-in', or 'array-contains-any', handle batching if necessary
+      if (['in', 'not-in', 'array-contains-any'].includes(operation) && Array.isArray(value)) {
+        if (value.length > 30) {
+          // Perform batched queries if the value array exceeds 30 elements
+          const batchedResult = await performBatchedQueries(field, operation, value);
+          return batchedResult; // Return the result from the batched queries
+        } else {
+          // Perform a single query if the value array is within the limit
+          q = query(q, where(field, operation, value));
+        }
+      } else {
+        // Apply the where clause normally for other operations
+        q = query(q, where(field, operation, value));
+      }
+    }
 
     // Apply ordering if requested
     if (ordered && orderByField) {
@@ -475,6 +529,7 @@ export const queryAndOrderWithPagination = async (
     return { data: null, lastDoc: null };
   }
 };
+
 
 
 
@@ -685,33 +740,46 @@ const loadCartItemsFromFirebaseAndLocalStorage = async (customerId) => {
   //get the list of productobj from local storage,// which is [productObj1, productObj2, ...] //same structure stored in firebase
   const cartFromLocalStorage = getCartFromLocalStorage();//returns {itemId1: quantity1, itemId2: quantity2, ...}
   const itemsListFromLocalStorageCart = getItemsListFromLocalStorageCart(cartFromLocalStorage);//returns [{id:itemId, quantity: itemQuantity},...]
+  console.log('itemsListFromLocalStorageCart:', itemsListFromLocalStorageCart);
   const productObjListFromLocalStorage = await getProductsListFromFirebaseUsingItemsListInCartObj(itemsListFromLocalStorageCart);//returns [productObj1, productObj2, ...]
   if (!customerId) return defaultCart;
   const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
   // if there's cart info in local storage, use it instead of default value: []
   if (productObjListFromLocalStorage && productObjListFromLocalStorage.length > 0) {
     //there's cart info in local storage
+    //check if all products in the cat are still aailable in firebase in terms of:
+    // product is realeased to the public/ a present product status/ in operating times for selling/ in-stock
+    //get products from firebase and update the above fields, but keep the quantity, price, 
+    //const oldProductsIds = itemsListFromLocalStorageCart.map(item => item.id);
+    //const cleanedOldProductsIds = getCleanedProductsIds(oldProductsIds);
+    //const updatedProducts = await getUpdatedProducts(cleanedOldProductsIds);
+
+
+    /*
     //if there's no customer id, return cart items from local storage, and that's it
-    //not probabal since customer is is also retreived from local storage like cart info 
+    //not probabal since customer id is also retreived from local storage like cart info 
     //no customerId => probably cookiess have been wiped => cart in local storage is wiped too
-    //if (!customerId) return productObjListFromLocalStorage;
+    //if (!customerId) return productObjListFromLocalStorage;//comentedd for now, not sure if we need it
+    */
+
     //get cart from firebase
-    
     const fetchedCart = await getDocument(docPath);
     const noCartInFirebase =!fetchedCart;
     const itemsListInCartObjFromFirebase = noCartInFirebase? []: fetchedCart[`${itemsListFeildNameInCartObj}`];//returns [{id:itemId, quantity: itemQuantity},...]
     if (noCartInFirebase) {
       //no cart in firebase, 
       //create a new cart in firebase with local storage cart info, and default values
-      const dataToSave = {...defaultCart, [`${itemsListFeildNameInCartObj}`]: itemsListFromLocalStorageCart};
-      await setDocument(docPath, dataToSave);
+      await updateCartItemsInFirebaseFromProductObjList(productObjListFromLocalStorage, false)
+      //const dataToSave = {...defaultCart, [`${itemsListFeildNameInCartObj}`]: itemsListFromLocalStorageCart};
+      //await setDocument(docPath, dataToSave);
     }else if (JSON.stringify(itemsListInCartObjFromFirebase)!== JSON.stringify(itemsListFromLocalStorageCart)) {
       //cart exists in firebase but not equivilant to cart in local storage, update firebase with cart from local storage,
       // since it is more up to date, (updated on each cart change) 
       //const updates = {[`${itemsListFeildNameInCartObj}`]: itemsListFromLocalStorageCart};       
-      await updateCartItemsInFirebaseFromItemsListinCartObj(customerId, itemsListFromLocalStorageCart);
+      await updateCartItemsInFirebaseFromProductObjList(productObjListFromLocalStorage, true)
     };
     //if equivilant return cart
+    console.log('productObjListFromLocalStorage:', productObjListFromLocalStorage);
     return productObjListFromLocalStorage;
   };
   
@@ -759,9 +827,9 @@ export const loadCustomerReviews = async (productId) => {
 }
 
 //updates cart items based on the customer's id
-//takes customer id and a list of product obj{id:itemId, quantity: itemQuantity, available: bool,...}
-//turns it into a structore to be stored in firebase as a list of {id: itemId, quantity: itemQuantity}
-export const updateCartItemsInFirebaseFromProductObjList = async (cartItems) => {
+//takes customer id and a list of product objs [{id:itemId, quantity: itemQuantity, available: bool,...}, ...]
+//turns it into a structure to be stored in firebase as a list of [{id: itemId, quantity: itemQuantity}, ...]
+export const updateCartItemsInFirebaseFromProductObjList = async (cartItems, merge) => {
   const customerId = getUserIdFromLocalStorage();
   if (!customerId) return; //if there's no customer id, return
   const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
@@ -780,7 +848,7 @@ export const updateCartItemsInFirebaseFromProductObjList = async (cartItems) => 
   const updates = {
     [itemsFieldName]: cartItemsList
   };
-  await updateDocument(docPath, updates);
+  await setDocument(docPath, updates, merge);
 }
 
 //updates cart items based on the customer's id
@@ -806,6 +874,67 @@ const updateCartItemsInFirebaseFromItemsListinCartObj = async (customerId, cartI
   await updateDocument(docPath, updates);
 }
 
+const getUpdatedVariantsProductObj = (productObj, variantsIds) => {
+  //console.log(variantsIds.length == 0)
+  let variantDoesNotExist = false;
+
+  //variants in the possibly updated product, fetched from firebase
+  const productVariants = productObj.variants;
+  //fields that concern the variant model objects, that need to be skipped
+  const initialFields = ['id', 'active', 'price', 'add-by-default'];
+  //fields that will be updated in the product obj based on the selected variants
+  const { id, name, price, variants } = variantsIds.reduce((accumulator, variantId) => {
+    //loop through the saved old variantsIds and look if that variant still exists in the updated product, AND has not been set to not active
+    const variant = productVariants.find((variant) => (variant.id === variantId && variant.active));
+    //if the variant that the user selected doesn't exist, unselect it and replace it with the default or standard product instead
+    if (!variant) {
+      variantDoesNotExist = true;
+      return accumulator;
+    }
+    //if it exists, look for the field that it controlls in the product obj
+    const field = Object.keys(variant).find((key) => !accumulator.fields.includes(key));
+    //add the variant id to the product id
+    accumulator.id += `_${variant.id}`;
+    //add the value of the variant of the property it controlls to the product name, example tea 12oz, if the variant controlls the size property and its value for it is 12oz
+    accumulator.name += `_${variant[field]}`;
+    //if its price is not null => the smallest child variant => get its price instead of the product price
+    if (variant.price) accumulator.price = variant.price;
+    //mark this field as used
+    accumulator.fields.push(field);
+    //add the variant to the product variants array
+    accumulator.variants.push(variant);
+    return accumulator;
+  }, { id: productObj.id, name: productObj.name, price: productObj.price, fields: initialFields, variants: [] });
+
+
+  if(variantDoesNotExist || variantsIds.length == 0) {
+    //console.log("returning original productObj");
+    return productObj
+  };
+
+  const updatedProducts = {...productObj, id, name, price, variants: variants };
+  return updatedProducts;
+}
+
+const getUpdatedOptionalAdditionsProductObj = (productObj, optionalAdditionsIds) => {
+  let id = productObj.id;
+  let price = productObj.price;
+  const productOptionalAdditions = productObj['optional-additions'];
+  const optionalAdditions = [];
+  optionalAdditionsIds.map((optionalAdditionId, i) => {
+    console.log('optionalAdditionId:', optionalAdditionId);
+    const optionalAddition = productOptionalAdditions.find((optionalAddition) => (optionalAddition.id === optionalAdditionId && optionalAddition.active));
+    console.log('optionalAddition:', optionalAddition);
+    if (!optionalAddition) return;
+    id += `_${optionalAddition.id}`;
+    price += optionalAddition.price;
+    optionalAdditions.push(optionalAddition);
+  });
+  const updatedProduct = {...productObj, id, price, 'optional-additions': optionalAdditions };
+  console.log('updatedProducts:', updatedProduct);
+  return updatedProduct;
+}
+
 // returns products list in [productObj1, productObj2,...] form,
 // using items list in cart obj  [{id:itemId1, quantity: itemQuantity1}, {id:itemId2, quantity: itemQuantity2},...]
 //returns an empty array if no items found
@@ -816,18 +945,32 @@ const getProductsListFromFirebaseUsingItemsListInCartObj = async (itemsListInCar
   // Use Promise.all to fetch all items in parallel
   const itemsListFromFirebase = await Promise.all(itemsListInCartObj.map(async (item) => {
     const itemId = item[`${itemIdFieldNameInCartObj}`];
+    const cleanedItemId = getCleanedProductId(itemId);
     const itemQuantity = item[itemQuantityFieldNameInCartObj];
     try {
-      //console.log(`Fetching item with ID ${itemId}`);
-      const itemDataFromFirebase = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}/${itemId}`);
-      if (!itemDataFromFirebase) return null; // Return null if item doesn't exist
-      return { ...itemDataFromFirebase, quantity: itemQuantity };
+      // Fetch item data from Firebase
+      const itemDataFromFirebase = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}/${cleanedItemId}`);
+      // Return null if item doesn't exist
+      if (!itemDataFromFirebase) return null;
+      // Update quantity field in item data from Firebase with the provided quantity in cart obj
+      console.log('item id:', itemId);  
+      const combinedIds = getVariantsIdsAndOptionalAdditionsIdsFromProductId(itemId);
+      console.log('combinedIds:', combinedIds);
+      const selectedVariantsIds = combinedIds[CONSTANTS.UNIQUE_IDS.VARIANT.type];
+      const selectedOptionalAdditionsIds = combinedIds[CONSTANTS.UNIQUE_IDS.OPTIONAL_ADDITION.type];
+      console.log('selectedOptionalAdditionsIds:', selectedOptionalAdditionsIds);
+      const productWithUpdatedVariants = getUpdatedVariantsProductObj(itemDataFromFirebase, selectedVariantsIds);
+      const productWithUpdatedOptionalAdditions = getUpdatedOptionalAdditionsProductObj(productWithUpdatedVariants, selectedOptionalAdditionsIds);
+
+
+      return { ...productWithUpdatedOptionalAdditions, quantity: itemQuantity };
     } catch (error) {
-      console.error(`Failed to fetch item with ID ${itemId}:`, error);
+      console.error(`Failed to fetch item with ID ${cleanedItemId}:`, error);
       return null; // Return null on error
     }
   }));  
   const items = itemsListFromFirebase.filter(item => item!== null); //filter out the not found items
+  //TO DO: remove duplicates from items (if any)
   return items;
 
 }
@@ -853,24 +996,32 @@ const getItemsListFromLocalStorageCart = (localStorageCart) => {
   return itemsList;
 }
 
-//save or update cart item in local storage based on the parameter merge (true to merge, false to replace)
-//returns nothing
-export const saveOrUpdateCartItemToLocalStorage = (cart, merge = false) => {
-  const key = CONSTANTS.LOCAL_STORAGE.KEYS.CART_KEY;
+const getCartItemModelsFromProductObjs = (productList) => {
   const itemIdFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.ID;
   const itemQuantityFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.QUANTITY;
   const newCart = {};//{itemId1: quantity1, itemId2: quantity2,...}
-  cart.map(item => {
+  productList.map(item => {
     const itemId = item[`${itemIdFieldName}`];
     const itemQuantity = item[`${itemQuantityFieldName}`];
     const itemLocalStorageKey = `${itemId}`;
     newCart[itemLocalStorageKey] = itemQuantity;
-  });
+  });  
+  return newCart;
+}
+
+//save or update cart item in local storage based on the parameter merge (true to merge, false to replace)
+//returns nothing
+export const saveOrUpdateCartItemToLocalStorage = (cart, merge = false) => {
+  const key = CONSTANTS.LOCAL_STORAGE.KEYS.CART_KEY;
+
+  const newCart = getCartItemModelsFromProductObjs(cart);
   if (!merge){
     localStorage.setItem(key, JSON.stringify(newCart));//{'cart': {itemId1: quantity1, itemId2: quantity2,...}}
+    console.log('updated local cart: ', newCart)
     return;
   }
   const cartLocalStorage = getCartFromLocalStorage();//{itemId1: quantity1, itemId2: quantity2,...}
+  
   localStorage.setItem(key, JSON.stringify({...cartLocalStorage,...newCart}));//{'cart': {itemId1: quantity1, itemId2: quantity2,...}}
   return;
 }
@@ -977,7 +1128,21 @@ export const loadProducts = async (lastDoc=null) => {
 }
 
 export const loadSearchResultsProducts = async (searchQuery, lastDoc=null) => {
-  let retreivedData = await searchByText(FIREBASE_CLLECTIONS_NAMES.PRODUCTS, searchQuery, FIREBASE_COLLECTIONS_QUERY_LIMIT.PRODUCTS, true, lastDoc);
+  //await searchByText(, searchQuery, , true, lastDoc);
+  const collectionName = `${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}`;
+  const whereClauses = [];
+  const orderByField = null;
+  const limitNum = FIREBASE_COLLECTIONS_QUERY_LIMIT.PRODUCTS;
+  const ordered = false;
+  const limited = true;
+
+  const arrayContainsOperation = "array-contains";
+  const keywordsFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.KEYWORDS;
+  whereClauses.push({field: keywordsFieldName, operation: arrayContainsOperation, value: searchQuery});
+  const equalsOperation = "==";
+  const availableFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.AVAILABLE;
+  whereClauses.push({field: availableFieldName, operation: equalsOperation, value: true});
+  let retreivedData = await queryAndOrderWithPagination(collectionName, whereClauses, orderByField, limitNum, ordered, limited, lastDoc);
   let products = retreivedData.data;
   if (!products)
     products = [];
@@ -1019,17 +1184,57 @@ export const wishItem = (customerId, productId) => {
   return addElementsToArrayField(`${FIREBASE_CLLECTIONS_NAMES.PRODUCTS}/${productId}`, `${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.WISHES}`, [customerId]);
 }
 
+// Load recommendations for a product based on recommendation IDs
+// @param {Array<string>} recommendationsIds - An array of product IDs to fetch recommendations for.
+// @returns {Promise<Array<Object>>} - A promise that resolves to an array of recommendation documents.
 export const loadRecommendationsForProduct = async (recommendationsIds) => {
-  //console.log('Recommendations ids: ', recommendationsIds);
+  // Return an empty array if no recommendation IDs are provided
   if (!recommendationsIds || recommendationsIds.length === 0) return [];
-  //console.log('Recommendations not empty: ');
-  //const whereField = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.MATCHING_PRODUCTS;
-  const recommendations = await getDocumentsByIds(FIREBASE_CLLECTIONS_NAMES.PRODUCTS, recommendationsIds);
-  //console.log('Recommendations 1 : ', recommendations);
-  if (!recommendations) return [];
-  
-  return recommendations;
-}
+
+  try {
+    // Define the collection name
+    const collectionName = FIREBASE_CLLECTIONS_NAMES.PRODUCTS;
+
+    // Generate document paths from recommendation IDs
+    const documentPaths = recommendationsIds.map(id => `${collectionName}/${id}`);
+
+    // Fetch documents by paths using Promise.all
+    const fetchDocuments = documentPaths.map(async (path) => {
+      const docRef = doc(db, path);
+      const docSnap = await getDoc(docRef);
+      const data = docSnap.data();
+
+      // Check if the document exists and meets all criteria
+      if (
+        docSnap.exists() &&
+        data?.available === true &&
+        data?.['in-stock'] === true &&
+        data?.status === 'present' && // Check if status is exactly 'present'
+        isOperatingTime(data.schedule) // Check if current time is within operating time
+      ) {
+        return { id: path.split('/').pop(), ...data };
+      } else {
+        return null;
+      }
+    });
+
+    // Wait for all fetch operations to complete
+    const results = await Promise.all(fetchDocuments);
+
+    // Filter out null results (documents that did not meet the criteria)
+    const recommendations = results.filter(doc => doc !== null);
+
+    // Return the fetched recommendations
+    return recommendations;
+  } catch (error) {
+    // Handle any errors that occur during the query
+    console.error('Error loading recommendations: ', error);
+    return []; // Return an empty array in case of error
+  }
+};
+
+
+
 
 export const loadDiscountsFromFirebase = async (customerId, productsIds) => {
   const collectionName = `${FIREBASE_CLLECTIONS_NAMES.DISCOUNTS}`;
@@ -1065,6 +1270,51 @@ export const loadDiscountsFromFirebase = async (customerId, productsIds) => {
     discounts = [];
   return discounts;
 }
+
+/**
+ * Fetches product objects from the Firestore 'products' collection for the given array of product IDs.
+ * Since Firestore's 'in' operation can only handle a maximum of 30 elements at a time, this function
+ * splits the array into batches of 30 IDs and queries the Firestore collection in parallel for each batch.
+ * 
+ * @param {Array<string>} productIds - An array of product IDs to fetch from the Firestore collection.
+ * @returns {Promise<Array<Object>>} - A promise that resolves to an array of product objects.
+ */
+export const getUpdatedProducts = async (productIds) => {
+  const products = [];
+  const BATCH_SIZE = 30;
+  let batchPromises = [];
+
+  // Split the productIds array into batches of 30
+  for (let i = 0; i < productIds.length; i += BATCH_SIZE) {
+    const batch = productIds.slice(i, i + BATCH_SIZE);
+
+    // Prepare the where clause for this batch
+    const whereClauses = [{ field: 'id', value: batch, operation: 'in' }];
+
+    // Add the batch query to the promises array
+    batchPromises.push(
+      queryAndOrderWithPagination('products', whereClauses)
+    );
+  }
+
+  try {
+    // Execute all batch queries concurrently
+    const results = await Promise.all(batchPromises);
+
+    // Combine the results from all batches
+    results.forEach(result => {
+      if (result.data) {
+        products.push(...result.data);
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching products: ', error);
+    handleError(error);
+  }
+
+  return products;
+};
+
 
 /*
 

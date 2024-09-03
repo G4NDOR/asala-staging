@@ -19,4 +19,6 @@
     margin-bottom: 10px;
     color: #555;
     margin-left: 40px;
+    display: flex;
+    flex-direction: column;
 }

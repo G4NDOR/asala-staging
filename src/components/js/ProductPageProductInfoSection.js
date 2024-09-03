@@ -26,14 +26,14 @@ export default function ProductPageProductInfoSection({type, info  }) {
         return title;
     }
 
-    const getInfoString = (type, content) => {
+    const getInfoContent = (type, content) => {
         let info = content;
         switch (type) {
             case prepTimeType:
                 info = `Could be done in ${info}`;
                 break;
             case days:
-                info = info;
+                info = content.map((element, i)=><span key={i} >{element}</span>);
                 break;
             default:
                 break;
@@ -43,7 +43,7 @@ export default function ProductPageProductInfoSection({type, info  }) {
     
     
     const title = getTitle(type);
-    const infoString = getInfoString(type, info);
+    const infoContent = getInfoContent(type, info);
 
 
 
@@ -55,7 +55,7 @@ export default function ProductPageProductInfoSection({type, info  }) {
             {title}
         </div>
         <div className='info'>
-            {infoString}
+            {infoContent}
         </div>
     </div>
   )

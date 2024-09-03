@@ -34,6 +34,26 @@
   margin-bottom: 5px;
 }
 
+.Removed{
+  color: gray;
+  font-weight: bold;
+}
+
+.Not-present-yet{
+  color: rgb(0, 45, 248);
+  font-weight: bold;
+}
+
+.Not-operating-time{
+  color: #cf6b00;
+  font-weight: bold;
+}
+
+.Not-in-stock{
+  color: red;
+  font-weight: bold;
+}
+
 .cart-item-price {
   font-size: 0.9rem;
   color: #888;

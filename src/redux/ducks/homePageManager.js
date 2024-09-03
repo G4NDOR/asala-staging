@@ -120,6 +120,10 @@ export default function homePageManager(state = initialState, action) {
                     return {...item, quantity: 1};
                 }
             }).filter(item => item !== null);
+            return { 
+               ...state, 
+                items: [...state.items,...newItems] 
+            };
         case SET_SEARCH_TERM:
             return { 
                ...state, 

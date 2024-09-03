@@ -129,12 +129,12 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
         { id: 12, active: true, price: 35.99, color: 'green', size: '20oz', material: 'polyester', 'add-by-default': false },
     ];
     const _optionalAdditions = [
-        { id: 1, name: 'ketchup', price: 5.99, active: true, type: 'sauces', 'add-by-default': true },
-        { id: 2, name: 'onion', price: 3.99, active: true, type: 'vegetables', 'add-by-default': true },
-        { id: 3, name: 'cheese', price: 7.99, active: true, type: 'cheeses', 'add-by-default': false },
-        { id: 4, name: 'pepperoni', price: 8.99, active: true, type: 'toppings', 'add-by-default': false },
-        { id: 5, name: 'lettuce', price: 2.99, active: true, type:'vegetables', 'add-by-default': true },
-        { id: 6, name: 'tomatoes', price: 2.99, active: true, type:'vegetables', 'add-by-default': true },
+        { id: 'opt-1', name: 'ketchup', price: 5.99, active: true, type: 'sauces', 'add-by-default': true },
+        { id: 'opt-2', name: 'onion', price: 3.99, active: true, type: 'vegetables', 'add-by-default': true },
+        { id: 'opt-3', name: 'cheese', price: 7.99, active: true, type: 'cheeses', 'add-by-default': false },
+        { id: 'opt-4', name: 'pepperoni', price: 8.99, active: true, type: 'toppings', 'add-by-default': false },
+        { id: 'opt-5', name: 'lettuce', price: 2.99, active: true, type:'vegetables', 'add-by-default': true },
+        { id: 'opt-6', name: 'tomatoes', price: 2.99, active: true, type:'vegetables', 'add-by-default': true },
     ];
     const VariantsHeader = 'Product Options';
     const OptionalAdditionsHeader = 'Add-ons';
@@ -171,7 +171,7 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
         //and a smaller level could be a size
         //each color variant will have different sizes (several size variants)
         const productFieldsObj = {};
-        const activeVariants = variants.filter(variant=>{
+        const activeVariants = _variants.filter(variant=>{
             //only consider variants that are active, inactive variants are not used, (chosen by the producer of the product)
             if (variant.active){
                 //get an array of the fields of the variant
