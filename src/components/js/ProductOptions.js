@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import CONSTANTS from '../../constants/appConstants';
 import { deselectVariant, selectVariant, setStartIndex, setEndIndex, removeOptionalAddition, addOptionalAddition, setVariantField } from '../../redux/ducks/productPageManager';
 import '../css/ProductOptions.css'
 import CheckboxGroup from './CheckboxGroup';
 import RadioGroup from './RadioGroup'
-
+const DEFAULT_VARIANT_KEYS = [...CONSTANTS.VARIANT_OBJ_DEFAULT_KEYSS]
 const Variant = ({ parentProductField, index, productField, variants })=>{
     const dispatch = useDispatch();
     const startIndex = useSelector(state => state.productPageManager.startIndex);
@@ -12,7 +13,7 @@ const Variant = ({ parentProductField, index, productField, variants })=>{
     const selectedVariants = useSelector(state => state.productPageManager.selectedVariants);
     //const selectedVariantsArray = Object.values(selectedVariants);
     const isTheParent = index == startIndex;
-    const unidentifiedPrentSelcted = `${index - 1}` in selectedVariants;
+    const unidentifiedPrentSelcted = `${parentProductField}` in selectedVariants;
     //unselect all the dependent(children) variants of the previous selcted variant at [index] 
     
     let selectableVariants = [];
@@ -23,11 +24,13 @@ const Variant = ({ parentProductField, index, productField, variants })=>{
         //const [active, price, id, ...productProperties] = Object.keys(variant);
         //productProperties.map();
         let isParent = true;
-        const [ active, id, price, ...uncleanProperties] = Object.keys(selectedVariants[index - 1]);
-        const properties = uncleanProperties.filter(property => property !== 'add-by-default');
+        const [ active, id, price, ...uncleanProperties] = Object.keys(selectedVariants[parentProductField]);
+        const properties = uncleanProperties.filter(property => !DEFAULT_VARIANT_KEYS.includes(property));
+        // console.log('properties: ', properties)
         properties.map(property => {
-            //console.log("property: ", property, "variant[property]: ", variant[property], "selectedVariants[index-1][property]: ", selectedVariants[index-1][property], 'selectedVariants[index-1]: ', selectedVariants[index - 1]);
-            const isMatching = variant[property] == selectedVariants[index - 1][property];
+            //console.log("property: ", property, "variant[property]: ", variant[property], "selectedVariants[index-1][property]: ", selectedVariants[index-1][property], 'selectedVariants[index-1]: ', selectedVariants[parentProductField]);
+            const isMatching = variant[property] == selectedVariants[parentProductField][property];
+            // console.log('variant: ', variant, 'isMatching: ', isMatching, 'property: ', property, 'selectedVariants: ', selectedVariants, 'parentProductField: ', parentProductField);
             if (!isMatching) isParent = false;
         });
         return isParent;
@@ -40,7 +43,7 @@ const Variant = ({ parentProductField, index, productField, variants })=>{
     //if this component is rendered => there's at least one variant
     //variants[0] 
     //Object.keys(variants[0]).
-    const defaultOption = selectedVariants[index] || {id:''};
+    const defaultOption = selectedVariants[productField] || {id:''};
     const defaultValue = defaultOption.id;
     const [value, setValue] = useState(defaultValue);
     const label = productField;
@@ -60,8 +63,8 @@ const Variant = ({ parentProductField, index, productField, variants })=>{
         //console.log('value:', value, 'id', id);
         setValue(id);
         const variant = variants.find(v => v.id == id);
-        //console.log("variant: ", variant, "index: ", index)
-        dispatch(selectVariant(variant,index));
+        // console.log("variant: ", variant, "index: ", index, "productField: ", productField);
+        dispatch(selectVariant(variant,productField));
         //unselect all the dependent(children) variants of the previous selcted variant at [index] 
         for (let i = index + 1; i < endIndex; i++) {
             dispatch(deselectVariant(i));
@@ -106,27 +109,28 @@ const OptionalAddition = ({type, optionalAdditions}) => {
 }
 
 export default function ProductOptions({variants = [], optionalAdditions = []}) {
+    console.log("variants: ", variants, "optionalAdditions: ", optionalAdditions)
     const _variants = [
         // Parent variants with price null
-        { id: 1, active: true, price: null, color: 'blue', 'add-by-default': true },
-        { id: 2, active: true, price: null, color: 'green', 'add-by-default': false },
+        { id: 'var-1', active: true, price: null, color: 'blue', 'add-by-default': true },
+        { id: 'var-2', active: true, price: null, color: 'green', 'add-by-default': false },
       
         // Child variants with specific prices
-        { id: 3, active: true, price: 19.99, color: 'blue', size: '12oz', 'add-by-default': false },
-        { id: 4, active: true, price: 24.99, color: 'blue', size: '16oz', 'add-by-default': false },
+        { id: 'var-3', active: true, price: 19.99, color: 'blue', size: '12oz', 'add-by-default': false },
+        { id: 'var-4', active: true, price: 24.99, color: 'blue', size: '16oz', 'add-by-default': false },
       
         // Variants that act as both parents and children
-        { id: 5, active: true, price: null, color: 'blue', size: '20oz', 'add-by-default': true }, // Parent of below child variants
-        { id: 6, active: true, price: 29.99, color: 'blue', size: '20oz', material: 'cotton', 'add-by-default': true },
-        { id: 7, active: true, price: 34.99, color: 'blue', size: '20oz', material: 'polyester', 'add-by-default': false },
+        { id: 'var-5', active: true, price: null, color: 'blue', size: '20oz', 'add-by-default': true }, // Parent of below child variants
+        { id: 'var-6', active: true, price: 29.99, color: 'blue', size: '20oz', material: 'cotton', 'add-by-default': true },
+        { id: 'var-7', active: true, price: 34.99, color: 'blue', size: '20oz', material: 'polyester', 'add-by-default': false },
       
-        { id: 8, active: true, price: 20.99, color: 'green', size: '12oz', 'add-by-default': false },
-        { id: 9, active: true, price: 25.99, color: 'green', size: '16oz', 'add-by-default': false },
+        { id: 'var-8', active: true, price: 20.99, color: 'green', size: '12oz', 'add-by-default': false },
+        { id: 'var-9', active: true, price: 25.99, color: 'green', size: '16oz', 'add-by-default': false },
       
         // Variants that act as both parents and children
-        { id: 10, active: true, price: null, color: 'green', size: '20oz', 'add-by-default': false }, // Parent of below child variants
-        { id: 11, active: true, price: 30.99, color: 'green', size: '20oz', material: 'cotton', 'add-by-default': false },
-        { id: 12, active: true, price: 35.99, color: 'green', size: '20oz', material: 'polyester', 'add-by-default': false },
+        { id: 'var-10', active: true, price: null, color: 'green', size: '20oz', 'add-by-default': false }, // Parent of below child variants
+        { id: 'var-11', active: true, price: 30.99, color: 'green', size: '20oz', material: 'cotton', 'add-by-default': false },
+        { id: 'var-12', active: true, price: 35.99, color: 'green', size: '20oz', material: 'polyester', 'add-by-default': false },
     ];
     const _optionalAdditions = [
         { id: 'opt-1', name: 'ketchup', price: 5.99, active: true, type: 'sauces', 'add-by-default': true },
@@ -149,7 +153,7 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
 
     const initializeVariants = () => {
         //the essential variant fields are 'id', 'active', 'price'  (set to null by default) they are fields that concern the variant (give information on the variant) more than the product
-        const essentialVariantFields = ['id', 'active', 'price', 'add-by-default'];
+        //['id', 'active', 'price', 'add-by-default', 'updated-at'];
         // this array will hold the non-essential variant fields that are needed to create a variant, the fields that will give information on the product not the variant
         const productVariantFields = [];
 
@@ -171,7 +175,7 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
         //and a smaller level could be a size
         //each color variant will have different sizes (several size variants)
         const productFieldsObj = {};
-        const activeVariants = _variants.filter(variant=>{
+        const activeVariants = variants.filter(variant=>{
             //only consider variants that are active, inactive variants are not used, (chosen by the producer of the product)
             if (variant.active){
                 //get an array of the fields of the variant
@@ -189,8 +193,8 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
                 // while a variant Y controlled by color and size ('blue' and '12oz') will be visible only when the variantX is selected
                 const length = fields.length;
                 fields.forEach(field=>{
-                    //if it is included in essentialVariantFields => it is an essential field, no nned to operate on it
-                    if (!essentialVariantFields.includes(field)) {
+                    //if it is included in DEFAULT_VARIANT_KEYS => it is an essential field, no nned to operate on it
+                    if (!DEFAULT_VARIANT_KEYS.includes(field)) {
                         if(!productVariantFields.includes(field)) productVariantFields.push(field);
                         //if there's a length key in productFieldsObj=> means theres an array of fields, just add to it
                         //if not create a new array
@@ -212,7 +216,7 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
                 }
                 //get the variants that the producer set as default => selected by default, if customer didn't specify variants, those will be the variants
                 if (variant['add-by-default']) {
-                    dispatch(selectVariant(variant, length));
+                    dispatch(selectVariant(variant, productFieldsObj[length]));
                 }              
                 
                 return true;
@@ -223,7 +227,7 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
         //which will affect one field in the product
         //=> essential fields that exist in every variant length + 1 for the field
         //because the keys are the lenghts of the variants' keys
-        const startIndex = essentialVariantFields.length + 1;
+        const startIndex = DEFAULT_VARIANT_KEYS.length + 1;
         dispatch(setStartIndex(startIndex));
         //end index will depend on how many hierarchical levels there are
         //which is also the number of altered fields from the product
@@ -235,7 +239,8 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
     const initializeOptionalAdditions = () => {
         // will hold a key (type of the additions) and a value (array of the additions in that type) pairs
         const optionalAdditionsObj = {};
-        _optionalAdditions.map((addition, index) => {
+        console.log('optional additions : ', optionalAdditions);
+        optionalAdditions.map((addition, index) => {
             //only add active additions, inactive ones are set to false by the producer
             if (addition.active){
                 //check if there's an array of additions that have the same type
@@ -258,6 +263,7 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
         if(!initialized){
             const { variantsObj, productFieldsObj, startIndex, endIndex, productVariantFields } = initializeVariants();
             const optionalAdditionsObj = initializeOptionalAdditions();
+            
     
             //fields that have been looped through and used
             const usedFields = [];
@@ -285,11 +291,11 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
             const optionalAdditionsContent = [];
             //loop through the optional additionsObj and create JSX elements for each addition type
             const additionTypes = Object.keys(optionalAdditionsObj);
-            additionTypes.forEach(additionType => {
+            additionTypes.forEach((additionType, i) => {
                 //get the array of additions of the current type
                 const additions = optionalAdditionsObj[additionType];
                 optionalAdditionsContent.push(
-                    <OptionalAddition type={additionType} optionalAdditions={additions}/>
+                    <OptionalAddition key={i} type={additionType} optionalAdditions={additions}/>
                 )
             })
     

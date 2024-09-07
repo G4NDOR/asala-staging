@@ -20,6 +20,7 @@ const SET_START_INDEX = 'productPageManager/setStartIndex';
 const SET_END_INDEX = 'productPageManager/setEndIndex';
 const ADD_OPTIONAL_ADDITION = 'productPageManager/addOptionalAddition';
 const REMOVE_OPTIONAL_ADDITION = 'productPageManager/removeOptionalAddition';
+const SET_GEO_POINT = 'productPageManager/setGeoPoint';
 
 
 const initialState = {
@@ -27,6 +28,10 @@ const initialState = {
     isDescriptionExpanded: false, // Boolean for description section state
     notes:"",
     address:DEFAULT_VALUES.ADDRESS, 
+    geopoint: {
+        _lat: null,
+        _long: null
+    },
     producerImg: DEFAULT_VALUES.IMAGES[0],
     selectedAddressId: DEFAULT_VALUES.SELECTED_ADDRESS_ID,
     addresses: [], // Array of customer addresses
@@ -100,6 +105,7 @@ export default function productPageManager(state = initialState, action) {
             }
 
         case SELECT_VARIANT:
+            // console.log("selecting variant", action.variant, "in index", action.index)
             return { 
                ...state,
                 selectedVariants: {...state.selectedVariants, [action.index]: action.variant}
@@ -148,7 +154,11 @@ export default function productPageManager(state = initialState, action) {
                 };
             }
             return state; // If the addition is not found in the array, return the state as is.
-
+        case SET_GEO_POINT:
+            return { 
+               ...state,
+                geopoint: action.geopoint
+            };
          // Add more action creators here for other actions related to the product page manager slice of state.
         default:
             return state;
@@ -239,5 +249,10 @@ export const addOptionalAddition = (addition) => ({
 export const removeOptionalAddition = (addition) => ({
     type: REMOVE_OPTIONAL_ADDITION,
     addition: addition
+});
+
+export const setGeoPoint = (geopoint) => ({
+    type: SET_GEO_POINT,
+    geopoint: geopoint
 });
 

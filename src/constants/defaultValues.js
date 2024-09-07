@@ -352,9 +352,11 @@ const DEFAULT_VALUES = {
         "is-default-value": true
       }
     ],
-    IMAGES:[
-      "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
-    ],
+    IMAGES:{
+      'main-image': "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
+      'few-images': ["https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"],
+      'full-images': ["https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg"]
+    },
     INTERVAL: null,
     TITLE: "Welcome to Asala",
     CONTENT: "Discover our amazing products and services!",
@@ -395,6 +397,17 @@ const DEFAULT_VALUES = {
       "is-default-value": true
     },
     API_KEY: "AIzaSyCRJxYr_MhIKXIg-uIOsaMv64T2RzN4DEI",
+    GENERAL_RANGE: {
+      ID: "wCCf8rhZ2pO844DJv0ac",
+      DATA: {
+        type: 'circle',
+        center: {
+          lat: 32.0853,
+          lng: 34.7818
+        },
+        radius: 5000
+      }
+    },
     SLIDER_SETTINGS: {
       dots: true,
       infinite: true,
@@ -478,7 +491,7 @@ const DEFAULT_VALUES = {
       },
     },
     DISCOUNT:{
-      "name": "general 10% dicount",
+      "name": "general 10% discount",
       "id": "1",
       "active": false,
       "apply-on-single-item": true,
@@ -498,7 +511,8 @@ const DEFAULT_VALUES = {
       "opposing-discounts": [
         //ids of dicounts that can't be used when this one is used
       ]
-    }
+    },
+    IMAGE: "https://eagle-sensors.com/wp-content/uploads/unavailable-image.jpg",
   };
   
   export default DEFAULT_VALUES;

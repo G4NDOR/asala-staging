@@ -1,29 +1,33 @@
 // src/components/OrderButton.js
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "../css/OrderButton.css";
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Paths from '../../constants/navigationPages';
-import { resetIntentToPay, resetIntentToPayConfirmed, setPaymentMethod, triggerIntentToPay, triggerIntentToPayConfirmed } from "../../redux/ducks/orderManager";
+import { resetIntentToPay, resetIntentToPayConfirmed, setDeliveryFee, setPaymentMethod, setProducers, triggerIntentToPay, triggerIntentToPayConfirmed } from "../../redux/ducks/orderManager";
 import { addMessage, resetLoading, setCurrentPage, triggerLoading } from "../../redux/ducks/appVars";
 import ButtonsContainer from "./ButtonsContainer";
 import SwipeConfirmation from "./SwipeConfirmation";
 import CONSTANTS from "../../constants/appConstants";
-import { calculatePriceForItem, calculateTotalListPriceWithAppliedDiscountsAndUsedCredit, findAppliedDiscount, getPriceWithDiscountApplied } from "../../utils/appUtils";
+import { calculatePriceForItem, calculateTotalListPriceWithAppliedDiscountsAndUsedCredit, calculateTotalListPriceWithoutDiscounts, findAppliedDiscount, formatPhoneNumberStyle2, getDeliveryFee, getPriceWithDiscountApplied } from "../../utils/appUtils";
 import { FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
 import PaymentForm from "./PaymentForm";
 import ConfirmationInfo from "./ConfirmationInfo";
+import { tryPlacingOrder } from "../../utils/firestoreUtils";
 
 const OrderButton = ({test, parent}) => {
   // Retrieve cart from Redux state
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const name = useSelector(state => state.orderManager.name);
-  const email = useSelector(state => state.orderManager.email);
-  const phone = useSelector(state => state.orderManager.phone);
+  const [contact, setContact] = useState(null);
+  const [charges, setCharges] = useState([]);
+  const [order, setOrder] = useState({})
+  const customerName = useSelector(state => state.orderManager.name);
+  const customerEmail = useSelector(state => state.orderManager.email);
+  const customerPhone = useSelector(state => state.orderManager.phone);
   const address = useSelector(state => state.productPageManager.address);
-  const addresses = useSelector(state => state.productPageManager.addresses);
+  // const addresses = useSelector(state => state.productPageManager.addresses);
   const cart = useSelector(state => state.orderManager.cart);
   const productPageCart = useSelector(state => state.orderManager.oneItemCheckout);
   const usedCredit = useSelector(state => state.orderManager.usedCredit);
@@ -40,6 +44,21 @@ const OrderButton = ({test, parent}) => {
   const currentPage = useSelector(state => state.appVars.currentPage);
   const isHomePage = currentPage == Paths.HOME;
   const isCartPage = currentPage == Paths.CART;
+  const baseDeliveryDistance = useSelector(state => state.appVars.baseDeliveryDistance);
+  const baseDeliveryFee = useSelector(state => state.appVars.baseDeliveryFee);
+  const deliveryPricePerMile = useSelector(state => state.appVars.deliveryPricePerMile);
+  const taxFee = useSelector(state => state.appVars.taxFee);  
+
+  const customerId = useSelector(state => state.appVars.customerId);
+  const notes = useSelector(state => state.productPageManager.notes);
+  // const totalPrice = useSelector(state => state.orderManager.totalPrice);
+  // const deliveryFee = useSelector(state => state.orderManager.deliveryFee);
+  // const producers = useSelector(state => state.orderManager.producers);
+  const geopoint = useSelector(state => state.productPageManager.geopoint); 
+  const merchantPhoneNumber = useSelector(state => state.appVars.phoneNumber);
+  const merchantWebsite = useSelector(state => state.appVars.website);
+  const merchantEmail = useSelector(state => state.appVars.email); 
+  const returnPolicy = useSelector(state => state.appVars.returnPolicy);
 
   //it's the cart component in the home page if the current page is the home page
   //because order btn is called in cart component in home page, cart page and product page
@@ -145,6 +164,8 @@ const OrderButton = ({test, parent}) => {
     dispatch(resetLoading());
   }
 
+
+
   /*
   // buttons needed for the order section
   const PayOnlineButtonDetails = {
@@ -173,12 +194,17 @@ const OrderButton = ({test, parent}) => {
 
   const total = calculateTotalListPriceWithAppliedDiscountsAndUsedCredit(itemsList,selectedDiscounts, usedCredit);
 
-  const onConfirm = () => {
+  const onConfirm = async () => {
     // The order has been confirmed
+    console.log('************************************************************************************=======')
+    const result = await tryPlacingOrder(order);
+    console.log('================================================================')
+    console.log('result',result);
     const isOnlinePayment = paymentMethod == CONSTANTS.PAYMENT_METHODS.ONLINE;
+    const isCashPayment = paymentMethod == CONSTANTS.PAYMENT_METHODS.CASH;
     if (isOnlinePayment) {
       makeOnlinePayment()
-    }else{
+    }else if (isCashPayment) {
       makeCashPayment()
     }
     return;
@@ -245,28 +271,101 @@ const OrderButton = ({test, parent}) => {
       dispatch(addMessage(message))
       return false;
     }
-    if (name === '') {
+    if (customerName === '') {
       const message = { content: 'Name is required!', severity: CONSTANTS.SEVERITIES.ERROR }
       dispatch(addMessage(message))
       return false;
     } 
-    if (email === '') {
+    if (customerEmail === '') {
       const message = { content: 'Email is required!', severity: CONSTANTS.SEVERITIES.ERROR }
       dispatch(addMessage(message))
       return false;
     }
-    if (phone === '') {
+    if (customerPhone === '') {
       const message = { content: 'Phone Number is required!', severity: CONSTANTS.SEVERITIES.ERROR }
       dispatch(addMessage(message))
       return false;
     }
-    console.log('email: ' + email)
-    const isOnlinePayment = paymentMethod == CONSTANTS.PAYMENT_METHODS.ONLINE;
-    if (isOnlinePayment) {
-      triggetIntentToMakeOnlinePayment()
-    }else{
-      triggerIntentToMakeCashPayment()
-    }
+    //merchants, producers, vendors bought from
+    const merchantsIds = [];
+    const locations = [geopoint];
+    const merchants = itemsList.reduce((merchants, item) => {
+      const merchantId = item.producer.id;
+      console.log('producer object:', item.producer);
+      const loaction = item.producer.location;
+      if (!merchantsIds.includes(merchantId)) {
+        merchantsIds.push(merchantId)
+        locations.push(loaction)
+      };
+      const merchant = item.producer.name;
+      if (!merchants.includes(merchant)) {
+        merchants.push(merchant);
+      }
+      return merchants;
+    }, []);
+    locations.push(geopoint);
+    // dispatch(setProducers(merchantsIds));   
+    //date for the order
+    const today = new Date();
+    const date = today.toISOString().split('T')[0];       
+    //customer contact information
+    const customerContact = [];
+    customerContact.push(customerName);
+    const formattedCustomerPhone = formatPhoneNumberStyle2(customerPhone);
+    customerContact.push(formattedCustomerPhone);
+    customerContact.push(customerEmail);    
+    const contactInfo = [];
+    contactInfo.push(merchantPhoneNumber);
+    contactInfo.push(merchantEmail);
+    contactInfo.push(merchantWebsite);    
+    const contact = {
+      merchants: merchants,// array of merchant names
+      date: date,
+      address: address,
+      customerContacts: customerContact,// array of strings representing customer contact info
+      returnPolicy: returnPolicy,
+      contactInfo: contactInfo,// array of strings representing merchant contact info
+    }   
+    setContact(contact);
+    //Charges information
+    const subtotal = calculateTotalListPriceWithoutDiscounts(itemsList);
+    const total_without_xtra_fees = calculateTotalListPriceWithAppliedDiscountsAndUsedCredit(itemsList, selectedDiscounts, usedCredit);
+    const discount = Math.abs(total_without_xtra_fees - subtotal);
+    console.log('locations: ', locations)
+    const deliveryFee = getDeliveryFee(locations, baseDeliveryDistance, baseDeliveryFee, deliveryPricePerMile);
+    // dispatch(setDeliveryFee(deliveryFee));
+    const tax = taxFee;// TODO: replace with actual tax rate
+    const Total = total_without_xtra_fees + deliveryFee + tax;
+    // dispatch(setTotalPrice(Total));
+    const CHARGE_INFO_TYPES = CONSTANTS.CHARGE_INFO_TYPES;
+    const charges = [
+      { type: CHARGE_INFO_TYPES.SUBTOTAL, value: subtotal },
+      { type: CHARGE_INFO_TYPES.DISCOUNT, value: discount },
+      { type: CHARGE_INFO_TYPES.DELIVERY, value: deliveryFee },
+      { type: CHARGE_INFO_TYPES.TAX, value: tax },
+      { type: CHARGE_INFO_TYPES.TOTAL, value: Total },
+      { type: CHARGE_INFO_TYPES.SAVINGS, value: discount },
+    ]
+    setCharges(charges);
+    setOrder({
+      status: 'pending',
+      cancelations: [],
+      notes: notes,
+      phone: customerPhone,
+      destination: geopoint,
+      customerId: customerId,
+      'payment-method': paymentMethod,
+      'total-price': Total,
+      'delivery-price': deliveryFee,
+      discounts: selectedDiscounts,
+      'payment-successful': false,
+      items: itemsList,
+      //deliverySpeed,
+      usedCredit,
+      merchantsIds
+    })    
+    dispatch(triggerIntentToPay());
+    dispatch(setPaymentMethod(paymentMethod))
     return;
   }
 
@@ -314,9 +413,12 @@ const OrderButton = ({test, parent}) => {
 
   return (
     <>
-      <ConfirmationInfo parent={parent} visible={visible && payClicked && isNotMobileScreen} />
+      <ConfirmationInfo contact={contact} charges={charges} parent={parent} visible={visible && payClicked && isNotMobileScreen} />
+      {
+        //<Receipt parent={parent} visible={visible && payClicked && isNotMobileScreen}/>
+      }
       <PaymentForm visible={visible && payNotClicked}/>
-      <SwipeConfirmation parent={parent} active={mobileScreenConfirmation} onCancel={onCancel} onConfirm={onConfirm} />    
+      <SwipeConfirmation contact={contact} charges={charges} parent={parent} active={mobileScreenConfirmation} onCancel={onCancel} onConfirm={onConfirm} />    
       <ButtonsContainer buttonsDetails={buttonsDetails}/>
     </>
   );

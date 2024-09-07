@@ -201,6 +201,23 @@
 
 /* ================================================================= */
 
+/* ================================================================= */
+/* cancel payment button */
+
+.product-page-get-current-location-button{
+  font-size: 1.2rem;
+  color: rgb(63, 63, 63);
+  transition: background-color 0.3s ease;
+  background-color: #23dbfc;
+}
+
+.product-page-get-current-location-button:hover{
+  background-color: #1fb6d1;
+}
+
+
+/* ================================================================= */
+
 
 
 

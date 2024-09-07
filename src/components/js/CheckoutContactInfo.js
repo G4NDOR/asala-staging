@@ -3,6 +3,8 @@ import '../css/CheckoutContactInfo.css'
 
 export default function CheckoutContactInfo({info}) {
     //general information
+    console.log('info: ', info)
+    if (!info) return null;
     const {
         merchants,// array of strings
         receiptId,

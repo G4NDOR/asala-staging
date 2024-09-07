@@ -16,6 +16,7 @@ const SearchItem = () => {
     const items = useSelector(state => state.homePageManager.items);
     const isOpen = useSelector(state => state.homePageManager.searchBarIsOpen);
     const lastSearchedDoc = useSelector(state => state.homePageManager.lastSearchedDoc);
+    const currentPage = useSelector(state => state.appVars.currentPage);
     const [shake, setShake] = useState(true);
 
     const toggleSearch = () => {
@@ -25,7 +26,7 @@ const SearchItem = () => {
             //dispatch(setLoad)
             dispatch(setSearchTerm(''));
             dispatch(resetSearching());
-            navigateToPage(Paths.HOME);
+            if (currentPage == Paths.SEARCH) navigate(-1);
         }  // Reset searching when closed;
         setIsOpen(!isOpen);
         

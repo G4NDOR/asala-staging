@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import '../css/EmailInput.css';
 
-function EmailInput({ label = "email", required = false , onChange, finalValue}) {
+function EmailInput({ label = "email", required = false , onChange, value}) {
   const [isFocused, setIsFocused] = useState(false);
   const [isValid, setIsValid] = useState(true);
-  const [value, setValue] = useState(finalValue);
+  const [_value, setValue] = useState(value);
 
 
   const handleFocus = () => setIsFocused(true);
   const handleBlur = () => {
     setIsFocused(false);
-    validateEmail(value);
+    validateEmail(_value);
   };
 
   const validateEmail = (email) => {
@@ -21,13 +21,13 @@ function EmailInput({ label = "email", required = false , onChange, finalValue})
   };
 
   return (
-    <div className={`email-input ${isFocused || value ? 'focused' : ''} ${!isValid ? 'invalid' : ''}`}>
+    <div className={`email-input ${isFocused || _value ? 'focused' : ''} ${!isValid ? 'invalid' : ''}`}>
       <label className="input-label">
         {label} {required && '*'}
       </label>
       <input
         type="email"
-        value={value}
+        value={_value}
         onChange={(e) => {
           validateEmail(e.target.value);
         }}

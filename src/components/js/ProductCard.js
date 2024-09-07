@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import CONSTANTS from "../../constants/appConstants";
@@ -9,8 +9,8 @@ import { addMessage, addToWishList, setCurrentPage, triggerLoading } from "../..
 import { setProductSelectedId } from "../../redux/ducks/homePageManager";
 import { addItemToCart, resetAnimation, triggerAnimation, triggerUnseenChanges } from "../../redux/ducks/orderManager";
 import { setProduct } from "../../redux/ducks/productPageManager";
-import { getOperatingTime, isOperatingTime } from "../../utils/appUtils";
-import { wishItem } from "../../utils/firestoreUtils";
+import { getOperatingTime, isOperatingTime, downloadJsonFile, getProductToAdd } from "../../utils/appUtils";
+import { getImages, wishItem } from "../../utils/firestoreUtils";
 import "../css/ProductCard.css";
 import AddToCartButton from "./AddToCartButton";
 import Button from "./Button";
@@ -22,15 +22,36 @@ import WishButton from "./WishButton";
 const ProductCard = ({product}) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [images, setImages] = useState(DEFAULT_VALUES.IMAGES['few-images']);
+  const [initialized, setInitialized] = useState(false);
   const wishList = useSelector(state => state.appVars.wishList);
   const cartIsOpen = useSelector(state => state.orderManager.cartIsOpen);
   const customerId = useSelector(state => state.appVars.customerId);
+  const selectedVariants = useSelector(state => state.productPageManager.selectedVariants);
+  const selectedOptionalAdditionsObj = useSelector(state => state.productPageManager.selectedOptionalAdditions);
+  const selectedOptionalAdditions = Object.values(selectedOptionalAdditionsObj).flat();
 
+  const initialize = async () => {
+    if (!product || product == null) return;
+    const imagesPaths = (product['images'] || {'few-images': []})['few-images'];
+    const images = await getImages(imagesPaths);
+    if(images) setImages(images);
+    setInitialized(true);
+    //downloadJsonFile( 'product.json', product)
+  }
+
+  useEffect(() => {
+    if(!initialized) initialize();
+  
+    return () => {
+      
+    }
+  }, [])
 
   if (!product || product == null) return null;
 
   const { id, name, price, description, status, wishes, available, producer } = product;
-  const images = product['images-src'];
+  //const images = (product['images'] || DEFAULT_VALUES.IMAGES)['few-images']
   const image = product['image-src'];
   const producerName = producer[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.NAME}`];
   const productIsRealeasedToPublic = product[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.AVAILABLE}`];
@@ -71,6 +92,9 @@ const ProductCard = ({product}) => {
   const prepTimeInfo = preOrderSet?'':prepTimeInfoString;
   
 
+
+  
+
   //navigate function to change pages
   const navigateToPage = (path) => {
     dispatch(setCurrentPage(path));
@@ -104,9 +128,25 @@ const ProductCard = ({product}) => {
     visible: productIsRealeasedToPublic && productExists && weAreInOperatingTime && productInStock,
     activeContent: "Add to Cart",
     generalClassName: "home-page-product-card-add-to-cart-button",
-    activeAction: ({product}) => {
+    activeAction: ({product, selectedOptionalAdditions}) => {
+      const properties = CONSTANTS.VARIANT_KEYS;
+      const selectedVariantsObj = {};
+      const selectedVariants = product.variants.filter(variant => (variant.active && variant['add-by-default'])).sort((a, b) => Object.keys(a) - Object.keys(b));
+      console.log('selectedVariants: ', selectedVariants)
+      selectedVariants.map(( variant, index) => {
+        console.log('variant: ', variant)
+        console.log('properties: ', properties)
+        console.log('properties has color: ', properties.includes('color'))
+        console.log('found property: ', !properties.includes('color'))
+        const property = Object.keys(variant).find(property => !properties.includes(property))
+        selectedVariantsObj[property] = variant;
+        properties.push(property);
+      })
+      console.log('selectedVariantsObj: ', selectedVariantsObj)
+      const optionalAdditions = product['optional-additions'].filter(addition => (addition.active && addition['add-by-default']));
       const cartIsClosed = !cartIsOpen;
-      dispatch(addItemToCart(product));
+      const newProduct = getProductToAdd(product, optionalAdditions, selectedVariantsObj);
+      dispatch(addItemToCart(newProduct));
       dispatch(triggerAnimation());
       if(cartIsClosed){
           dispatch(triggerUnseenChanges());
@@ -116,7 +156,8 @@ const ProductCard = ({product}) => {
         }, 300); // Match this duration to your CSS animation duration
     },
     params:{
-      product
+      product,
+      selectedOptionalAdditions
     }
   }
   const notInStockButtonDetails = {

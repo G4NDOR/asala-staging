@@ -1,12 +1,13 @@
 // src/components/CartItem.js
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../css/CartItem.css";
 import QuantityControl from "./QuantityControl";
 import { FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
 import DEFAULT_VALUES from "../../constants/defaultValues";
 import { calculatePriceForItem, findAppliedDiscount, findDiscountsForProduct, isOperatingTime } from "../../utils/appUtils";
 import { useSelector } from "react-redux";
+import { getImages } from "../../utils/firestoreUtils";
 
 const _optionalAdditions = [
   { id: 1, name: 'ketchup', price: 5.99, active: true, type: 'sauces', 'add-by-default': true },
@@ -20,7 +21,8 @@ const _optionalAdditions = [
 const CartItem = ({ item, parent }) => {
   //const { image, name, price } = item;
   const { id, quantity, name, price } = item;
-  const image = item['image-src'];
+  const [initialized, setInitialized] = useState(false);
+  const [image, setImage] = useState(DEFAULT_VALUES.IMAGES['main-image']);
   const [showOptionalAdditions, setShowOptionalAdditions] = useState(false);
   const itemReleasedToPublic = item.available;
   const itemIsPresent = item.status == FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.STATUS.present;
@@ -38,6 +40,20 @@ const CartItem = ({ item, parent }) => {
   const visible = itemReleasedToPublic && itemIsPresent && weAreInOperatingTime && itemInStock;
 
 
+  const initialize = async () => {
+    const imagePath = (item['images'] || {'main-image': ""})['main-image'];
+    const images = await getImages([imagePath]);
+    if(images) setImage(images[0]);
+    setInitialized(true);
+  }
+
+  useEffect(() => {
+    if(!initialized) initialize();
+  
+    return () => {
+      
+    }
+  }, [])
   
 
   const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts[parent]);
@@ -121,7 +137,7 @@ const CartItem = ({ item, parent }) => {
       <div className={`optional-additions-wrapper ${showOptionalAdditions? 'open': 'closed'}`} >
         {
           optionalAdditions.map((addition, index) => (
-            <span>{getOptionalAdditionString(addition)}</span>
+            <span key={index} >{getOptionalAdditionString(addition)}</span>
           ))
         }
         {

@@ -13,15 +13,15 @@ import UpSell from "../components/js/UpSell";
 import Cart from "../components/js/Cart";
 import { addItemToCart, addOneItemCheckout, clearOneItemCheckout, resetAnimation, triggerAnimation, triggerUnseenChanges } from "../redux/ducks/orderManager";
 import OrderButton from "../components/js/OrderButton";
-import { addMessage, resetLoading, triggerLoading } from "../redux/ducks/appVars";
+import { addMessage, resetLoading, setCurrentPage, triggerLoading } from "../redux/ducks/appVars";
 import LoadingAnimation from "../components/js/LoadingAnimation";
 import { setAddress, setProducerImg, setRecommendations } from "../redux/ducks/productPageManager";
-import { loadProductPageData } from "../utils/firestoreUtils";
+import { getImages, loadProductPageData } from "../utils/firestoreUtils";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import AddressSlide from "../components/js/AddressSlide";
-import { getOperatingTime, isOperatingTime } from "../utils/appUtils";
+import { getOperatingTime, getProductToAdd, isOperatingTime } from "../utils/appUtils";
 import { FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../constants/firebase";
 import ProductPageProductInfoSection from "../components/js/ProductPageProductInfoSection";
 import ProductOptions from "../components/js/ProductOptions";
@@ -34,6 +34,8 @@ const ProductPage = () => {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [scroll, setScroll] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+  const [images, setImages] = useState(DEFAULT_VALUES.IMAGES['full-images']);
   let product = DEFAULT_VALUES.PRODUCT;
   product = useSelector(state => state.productPageManager.product);
   const products = useSelector(state => state.orderManager.oneItemCheckout);
@@ -52,9 +54,16 @@ const ProductPage = () => {
   const [showNotes, setShowNotes] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   
+  const initialize = async () => {
+    const imagesPaths = (product['images'] || {'full-images': []})['full-images'];
+    const images = await getImages(imagesPaths);
+    if(images) setImages(images);
+    setInitialized(true);
+  }
+
   useEffect(() => {
-    //console.log(product);
     //behind scenes work
+    dispatch(setCurrentPage(Paths.PRODUCT));
     if (homePageVisited) {
       load()
       //done with behind scenes work
@@ -153,6 +162,7 @@ const ProductPage = () => {
     //console.log('data',data);
     dispatch(setRecommendations(data.recommendations));
     //dispatch(setReviews(data.reviews));
+    if(!initialized) initialize();
   }
   
 
@@ -177,29 +187,7 @@ const ProductPage = () => {
   const BUY_ITEM_BUTTON_ACTION_NAME = 'buy-item';
   const ADD_TO_CART_BUTTON_ACTION_NAME = 'add-to-cart';
 
-  const getProductToAdd = () => {
-    const productDoesNotHaveOpttionalAdditions = selectedOptionalAdditions.length === 0;
-    if (productDoesNotHaveVariants && productDoesNotHaveOpttionalAdditions) return product;
-    let id = product.id;
-    let name = product.name;
-    let price = productHasVariants? theSelectedChildVariant.price: product.price;
-    let variants = [];
-    for (let i = 0; i < selectedVariantsArray.length; i++) {
-      const variant = selectedVariantsArray[i];
-      variants.push(variant)
-      const field = variantsFields[i + startIndex];
-      id += `_${variant.id}`;
-      name += ` - ${variant[field]}`;
-    }
-    selectedOptionalAdditions.forEach(optionalAddition => {
-      id += `_${optionalAddition.id}`;
-      price += optionalAddition.price;
-    });
-    const quantity = 1;
-    const updates = {id, name, price, quantity, variants, ['optional-additions']: selectedOptionalAdditions}
-    const newProduct = {...product, ...updates};
-    return newProduct;
-  }
+
 
   const addProductToCheckout = ({actionName}) =>{
     const variantsNotSelected = !variantsSelected;
@@ -208,7 +196,8 @@ const ProductPage = () => {
       dispatch(addMessage(message));
       return;
     };
-    const newProduct = getProductToAdd();
+    console.log('selectedVariants: ', selectedVariants)
+    const newProduct = getProductToAdd(product, selectedOptionalAdditions, selectedVariants);
     if (actionName == ADD_TO_CART_BUTTON_ACTION_NAME){
       //giving it the product set in this page
       addToCart({product: newProduct});
@@ -278,14 +267,14 @@ const ProductPage = () => {
         </Slider>
       </section>
       <div className="image-slider-wrapper">
-        <ImageSlider images={product['images-src']} />
+        <ImageSlider images={images} />
       </div>
 
 
 
       <div className="product-details">
         <h1 className="product-name">{productFullName}</h1>
-        <ProductOptions variants={('variants' in product?product.variants:[])} />
+        <ProductOptions variants={('variants' in product?product.variants:[])} optionalAdditions={product['optional-additions']} />
         <ProductPageProductInfoSection type={prepTimeType} info={prepTimeString}/>
         <ProductPageProductInfoSection type={daysType} info={availabilityInfoString}/>        
         <ButtonsContainer buttonsDetails={buttonsDetails} />

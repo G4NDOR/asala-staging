@@ -16,6 +16,19 @@ const SET_CURRENT_PAGE = 'appVars/setCurrentPage';
 const ADD_MESSAGE = 'appVars/addMessage';
 const REMOVE_MESSAGE = 'appVars/removeMessage';
 const SET_MESSAGE = 'appVars/setMessage';
+const SET_DELIVERY_RANGE = 'appVars/setDeliveryRange';
+const SET_BASE_DELIVERY_FEE = 'appVars/setBaseDeliveryFee';
+const SET_BASE_DELIVERY_DISTANCE = 'appVars/setBaseDeliveryDistance';
+const SET_DELIVERY_PRICE_PER_MILE = 'appVars/setDeliveryPricePerMile';
+const SET_TAX_FEE = 'appVars/setTaxFee';
+const SET_PHONE_NUMBER = 'appVars/setPhoneNumber';
+const SET_EMAIL = 'appVars/setEmail';
+const SET_WEBSITE = 'appVars/setWebsite';
+const SET_RETURN_POLICY = 'appVars/setReturnPolicy';
+const SET_DELIVERY_SPEED = 'appVars/setDeliverySpeed';
+
+
+
 
 
 const initialState = {
@@ -28,7 +41,17 @@ const initialState = {
     homePageVisited: false, 
     currentPage: Paths.HOME,  // Assuming currentPage is a string
     messages: [],  // Assuming messages is an array of objects containing messages
-    limit: 3
+    messagesLimit: 1,
+    deliveryRange: DEFAULT_VALUES.GENERAL_RANGE.DATA,  // Assuming deliveryRange is a number
+    baseDeliveryFee: 3,
+    baseDeliveryDistance: 3,
+    deliveryPricePerMile: 0.5,
+    taxFee: 0,
+    phoneNumber: 0,
+    email: '',
+    website: '',
+    returnPolicy: '',
+    deliverySpeed: 0,
 };
 
 export default function appVars(state = initialState, action) {
@@ -84,16 +107,24 @@ export default function appVars(state = initialState, action) {
                 currentPage: action.currentPage
             };
         case ADD_MESSAGE:
-            const newMessages = [...state.messages, action.message];
-            if (newMessages.length > state.limit) {
-                newMessages.shift();  // Remove the oldest message
+            // Create a new array with the added message
+            let newMessages = [...state.messages, action.message];
+            
+            // Check if the messages limit is exceeded
+            if (newMessages.length > state.messagesLimit) {
+                newMessages = newMessages.slice(1);  // Remove the oldest message
             }
+            
             return { 
-               ...state,
+                ...state,
                 messages: newMessages
             };
+    
         case REMOVE_MESSAGE:
-            const  lessMessages = state.messages.splice(action.index, 1);
+            
+            // Filter out the message by index
+            const lessMessages = state.messages.filter((_, index) => index !== action.index);
+            
             return { 
                 ...state,
                 messages: lessMessages
@@ -103,7 +134,56 @@ export default function appVars(state = initialState, action) {
                ...state,
                 messages: [action.message]
             };
-
+        case SET_DELIVERY_RANGE:
+            return { 
+               ...state,
+                deliveryRange: action.deliveryRange
+            };
+        case SET_BASE_DELIVERY_FEE:
+            return { 
+               ...state,
+                baseDeliveryFee: action.baseDeliveryFee
+            };
+        case SET_BASE_DELIVERY_DISTANCE:
+            return { 
+               ...state,
+                baseDeliveryDistance: action.baseDeliveryDistance
+            };
+        case SET_DELIVERY_PRICE_PER_MILE:
+            return { 
+               ...state,
+                deliveryPricePerMile: action.deliveryPricePerMile
+            };
+        case SET_TAX_FEE:
+            return { 
+               ...state,
+                taxFee: action.taxFee
+            };
+        case SET_PHONE_NUMBER:
+            return { 
+               ...state,
+                phoneNumber: action.phoneNumber
+            };
+        case SET_EMAIL:
+            return { 
+               ...state,
+                email: action.email
+            };
+        case SET_WEBSITE:
+            return { 
+               ...state,
+                website: action.website
+            };
+        case SET_RETURN_POLICY:
+            return { 
+               ...state,
+                returnPolicy: action.returnPolicy
+            };
+        case SET_DELIVERY_SPEED:
+            return { 
+               ...state,
+                deliverySpeed: action.deliverySpeed
+            };
         // Add other actions here as needed
         default:
             return state;
@@ -172,4 +252,54 @@ export const removeMessage = (index) => ({
 export const setMessage = (message) => ({
     type: SET_MESSAGE,
     message: message
+});
+
+export const setDeliveryRange = (deliveryRange) => ({
+    type: SET_DELIVERY_RANGE,
+    deliveryRange: deliveryRange
+});
+
+export const setBaseDeliveryFee = (baseDeliveryFee) => ({
+    type: SET_BASE_DELIVERY_FEE,
+    baseDeliveryFee: baseDeliveryFee
+});
+
+export const setBaseDeliveryDistance = (baseDeliveryDistance) => ({
+    type: SET_BASE_DELIVERY_DISTANCE,
+    baseDeliveryDistance: baseDeliveryDistance
+});
+
+export const setDeliveryPricePerMile = (deliveryPricePerMile) => ({
+    type: SET_DELIVERY_PRICE_PER_MILE,
+    deliveryPricePerMile: deliveryPricePerMile
+});
+
+export const setTaxFee = (taxFee) => ({
+    type: SET_TAX_FEE,
+    taxFee: taxFee
+});
+
+export const setPhoneNumber = (phoneNumber) => ({
+    type: SET_PHONE_NUMBER,
+    phoneNumber: phoneNumber
+});
+
+export const setEmail = (email) => ({
+    type: SET_EMAIL,
+    email: email
+});
+
+export const setWebsite = (website) => ({
+    type: SET_WEBSITE,
+    website: website
+});
+
+export const setReturnPolicy = (returnPolicy) => ({
+    type: SET_RETURN_POLICY,
+    returnPolicy: returnPolicy
+});
+
+export const setDeliverySpeed = (deliverySpeed) => ({
+    type: SET_DELIVERY_SPEED,
+    deliverySpeed: deliverySpeed
 });

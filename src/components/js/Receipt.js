@@ -6,7 +6,7 @@ import CheckoutContactInfo from './CheckoutContactInfo';
 import CheckoutItemMini from './CheckoutItemMini';
 import CheckoutTotalSection from './CheckoutTotalSection';
 
-const Receipt = ({order}) => {
+const Receipt = ({visible=true, parent, order}) => {
 
     //general information
     const paymentMethod = "Credit Card";
@@ -45,13 +45,13 @@ const Receipt = ({order}) => {
   
 
   return (
-    <div className="receipt">
+    <div className={`receipt ${visible? '': 'invisible'}`}>
         <CheckoutContactInfo info={contactInfo} />
 
       <div className="receipt-order-summary">
         <span className='receipt-order-summary-title'>{titleString}</span>
         <ul>
-          {items.map((item, index) => <CheckoutItemMini key={index} item={item}/>)}
+          {items.map((item, index) => <CheckoutItemMini parent={parent} key={index} item={item}/>)}
         </ul>
       </div>
       <CheckoutTotalSection charges={charges}/>

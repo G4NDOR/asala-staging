@@ -17,6 +17,8 @@ export const FIREBASE_CLLECTIONS_NAMES = {
     DYNAMIC_OUTPUT: 'dynamic-output',
     CARTS: 'carts',
     DISCOUNTS: 'discounts',
+    DELIVERERS: 'deliverers',
+    RANGES: 'ranges',
 }
 
 export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
@@ -46,6 +48,10 @@ export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
         PRODUCER: 'producer',
         FULL_NAME: 'full-name',
         QUANTITY: 'quantity',
+        SCHEDULE: 'schedule',
+        RANGE: 'range',
+        VARIANTS: 'variants',
+        OPTIONAL_ADDITIONS: 'optional-additions',
     },
     DYNAMIC_OUTPUT: {
         CONTENT: 'content',
@@ -56,6 +62,7 @@ export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
         ADDRESSES: 'address-list',
     },
     TIMESTAMP: 'time-created',
+    UPDATED_AT: 'updated-at',
     ID: 'id',
     IS_DEFAULT_VALUE: 'is-default-value',
     CARTS: {
@@ -82,6 +89,13 @@ export const FIREBASE_DOCUMENTS_FEILDS_NAMES = {
         IS_DEFAULT_VALUE: 'is-default-value',
         OPPOSING_DISCOUNTS: 'opposing-discounts',
     },
+    RANGES:{
+        DELIVERER: 'deliverer',
+    },
+    DELIVERERS: {
+        COMMISSION: 'commission',
+        SPEED_IN_KMPH: 'speed-in-kmph',
+    }
 }
 
 export const FIREBASE_COLLECTIONS_QUERY_LIMIT = {
@@ -122,6 +136,9 @@ export const FIREBASE_DOCUMENTS_FEILDS_UNITS = {
                 PERCENTAGE: 'percentage',
             },
         },
+        RANGES: {
+            GENERAL: 'general',
+        }
     },
     DISCOUNTS: {
         TYPE: {
@@ -135,7 +152,13 @@ export const FIREBASE_DOCUMENTS_FEILDS_UNITS = {
         PRODUCT: {
             ALL: 'all',
         },
-    },    
+    },   
+    RANGES: {
+        TYPE: {
+            CIRCLE: 'circle',
+            RECTANGLE:'rectangle',
+        }
+    } 
 }
 
 //feild value of a feild
@@ -153,6 +176,7 @@ export const FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES = {
         PRODUCER: {
             ID: 'id',
             NAME: 'name',
+            LOCATION: 'location',
         },
         ADDRESS_LIST: {
             GEOPOINT: 'geopoint',
@@ -171,4 +195,40 @@ export const FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES = {
             QUANTITY: 'quantity',
         },
     },
+    DELIVERERS: {
+        COMMISSION: {
+            TYPE: 'type',
+            VALUE: 'value',
+        }
+    }
 }
+
+export const REAL_TIME_DATABASE_COLLECTIONS_NAMES = {
+    ORDERS: 'orders',
+}
+
+export const FIREBASE_ADMIN_VARS = {
+    PATH: 'admin/vars',
+    PLACING_ORDER_ALLOWED: 'placing-order-allowed',
+}
+
+export const PLACING_ORDER = {
+    STATUS: {
+        REJECTED: 'rejected',
+        ACCEPTED: 'accepted',
+    },
+    REASONS: {
+        PRODUCT_NOT_FOUND: 'product-not-found',
+        UNAVAILABLE: 'unavailable',
+        IS_FUTURE_PRODUCT: 'is-future-product',
+        NOT_OPERATING_TIME: 'not-operating-time',
+        OVER_PREORDER_PERIOD: 'over-preorder-period',
+        OUT_OF_STOCK: 'out-of-stock',
+        INSUFFICIENT_STOCK: 'insufficient-stock',
+        RANGE_NOT_FOUND: 'range-not-found',
+        OUT_OF_RANGE: 'out-of-range',
+        VARIANTS_NOT_FOUND: 'variants-not-found',
+        OPTIONAL_ADDITIONS_NOT_FOUND: 'optional-additions-not-found',
+    }
+}
+

@@ -3,6 +3,9 @@ import '../css/SwipeConfirmation.css'
 import CONSTANTS from '../../constants/appConstants'
 import { useSwipeable } from'react-swipeable';
 import ConfirmationInfo from './ConfirmationInfo';
+import { useDispatch, useSelector } from 'react-redux';
+import { getMaxTimeEstimateBasedOnPrepTimes } from '../../utils/appUtils';
+import Paths from '../../constants/navigationPages';
 
 const SwipeAnimation = ({horizontal, right}) => {
     const style = {
@@ -11,18 +14,19 @@ const SwipeAnimation = ({horizontal, right}) => {
     }
 
     return (
-        <div class="swipe-container" style={style}>
-            <div class="swipe">
-                <div class="swipe-arrow"></div>
-                <div class="swipe-arrow"></div>
-                <div class="swipe-arrow"></div>
+        <div className="swipe-container" style={style}>
+            <div className="swipe">
+                <div className="swipe-arrow"></div>
+                <div className="swipe-arrow"></div>
+                <div className="swipe-arrow"></div>
             </div>
         </div>        
     )
 }
 
-export default function SwipeConfirmation({active, onConfirm, onCancel, parent}) {
+export default function SwipeConfirmation({active, onConfirm, onCancel, parent, contact, charges}) {
   const disabled =!active;
+
 
   const confirmationHandlers = useSwipeable({
     onSwipedRight: (eventData) => {
@@ -41,7 +45,7 @@ export default function SwipeConfirmation({active, onConfirm, onCancel, parent})
         <div className={`swipe-confirmation-page ${disabled? 'swipe-confirmation-page-disabled': ''}`} style={{zIndex:`${CONSTANTS.Z_INDEXES.SWIPE_CONFIRMATION}`}}>
             <div className="confirmation-page-content-wrapper">
                 <div className='swipe-confirmation-info-wrapper'>
-                    <ConfirmationInfo parent={parent} />
+                    <ConfirmationInfo contact={contact} charges={charges} parent={parent} />
                     <div className='swipe-confirmation-cover'>
                 
                     </div>                

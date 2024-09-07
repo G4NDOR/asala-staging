@@ -25,14 +25,17 @@ export default function PaymentForm({visible}) {
     const emailLabel = 'Email';
 
     const onChangeName = (name) => {
+        console.log('name changed: ', name);
         dispatch(setName(name));
     }
 
     const onChangePhone = (phone) => {
+        console.log('phone changed: ', phone);
         dispatch(setPhone(phone));
     }
 
     const onChangeEmail = (email) => {
+        console.log('email changed: ', email);
         dispatch(setEmail(email));
     }
 
@@ -40,9 +43,9 @@ export default function PaymentForm({visible}) {
   return (
     <div className={classNameString} >
         <span className='payment-form-header'>{headerString}</span>
-        <TextInput label={'name'} finalValue={name} onChange={onChangeName} />
-        <EmailInput label={'email'} finalValue={email} onChange={onChangeEmail} />
-        <PhoneNumberInput label={'phone'} finalValue={phone} onChange={onChangePhone} />
+        <TextInput label={'name'} value={name} onChange={onChangeName} />
+        <EmailInput label={'email'} value={email} onChange={onChangeEmail} />
+        <PhoneNumberInput label={'phone'} value={phone} onChange={onChangePhone} />
     </div>
   )
 }

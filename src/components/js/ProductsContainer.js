@@ -48,7 +48,7 @@ const ProductsContainer = ({}) => {
           product={product}
           />          
           :
-          <ProductMiniCard key={index} id={product.id} images={product['images-src']} name={product.name}/>          
+          <ProductMiniCard key={index} id={product.id} imagesPaths={(product['images'] || DEFAULT_VALUES.IMAGES)['few-images']} name={product.name}/>          
         }    
            
         </>

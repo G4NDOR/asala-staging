@@ -47,7 +47,9 @@ const CONSTANTS = {
             type: 'optional-additions',
             prefix: 'opt',
         }
-    }
+    },
+    VARIANT_OBJ_DEFAULT_KEYSS: Object.freeze(['id', 'active', 'price', 'add-by-default', 'updated-at']),
+    VARIANT_KEYS: ['id', 'active', 'price', 'add-by-default', 'updated-at']
 };
 
 export default CONSTANTS;

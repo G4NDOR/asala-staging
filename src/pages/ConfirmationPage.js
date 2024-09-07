@@ -17,6 +17,7 @@ const ConfirmationPage = () => {
   const success = true;
 
   useEffect(() => {
+    dispatch(setCurrentPage(Paths.CONFIRMATION));
     if (homePageVisited){
       dispatch(resetLoading());
     }
@@ -37,14 +38,19 @@ const ConfirmationPage = () => {
       setTimeLeft((prevTime) => {
         if (prevTime === 1) {
           clearInterval(timer);
-          navigateToPage(Paths.HOME);
+          return 0;
         }
         return prevTime - 1;
       });
     }, 1000);
 
+    //Navigate to home page after timer finishes
+    if (timeLeft <= 1) {
+      navigateToPage(Paths.HOME);
+    }
+
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [timeLeft, navigate]);
 
   return (
     <div className="confirmation-page">

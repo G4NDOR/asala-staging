@@ -498,9 +498,7 @@ export const getCleanedProductId = (productId) => {
     };
     const delimiter  = '_';
     productId.split(delimiter).forEach((id, index) => {
-      console.log('id', id)
       const type = getTypeFromId(id);
-      console.log('type', type)
       if (type !== null) combinedIds[type].push(id);
     })
     return combinedIds;
@@ -540,9 +538,9 @@ export const generateUniqueId = (type) => {
 
   // Add a prefix based on the type
   if (type === variant.type) {
-    return `${variant.prefix}_${uniquePart}`;
+    return `${variant.prefix}-${uniquePart}`;
   } else if (type === optionalAddition.type) {
-    return `${optionalAddition.prefix}_${uniquePart}`;
+    return `${optionalAddition.prefix}-${uniquePart}`;
   } else {
     throw new Error('Invalid type specified. Use "variant" or "optionalAddition".');
   }
@@ -598,5 +596,254 @@ const id2 = 'opt_123e4567-e89b-12d3-a456-426614174000';
 console.log(getTypeFromId(id1)); // Output: 'variants'
 console.log(getTypeFromId(id2)); // Output: 'optional-additions'
 */
+
+
+
+
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************  
+
+
+
+function toRadians(degrees) {
+  return degrees * (Math.PI / 180);
+}
+
+export function haversineDistance(coords1, coords2) {
+  const R = 6371000; // Radius of the Earth in meters
+  const lat1 = coords1._lat;
+  const lon1 = coords1._long;
+  const lat2 = coords2._lat;
+  const lon2 = coords2._long;
+
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+  
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  
+  const distance = R * c * 0.001; // Distance in kilometers
+
+  return distance;
+}
+/*
+// Example usage:
+const coords1 = { _lat: 40.7128, _long: -74.0060 }; // New York City
+const coords2 = { _lat: 34.0522, _long: -118.2437 }; // Los Angeles
+
+const distance = haversineDistance(coords1, coords2);
+console.log(`Distance: ${distance} kilometers`);
+*/
+
+export function calculateTotalDistance(locations) {
+  if (locations.length < 2) {
+    return 0; // No distance to calculate if less than 2 locations
+  }
+
+  let totalDistance = 0;
+  console.log('locations: ' + locations)
+
+  for (let i = 0; i < locations.length - 1; i++) {
+    const pointA = locations[i];
+    const pointB = locations[i + 1];
+
+    const distance = haversineDistance(pointA, pointB);
+    console.log(`Distance between`, pointA," and ",pointB, `: ${distance} kilometers`);
+    totalDistance += distance;
+  }
+  console.log(`Total Distance: ${totalDistance} kilometers`);
+  
+  return totalDistance;
+}
+/*
+// Example usage:
+const locations = [
+  { _lat: 40.7128, _long: -74.0060 }, // New York City
+  { _lat: 41.8781, _long: -87.6298 }, // Chicago
+  { _lat: 34.0522, _long: -118.2437 } // Los Angeles
+];
+
+const totalDistance = calculateTotalDistance(locations);
+console.log(`Total Distance: ${totalDistance} meters`);
+*/
+
+export const getDeliveryFee = (locations, baseDeliveryDistanceInMile, baseDeliveryFee, deliveryPricePerMile) => {
+  const totalDistanceInKilometers = calculateTotalDistance(locations);
+  console.log(`Total Distance: ${totalDistanceInKilometers} kilometers`);
+  const totalDistanceInMiles = totalDistanceInKilometers * 0.621; // Convert kilometers to miles
+  console.log(`getDeliveryFee Total Distance: ${totalDistanceInMiles} miles`);
+  const xtraDeliveryDistanceFee = Math.max(0, totalDistanceInMiles - baseDeliveryDistanceInMile) * deliveryPricePerMile;
+  console.log(`xtra Delivery Distance Fee: ${xtraDeliveryDistanceFee}`)
+  const deliveryFee = baseDeliveryFee + xtraDeliveryDistanceFee;
+  console.log(`Delivery Fee: ${deliveryFee}`)
+  return deliveryFee;
+}
+
+export const isLocationInRange = (location, range) => {
+  const center = range.center;
+  const radiusInMeters = range.radius;
+  const distanceInKilometers = haversineDistance(location, center);
+  const distance = distanceInKilometers * 1000; // Convert kilometers to meters
+
+  if (distance <= radiusInMeters) return true;
+  return false;
+}
+
+export const getTimeEstimateBasedOnDistance = (distance, deliverySpeed) => {
+  //distance in km and speed in kmph
+  const timeInHours = distance / deliverySpeed;
+  return timeInHours;
+}
+
+export const getMaxTimeEstimateBasedOnPrepTimes = (items) => {
+  const prepTimes = items.map((item) => item['preorder-set']? -1: item['prep-time-in-minutes']);
+  const maxPrepTime = Math.max(...prepTimes);
+  return maxPrepTime;
+}
+
+
+
+
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************  
+
+
+
+export function isSubset(outerArray, targetArray) {
+  return targetArray.every(item => {
+    console.log('==============isSubset==================')
+    console.log('outerArray:', outerArray)
+    console.log('item:', item)
+    console.log('outerArray.some(obj => JSON.stringify(obj) === JSON.stringify(item)):', outerArray.some(obj => JSON.stringify(obj) === JSON.stringify(item)))
+    return outerArray.some(obj => {
+      const sameId = obj.id === item.id;
+      const sameLastUpdatedTime = JSON.stringify(obj['updated-at']) == JSON.stringify(item['updated-at']);
+      console.log('sameId && sameLastUpdatedTime:', sameId , sameLastUpdatedTime)
+      return sameId && sameLastUpdatedTime;
+    });
+  });
+}
+
+
+
+
+
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************  
+
+
+
+// Function to download JSON data as a file
+export const downloadJsonFile = (filename, data) => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  
+  URL.revokeObjectURL(url); // Clean up the URL object
+};
+
+/*
+    const data = {
+      name: "John Doe",
+      age: 30,
+      city: "New York"
+    };
+    downloadJsonFile('data.json', data);
+*/
+
+
+
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************
+  //************************************************************************************************  
+
+
+
+
+  export const getProductToAdd = (product, selectedOptionalAdditions, selectedVariants) => {
+    const productDoesNotHaveOpttionalAdditions = selectedOptionalAdditions.length === 0;
+    const productDoesNotHaveVariants = product.variants.length === 0;
+    const productHasVariants = !productDoesNotHaveVariants;
+    // const selectedVariantsArray = Object.values(selectedVariants);
+    const selectedPropertyVariantPairs = Object.entries(selectedVariants);
+    if (productDoesNotHaveVariants && productDoesNotHaveOpttionalAdditions) return product;
+    let id = product.id;
+    let name = product.name;
+    let price = productHasVariants? selectedPropertyVariantPairs[selectedPropertyVariantPairs.length-1][1].price: product.price;
+    // let variants = [];
+    // console.log('selectedPropertyVariantPairs: ', selectedPropertyVariantPairs)
+    selectedPropertyVariantPairs.map(([ property,variant], index) => {
+      // console.log('property: ', property, ",variant: ', variant")
+      id += `_${variant.id}`;
+      name += ` - ${variant[property]}`;
+      console.log('name: ' + name)
+      //remove the property from the selectedPropertyVariantPairs array
+      //to make it an array of arrays that have one element wich is the variant object
+      selectedPropertyVariantPairs[index].shift();
+    })
+    //for (let i = 0; i < selectedVariantsArray.length; i++) {
+    //  const variant = selectedVariantsArray[i];
+    //  // variants.push(variant)
+    //  const field = variantsFields[i + startIndex];
+    //  id += `_${variant.id}`;
+    //  name += ` - ${variant[field]}`;
+    //  console.log('name: ' + name)
+    //}
+    selectedOptionalAdditions.forEach(optionalAddition => {
+      id += `_${optionalAddition.id}`;
+      price += optionalAddition.price;
+    });
+    const quantity = 1;
+    //feed the updates with a variants array by flatning the selectedPropertyVariantPairs array to a single array
+    const updates = {id, name, price, quantity, variants: selectedPropertyVariantPairs.flat(), ['optional-additions']: selectedOptionalAdditions}
+    const newProduct = {...product, ...updates};
+    return newProduct;
+  }
   
   

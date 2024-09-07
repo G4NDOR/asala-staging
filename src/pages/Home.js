@@ -12,7 +12,7 @@ import { setAnnouncements, setFirstTimePageVisit, setItems, setLastDoc, setWelco
 import LoadMoreBtn from "../components/js/LoadMoreBtn";
 import DEFAULT_VALUES from "../constants/defaultValues";
 import LoadingAnimation from "../components/js/LoadingAnimation";
-import { resetLoading, setCustomerDetails, setCustomerId, setHomePageVisited, triggerLoading } from "../redux/ducks/appVars";
+import { resetLoading, setBaseDeliveryDistance, setBaseDeliveryFee, setCurrentPage, setCustomerDetails, setCustomerId, setDeliveryPricePerMile, setDeliveryRange, setDeliverySpeed, setEmail, setHomePageVisited, setPhoneNumber, setReturnPolicy, setTaxFee, setWebsite, triggerLoading } from "../redux/ducks/appVars";
 import { getIpAddress } from "../utils/retreiveIP_Address";
 import { getCollection, loadHomeData, saveOrUpdateCartItemToLocalStorage, updateCartItemsInFirebaseFromProductObjList } from "../utils/firestoreUtils";
 import { setAddress, setAddresses } from "../redux/ducks/productPageManager";
@@ -29,6 +29,7 @@ import EmailInput from "../components/js/EmailInput";
 import PhoneNumberInput from "../components/js/PhoneNumberInput";
 import Message from "../components/js/Message";
 import Messages from "../components/js/Messages";
+import Paths from "../constants/navigationPages";
 
 
 
@@ -57,6 +58,7 @@ const Home = () => {
 
   useEffect(() => {
     //behind scenes work
+    dispatch(setCurrentPage(Paths.HOME));
     dispatch(setHomePageVisited(true));
     if(firstVisit) load();
     else     //done with behind scenes work
@@ -99,7 +101,7 @@ const Home = () => {
       return;
     }
     //console.log('home data loaded with success: ', data);
-    dispatch(setWelcomeSectionImages(data.welcomeImagesSrcs));
+    if (data.welcomeImagesSrcs) dispatch(setWelcomeSectionImages(data.welcomeImagesSrcs));
     dispatch(setItems(data.products));
     dispatch(setLastDoc(data.productsLastDoc));
     dispatch(setAnnouncements(data.announcements));
@@ -114,7 +116,20 @@ const Home = () => {
     dispatch(setAddresses(data.addresses));
     if(data.addresses.length > 0) dispatch(setAddress(data.addresses[0]));
     dispatch(setFirstTimePageVisit(false));
-
+    dispatch(setDeliveryRange(data.deliveryRange))
+    dispatch(setBaseDeliveryFee(data.baseDeliveryFee))
+    dispatch(setBaseDeliveryDistance(data.baseDeliveryDistance))
+    dispatch(setDeliveryPricePerMile(data.deliveryPricePerMile))
+    dispatch(setTaxFee(data.taxFee))
+    //email,
+    //website,
+    //returnPolicy,
+    //phoneNumber,
+    dispatch(setEmail(data.email))
+    dispatch(setWebsite(data.website))
+    dispatch(setReturnPolicy(data.returnPolicy))
+    dispatch(setPhoneNumber(data.phoneNumber))
+    dispatch(setDeliverySpeed(data.deliverySpeed))
     //done with behind scenes work
     //console.log('stop Loading');
     dispatch(resetLoading());      

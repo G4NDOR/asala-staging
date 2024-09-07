@@ -21,7 +21,7 @@ const settings = DEFAULT_VALUES.SLIDER_SETTINGS;
           announcements.map((announcement) => 
             <Post 
             key={announcement['id']}  // Key is needed for React to identify and update the elements when necessary.
-            imageSrc={announcement['image-src']}
+            imageRef={announcement['image-ref']}
             title={announcement['title']}
             description={announcement['description']}
             />

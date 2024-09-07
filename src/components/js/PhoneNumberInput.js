@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { formatPhoneNumberStyle1 } from '../../utils/appUtils';
 import '../css/PhoneNumberInput.css';
 
-function PhoneNumberInput({ label = "phone number", required = false, onChange, finalValue }) {
+function PhoneNumberInput({ label = "phone number", required = false, onChange, value }) {
   const [isFocused, setIsFocused] = useState(false);
   const [isValid, setIsValid] = useState(true);
-  const [value, setValue] = useState(finalValue);
+  const [_value, setValue] = useState(value);
 
   const handleFocus = () => setIsFocused(true);
   const handleBlur = () => setIsFocused(false);
@@ -23,13 +23,13 @@ function PhoneNumberInput({ label = "phone number", required = false, onChange, 
   };
 
   return (
-    <div className={`phone-input ${isFocused || value ? 'focused' : ''} ${!isValid ? 'invalid' : ''}`}>
+    <div className={`phone-input ${isFocused || _value ? 'focused' : ''} ${!isValid ? 'invalid' : ''}`}>
       <label className="input-label">
         {label} {required && '*'}
       </label>
       <input
         type="tel"
-        value={formatPhoneNumberStyle1(value)}
+        value={formatPhoneNumberStyle1(_value)}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}

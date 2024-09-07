@@ -12,7 +12,7 @@ const Message = ({ key, id, message}) => {
 
   const handleClose = () => {
     setVisible(false);
-    if (onClose) onClose();
+    if (visible) onClose();
   };
 
   const onClose = () => {

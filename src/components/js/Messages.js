@@ -6,7 +6,7 @@ import Message from './Message'
 
 export default function Messages() {
     const dispatch = useDispatch();
-    const messages = useSelector(state => state.appVars.messages); 
+    const messages = useSelector(state => state.appVars.messages);
     
   
     return (

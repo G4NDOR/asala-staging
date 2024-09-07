@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DiscountForm from '../components/js/DiscountForm';
 import ProducerForm from '../components/js/ProducerForm';
 import ProductForm from '../components/js/ProductForm';
 import SelectInput from '../components/js/SelectInput';
 import { FIREBASE_CLLECTIONS_NAMES } from '../constants/firebase';
+import Paths from '../constants/navigationPages';
 import { setAccessGranted, setPassword, setSelectedCollection } from '../redux/ducks/admin';
+import { setCurrentPage } from '../redux/ducks/appVars';
 import '../styles/AdminDashboard.css';
 
 
@@ -17,6 +19,15 @@ function AdminDashboard() {
     const selectedCollection = useSelector(state => state.admin.selectedCollection);
     const password = useSelector(state => state.admin.password);
     const accessGranted = useSelector(state => state.admin.accessGranted);
+
+    useEffect(() => {
+        dispatch(setCurrentPage(Paths.ADMIN));
+    
+      return () => {
+        
+      }
+    }, [])
+    
 
     const label = 'Select Collection';
     const options = [

@@ -23,4 +23,9 @@
   .product-form .submit-button:hover {
     background-color: #0056b3;
   }
+
+  .nested-form{
+    margin-top: 1.5rem;
+    padding-left: 2rem;
+  }
   

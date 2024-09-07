@@ -32,7 +32,7 @@ const initialState = {
     items: [], // Array to store items
     searchItems: [], // Array to store
     announcements: [], // Array to store
-    welcomeSectionImages:DEFAULT_VALUES.IMAGES,
+    welcomeSectionImages:DEFAULT_VALUES.IMAGES['few-images'],
     interval: DEFAULT_VALUES.INTERVAL,
     welcomeSectionTitle:DEFAULT_VALUES.TITLE,
     welcomeSectionContent: DEFAULT_VALUES.CONTENT,

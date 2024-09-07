@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
 import DEFAULT_VALUES from '../constants/defaultValues';
 import Paths from '../constants/navigationPages';
-import { resetLoading, triggerLoading } from '../redux/ducks/appVars';
+import { resetLoading, setCurrentPage, triggerLoading } from '../redux/ducks/appVars';
 import '../styles/SearchPage.css'
 import LoadingAnimation from '../components/js/LoadingAnimation';
 import ProductCard from '../components/js/ProductCard';
@@ -22,7 +22,7 @@ export default function SearchPage() {
     const homePageNotVisited = !homePageVisited;
 
     useEffect(() => {
-        
+      dispatch(setCurrentPage(Paths.SEARCH));
         if (homePageVisited) load();
       
         return () => {

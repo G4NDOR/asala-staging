@@ -1,5 +1,5 @@
 // firestoreUtils.js
-import { db } from './firebaseConfig'; // Import your Firebase configuration
+import { database, db, storage } from './firebaseConfig'; // Import your Firebase configuration
 import {
   addDoc,
   collection,
@@ -22,11 +22,13 @@ import {
   startAfter,
   Timestamp
 } from 'firebase/firestore';
-import { FIREBASE_CLLECTIONS_NAMES, FIREBASE_COLLECTIONS_QUERY_LIMIT, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS, FIREBASE_DYNAMIC_OUTPUT_NAMES, TIMESTAMP } from '../constants/firebase';
+import { FIREBASE_ADMIN_VARS, FIREBASE_CLLECTIONS_NAMES, FIREBASE_COLLECTIONS_QUERY_LIMIT, FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_NAMES, FIREBASE_DOCUMENTS_FEILDS_UNITS, FIREBASE_DYNAMIC_OUTPUT_NAMES, PLACING_ORDER, REAL_TIME_DATABASE_COLLECTIONS_NAMES, TIMESTAMP } from '../constants/firebase';
 import { getIpAddress } from './retreiveIP_Address';
 import DEFAULT_VALUES from '../constants/defaultValues';
 import CONSTANTS from '../constants/appConstants';
-import { getCleanedProductId, getCleanedProductsIds, getVariantsIdsAndOptionalAdditionsIdsFromProductId, isOperatingTime } from './appUtils';
+import { calculateTotalDistance, getCleanedProductId, getCleanedProductsIds, getTimeEstimateBasedOnDistance, getVariantsIdsAndOptionalAdditionsIdsFromProductId, isLocationInRange, isOperatingTime, isSubset } from './appUtils';
+import { push, ref, set } from 'firebase/database';
+import { ref as storageRef, deleteObject, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Common process to handle errors
 const handleError = (error) => {
@@ -36,9 +38,18 @@ const handleError = (error) => {
 
 
 //get data dated to save to firebase
-const getDatedDataForFirebaseDocumentsAdds = (data) => {
-  const timestampFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.TIMESTAMP;;
-  const datedData = {...data, [`${timestampFieldName}`]: Timestamp.now() };
+export const getDatedDataForFirebaseDocumentsAdds = (data, exist=true) => {
+  const timestampFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.TIMESTAMP;
+  const updatedAtFieldName = FIREBASE_DOCUMENTS_FEILDS_NAMES.UPDATED_AT;
+  const datedData = {
+    ...data,
+    [updatedAtFieldName]: Timestamp.now(),
+  };
+  // If the document is being created (not existing), add the time-created timestamp
+  if (!exist) {
+    datedData[timestampFieldName] = Timestamp.now();
+    datedData[updatedAtFieldName] = Timestamp.now();
+  }  
   return datedData;
 }
 
@@ -46,7 +57,7 @@ const getDatedDataForFirebaseDocumentsAdds = (data) => {
 const getDataWithoutId = (data) => {
   const dataWithoutId = data;
   const idFeildName = FIREBASE_DOCUMENTS_FEILDS_NAMES.ID;
-  delete dataWithoutId[`${idFeildName}`];
+  if (idFeildName in dataWithoutId) delete dataWithoutId[`${idFeildName}`];
   return dataWithoutId;
 }
 
@@ -64,10 +75,10 @@ const updateIsDefaultValueFeild = (data) => {
 
 //validate data to store in firebase
 //deletes id property and adds a date property
-const validateDataToStoreInFirebase = (data) => {
+const validateDataToStoreInFirebase = (data, exist=true) => {
   const dataWithoutId = getDataWithoutId(data);
   const dataNotDefault = updateIsDefaultValueFeild(dataWithoutId);
-  const datedDataWithoutId = getDatedDataForFirebaseDocumentsAdds(dataNotDefault);
+  const datedDataWithoutId = getDatedDataForFirebaseDocumentsAdds(dataNotDefault, exist);
   return datedDataWithoutId;
 }
 
@@ -86,7 +97,7 @@ const validateDataToStoreInFirebase = (data) => {
  * console.log(newDocumentId); // Output: ID of the newly created document
  */
 export const addDocument = async (collectionName, data) => {
-  const validatedData = validateDataToStoreInFirebase(data);
+  const validatedData = validateDataToStoreInFirebase(data, false);
   try {
     const docRef = await addDoc(collection(db, collectionName), validatedData);
     console.log("Document written with ID: ", docRef.id);
@@ -96,6 +107,47 @@ export const addDocument = async (collectionName, data) => {
     handleError(error);
   }
 };
+
+
+/**
+ * Uploads multiple documents to Firestore with individual merge options.
+ * @param {string} collectionName - The name of the Firestore collection.
+ * @param {Array} documents - An array of document objects, each containing data and an optional merge flag.
+ * @returns {Promise<boolean>} - Returns true if successful, false otherwise.
+ */
+export const addDocuments = async (collectionName, documents) => {
+  // Validate and prepare the data
+  const validatedDocuments = documents.map(docData => ({
+    ...validateDataToStoreInFirebase(docData.data, false),
+    merge: docData.merge || false
+  }));
+
+  try {
+    const promises = validatedDocuments.map(async (docData) => {
+      if (docData.id) {
+        // If there's an ID, use setDoc with the specified merge option
+        const documentRef = doc(db, collectionName, docData.id);
+        await setDoc(documentRef, docData, { merge: docData.merge });
+      } else {
+        // Otherwise, add a new document
+        await addDoc(collection(db, collectionName), docData);
+      }
+    });
+
+    // Wait for all operations to complete
+    await Promise.all(promises);
+
+    console.log("Documents successfully added/updated");
+    return true; // Or return an array of document IDs if needed
+  } catch (error) {
+    handleError(error);
+    return false;
+  }
+};
+
+
+
+
 
 // Set a document with optional merging
 /**
@@ -113,7 +165,7 @@ export const addDocument = async (collectionName, data) => {
  * // The document 'alice' in the 'users' collection will be updated with new age value, merging with existing data.
  */
 export const setDocument = async (docPath, data, merge = false) => {
-  const validatedData = validateDataToStoreInFirebase(data);
+  const validatedData = validateDataToStoreInFirebase(data, merge);
   try {
     const docRef = doc(db, docPath);
     await setDoc(docRef, validatedData, { merge });
@@ -189,9 +241,13 @@ export const getDocument = async (docPath) => {
   try {
     const docRef = doc(db, docPath);
     const docSnap = await getDoc(docRef);
+    // console.log("=================================================");
+    // console.log("docPath: ", docPath);
+    // console.log("docSnap.exists(): ", docSnap.exists());
+    // console.log("docSnap.id: ", docSnap.id);
+    // console.log("docSnap.data(): ", docSnap.data());
     if (docSnap.exists()) {
       const doc = {id: docSnap.id,...docSnap.data() };
-      //console.log("Document data: return", doc);
       return doc;
     } else {
       console.log("No such document!");
@@ -881,13 +937,15 @@ const getUpdatedVariantsProductObj = (productObj, variantsIds) => {
   //variants in the possibly updated product, fetched from firebase
   const productVariants = productObj.variants;
   //fields that concern the variant model objects, that need to be skipped
-  const initialFields = ['id', 'active', 'price', 'add-by-default'];
+  const initialFields = CONSTANTS.VARIANT_OBJ_DEFAULT_KEYS//['id', 'active', 'price', 'add-by-default'];
   //fields that will be updated in the product obj based on the selected variants
   const { id, name, price, variants } = variantsIds.reduce((accumulator, variantId) => {
     //loop through the saved old variantsIds and look if that variant still exists in the updated product, AND has not been set to not active
+    console.log('variants: ', productVariants)
     const variant = productVariants.find((variant) => (variant.id === variantId && variant.active));
     //if the variant that the user selected doesn't exist, unselect it and replace it with the default or standard product instead
-    if (!variant) {
+    console.log('variant: ', variant)
+    if (!variant || variant == undefined) {
       variantDoesNotExist = true;
       return accumulator;
     }
@@ -1036,16 +1094,16 @@ export const loadHomeData = async () => {
     //++++++++++++++++++++++++++++++++++++++++++++++++
     //load welcome section images
     const welcomeImagesData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_IMAGES}`);//array of images
-    const welcomeImages = welcomeImagesData? welcomeImagesData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`]: [];
+    const welcomeImagesPaths = welcomeImagesData? welcomeImagesData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`].map(image => {
+      return image['image-ref'];
+    }): null;
+    const welcomeImagesSrcs = welcomeImagesPaths? (await getImages(welcomeImagesPaths)): null;
     //sample image object
     //image = {
     //  'title': "Welcome",
     //  'image-src': "url",
     //  'description': "Welcome",
     //}
-    const welcomeImagesSrcs = welcomeImages.map(image => {
-      return image['image-src'];
-    });
     
     //++++++++++++++++++++++++++++++++++++++++++++++++
     //Load welcome section title
@@ -1062,6 +1120,24 @@ export const loadHomeData = async () => {
 
 
     //================================================================
+    //Load admin controlled variables
+    const path = FIREBASE_ADMIN_VARS.PATH;
+    const admin = await getDocument(path);
+    if (!admin) return null;
+    const {['base-delivery-fee']:baseDeliveryFee,
+    ['base-delivery-distance']: baseDeliveryDistance,
+    ['delivery-price-per-mile']: deliveryPricePerMile,
+    ['tax-fee']: taxFee,
+    email,
+    website,
+    ['return-policy']: returnPolicy,
+    ['phone-number']: phoneNumber,
+    ['delivery-speed']: deliverySpeed } = admin;
+    console.log('admin:', admin);
+    //Load general delivery range
+    const deliveryRangeData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.RANGES}/${DEFAULT_VALUES.GENERAL_RANGE.ID}`);
+    const deliveryRangeDefaultValue = DEFAULT_VALUES.GENERAL_RANGE.DATA;
+    const deliveryRange = deliveryRangeData? deliveryRangeData: deliveryRangeDefaultValue;
     //Load announcements section content
     const announcementsFetchedData = await loadAnnouncements();
     const announcementsLastDoc = announcementsFetchedData.lastDoc;
@@ -1098,6 +1174,16 @@ export const loadHomeData = async () => {
       productsLastDoc,
       announcementsLastDoc,
       cart,
+      deliveryRange,
+      baseDeliveryFee,
+      baseDeliveryDistance,
+      deliveryPricePerMile,
+      taxFee,
+      email,
+      website,
+      returnPolicy,
+      phoneNumber,
+      deliverySpeed
       // Add more data as needed
     };
     //console.log('returning home data: ', homeData);
@@ -1315,6 +1401,400 @@ export const getUpdatedProducts = async (productIds) => {
   return products;
 };
 
+
+export const createOrder = async (order) => {
+    //receipt-url set it in fireUtils.js
+    //delivery-commission set it in fireUtils.js
+    //deliverer-id set it in fireUtils.js 
+    //const orders = Object.entries(ItemsObject).map(([merchantId, items]) => {
+    //  const origin = items[0].producer.location;
+    //  const distance = haversineDistance(origin, geopoint);
+    //  return {
+    //      ...orderBase,
+    //      producer: merchantId,
+    //      origin: origin,    
+    //      items: items,
+    //      'expected-delivered-at': getTimeEstimateBasedOnDistance(distance, deliverySpeed),
+    //      'expected-ready-at':  getMaxTimeEstimateBasedOnPrepTimes(items),    
+    //  }
+    //  })    
+    //;  
+  const ordersCollectionName = REAL_TIME_DATABASE_COLLECTIONS_NAMES.ORDERS
+  const ordersRef = ref(database, ordersCollectionName);
+  const newOrderRef = push(ordersRef);
+  // Get the unique ID generated by push()
+  const newOrderId = newOrderRef.key;  
+  const datedData = validateDataToStoreInFirebase(order, false);
+  return set(newOrderRef, datedData).then(() => {
+    console.log("Order created successfully!");
+    return newOrderId;
+  }).catch((error) => {
+    console.error("Error creating order: ", error);
+    handleError(error);
+    return null;
+  });
+
+}
+
+
+// Perform validation and check if all firestore data is matching with the current order object.
+export const tryPlacingOrder = async (order) => {
+  if (!order ||!order.items ||!order.destination) return null;
+  const items = order.items
+  const destination = order.destination;
+  try {
+    //ADMIN
+    //First, check if placing orders currently is allowed by the admin
+    const path = FIREBASE_ADMIN_VARS.PATH;
+    const adminVars = await getDocument(path);
+    if (!adminVars || !adminVars[FIREBASE_ADMIN_VARS.PLACING_ORDER_ALLOWED]) return null;
+    //Then, check if the order is valid by checking if the destination is valid, and the products can be bought at the moment.
+    const general = FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.RANGES.GENERAL;
+    const products = FIREBASE_CLLECTIONS_NAMES.PRODUCTS;
+    const _deliverer = FIREBASE_DOCUMENTS_FEILDS_NAMES.RANGES.DELIVERER;
+    const _commission = FIREBASE_DOCUMENTS_FEILDS_NAMES.DELIVERERS.COMMISSION
+    const _deliverers = FIREBASE_CLLECTIONS_NAMES.DELIVERERS;
+    const _value = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.DELIVERERS.COMMISSION.VALUE;
+    const _speedInKmph = FIREBASE_DOCUMENTS_FEILDS_NAMES.DELIVERERS.SPEED_IN_KMPH
+    const _variants = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.VARIANTS;
+    const _optionalAdditions = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.OPTIONAL_ADDITIONS;
+    const _price = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PRICE;
+    const _name = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.NAME;
+    const ranges = {};
+    const rangesIds = [];
+    const quantities = {};
+    const productsPaths = [];
+    const merchantsSpecificOrder = {};
+    const itemsListMini = {};
+    const deliverers = [];
+    //LOOP ITEMS
+    //loop through the items and build the necessary data structures.
+    items.map(item => {
+      itemsListMini[item.id] = {
+        id: item.id,
+        name: item[_name],
+        quantity: item.quantity,
+        variants: item[_variants],
+        [_optionalAdditions]: item[_optionalAdditions],
+        price: item[_price],
+      }
+      //gather all the ranges ids that are specified in the item.range, except for the general one, since we alredy know it's id
+      if (!rangesIds.includes(item.range) && item.range !== general) rangesIds.push(item.range);
+      //since each product variant or product with different optional additons has its own id,
+      //we need to get the cleaned ID, the id of the original product, then we can count the real quantity.
+      //where productX variant1 and productX variant2 will be counted as one product with quantity of 2
+      //this is necessary so we can check if we have enough stock before allowing the purchase. 
+      const cleanedId = getCleanedProductId(item.id);
+      quantities[cleanedId] = item.quantity + (quantities[cleanedId] || 0);
+      //and then we get the path for this product for conveniancy to use later
+      const path = {
+        path: `${products}/${cleanedId}`,
+        id: item.id,
+      };
+      if (!productsPaths.includes(path)) productsPaths.push(path);      
+    });
+    //after gathering the ranges, we add the general range to the ranges [],
+    const generalRangeId = DEFAULT_VALUES.GENERAL_RANGE.ID;
+    rangesIds.push(generalRangeId);
+    //RANGES
+    //we fetch the ranges and store them in an object with (range id: range) pairs, with  the id: 'general' for the general range, since that is what it is specified with in product.range
+    const fetchRangesDocuments = rangesIds.map(async (rangeId) => {
+      const isGeneralRange = rangeId === generalRangeId;
+      const path = `${FIREBASE_CLLECTIONS_NAMES.RANGES}/${rangeId}`;
+      const range = await getDocument(path);
+      const key = isGeneralRange? general:rangeId;
+      //if there's any unfound document, set the range to null, as it will be treated later when we fetch the products.
+      //and if the range is fetched successfully, IF NOT set it to null.
+      //check if it has the deliverer field IF NOT set it to null.
+      if (!range || !range[_deliverer]) {
+        console.log(`Range ${rangeId} not found or has no deliverer.`);
+        ranges[key] = null;
+        return;
+      };
+      //fetch the deliverer document
+      //check if the deliverer document exists and has the commission and speed fields IF NOT set it to null.
+      const delivererPath = `${_deliverers}/${range[_deliverer]}`;
+      // console.log('deliverer path: ' + delivererPath);
+      const deliverer = await getDocument(delivererPath);
+      if (!deliverer || !deliverer[_commission] || !deliverer[_speedInKmph]) {
+        console.log(`Deliverer ${range[_deliverer]} not found or has no commission or speed.`);
+        ranges[key] = null;
+        return;
+      };//console: deliverers/5PTLKNYRl10Aqv4ppKkM
+      // firestore: deliverers/5PTLKNYRl10Aqv4ppKkM
+      //then add the commission and speed to the ranges object.
+      // set it to the ranges object.          
+      const commission = deliverer[_commission][_value];
+      const speed = deliverer[_speedInKmph];
+      //if its a the general range, use 'general' as it's key, otherwise use the rangeId as the key.
+      ranges[key] = {...range, commission, speed};
+    });
+    await Promise.all(fetchRangesDocuments);
+    //check if all items are found
+    // are released to public
+    // are present items not future
+    // in operating time
+    // in stock/ have enough stock
+    //all ranges are found
+    // destination is within all those ranges
+    const future = FIREBASE_DOCUMENTS_FEILDS_UNITS.PRODUCTS.STATUS.future;
+    const inStock = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.IN_STOCK;
+    const available = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.AVAILABLE;
+    const statusField = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.STATUS;
+    const schedule = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.SCHEDULE;
+    const stock = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.STOCK;
+    const _range = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.RANGE;
+    const _producer = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PRODUCER;
+    const _producerId = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.PRODUCER.ID;
+    const _producerLocation = FIREBASE_DOCUMENTS_1_NESTED_FEILDS_NAMES.PRODUCTS.PRODUCER.LOCATION;
+    const _prepTimeInMinutes = FIREBASE_DOCUMENTS_FEILDS_NAMES.PRODUCTS.PREP_TIME_IN_MINUTES
+    const rejected = PLACING_ORDER.STATUS.REJECTED;
+    const accepted = PLACING_ORDER.STATUS.ACCEPTED;
+    //CHECK PRODUCTS
+    const fetchProductsDocuments = productsPaths.map(async (pathObj) => {
+      const productId = pathObj.id;
+      const path = pathObj.path;
+      //const docRef = doc(db, path);
+      const product = await getDocument(path);
+      console.log('itemsListMini: ', itemsListMini);
+      const range = ranges[product[_range]];
+      if (!product) {
+        const reason = PLACING_ORDER.REASONS.PRODUCT_NOT_FOUND;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }
+      } else if (product[available] === false) {
+        const reason = PLACING_ORDER.REASONS.UNAVAILABLE;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }
+      } else if (product[statusField] === future) {
+        const reason = PLACING_ORDER.REASONS.IS_FUTURE_PRODUCT;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }
+      } else if (!isOperatingTime(product[schedule])) {
+        const reason = PLACING_ORDER.REASONS.NOT_OPERATING_TIME;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }
+      } else if (product[inStock] === false) {
+        const reason = PLACING_ORDER.REASONS.OUT_OF_STOCK;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }
+      } else if (product[stock] < quantities[productId]) {
+        const reason = PLACING_ORDER.REASONS.INSUFFICIENT_STOCK;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }
+      } else if (!range) {
+        const reason = PLACING_ORDER.REASONS.RANGE_NOT_FOUND;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }        
+      } else if (!isLocationInRange( destination, range)){
+        const reason = PLACING_ORDER.REASONS.OUT_OF_RANGE;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }
+      } else if (!isSubset(product[_variants], itemsListMini[productId][_variants])) {
+        console.log('variants not found: ', product[_variants], itemsListMini[productId][_variants])
+        const reason = PLACING_ORDER.REASONS.VARIANTS_NOT_FOUND;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }
+      } else if (!isSubset(product[_optionalAdditions], itemsListMini[productId][_optionalAdditions])) {
+        const reason = PLACING_ORDER.REASONS.OPTIONAL_ADDITIONS_NOT_FOUND;
+        return {
+          productId,
+          status: rejected,
+          reason,
+        }
+      }
+      const origin = product[_producer][_producerLocation];
+      const distance = calculateTotalDistance([destination, origin, destination]);
+      //if all checks passed, accept the order. and start preparing order structure to store in real time database.
+      if (`${product[_producer][_producerId]}` in merchantsSpecificOrder) {
+        merchantsSpecificOrder[product[_producer][_producerId]] = {
+          ...merchantsSpecificOrder[product[_producer][_producerId]],
+          items: [...merchantsSpecificOrder[product[_producer][_producerId]]['items'], itemsListMini[productId]],
+          'delivery-time': Math.max(merchantsSpecificOrder[product[_producer][_producerId]]['delivery-time'], getTimeEstimateBasedOnDistance(distance, range.speed)),
+          'prep-time':  Math.max(merchantsSpecificOrder[product[_producer][_producerId]]['prep-time'], product[_prepTimeInMinutes]),
+
+        }
+      } else {
+        const deliverer = range[_deliverer]
+        deliverers.push(deliverer);
+        merchantsSpecificOrder[product[_producer][_producerId]] = {
+          producer: product[_producer][_producerId],
+          origin: origin,
+          items: [itemsListMini[productId]],
+          'delivery-time': getTimeEstimateBasedOnDistance(distance, range.speed),
+          'prep-time':  product[_prepTimeInMinutes],
+          'delivery-commission': range.commission,
+          deliverer: deliverer,
+          //notes: ,
+          status: order.status,
+        }
+      }
+      return {
+        productId,
+        status: accepted,
+      }
+    })
+    const result = await Promise.all(fetchProductsDocuments);  
+    //an array of all the rejected products ids, with the reason of rejection.
+    const rejectedProductsResults = result.filter(result=> {
+      if (result.status === PLACING_ORDER.STATUS.REJECTED) return true;
+      return false;
+    })
+    //if there's any rejections, then prevent placing the order, and return the reasons.
+    if (rejectedProductsResults.length > 0) {
+      return {status: PLACING_ORDER.STATUS.REJECTED, data: rejectedProductsResults}
+    }
+    //if everything is good, finish placing the order
+    const { items: _, ...DatabaseOrder} = {...order, ...merchantsSpecificOrder, deliverers};
+    const response = await createOrder(DatabaseOrder);
+    if (!response) return null;
+    return {status: PLACING_ORDER.STATUS.ACCEPTED, response}
+  } catch (error) {
+    console.error('Error checking placing order: ', error);
+    handleError(error);
+    return null;
+  }
+}
+
+export const getImages = async (imagesPaths) => {
+  if (imagesPaths.length === 0) return null;
+
+  // Use `map` to create an array of promises
+  const getFiles = imagesPaths.map(async (path) => {
+    const fileRef = storageRef(storage, `${path}`);
+
+    try {
+      const url = await getDownloadURL(fileRef);
+      console.log('File URL:', url);
+      return url;
+    } catch (error) {
+      console.error("Error downloading file", error);
+      handleError(error);
+      return null;
+    }    
+  });
+
+  // Await all promises
+  const imagesUrls = (await Promise.all(getFiles)).filter(url => url !== null);
+
+  if (imagesUrls.length === 0) return null;
+
+  // Return the image URLs, either an array or a single URL
+  return imagesUrls;
+}
+
+
+
+/*
+const images = [
+  { file: imageFile1, path: 'images/user1/profile.jpg' },
+  { file: imageFile2, path: 'images/user1/cover.jpg' }
+];
+const uploadedUrls = await uploadImages(images);
+console.log('Uploaded URLs:', uploadedUrls);
+
+*/
+export const uploadImages = async (images) => {
+  if (images.length === 0) return null;
+
+  // Use `map` to create an array of promises for each file upload
+  const uploadPromises = images.map(async (image) => {
+    const { file, path } = image; // file is the actual image file, path is the storage path
+    const fileRef = storageRef(storage, `${path}`);
+
+    try {
+      // Upload the file to the specified path
+      const snapshot = await uploadBytes(fileRef, file);
+      console.log(`Uploaded file to: ${path}`);
+
+      // Get the download URL after upload
+      const url = await getDownloadURL(snapshot.ref);
+      console.log('File URL:', url);
+      return url;
+    } catch (error) {
+      console.error("Error uploading file", error);
+      handleError(error);
+      return null;
+    }
+  });
+
+  // Await all promises and filter out any failures (nulls)
+  const uploadedUrls = (await Promise.all(uploadPromises)).filter(url => url !== null);
+
+  if (uploadedUrls.length === 0) return null;
+
+  // Return the image URLs, either an array or a single URL
+  return uploadedUrls;
+};
+
+
+
+/*
+const imagePaths = ['images/user1/profile.jpg', 'images/user1/cover.jpg'];
+const deletedFiles = await deleteImages(imagePaths);
+console.log('Deleted Files:', deletedFiles);
+*/
+export const deleteImages = async (imagesPaths) => {
+  if (imagesPaths.length === 0) return null;
+
+  // Use `map` to create an array of promises for each file delete
+  const deletePromises = imagesPaths.map(async (path) => {
+    const fileRef = storageRef(storage, `${path}`);
+
+    try {
+      // Delete the file at the specified path
+      await deleteObject(fileRef);
+      console.log(`Deleted file at: ${path}`);
+      return path;
+    } catch (error) {
+      console.error("Error deleting file", error);
+      handleError(error);
+      return null;
+    }
+  });
+
+  // Await all promises and filter out any failures (nulls)
+  const deletedFiles = (await Promise.all(deletePromises)).filter(path => path !== null);
+
+  if (deletedFiles.length === 0) return null;
+
+  // Return the paths of successfully deleted files
+  return deletedFiles;
+};
+
+
+
+/*
+
+
+  */
 
 /*
 

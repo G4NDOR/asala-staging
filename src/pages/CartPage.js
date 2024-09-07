@@ -34,7 +34,7 @@ const CartPage = () => {
   const isCartPage = currentPage == Paths.CART;
 
   useEffect(() => {
-    
+    dispatch(setCurrentPage(Paths.CART));
     // make sure visitor came from home page, not from baseurl/cart
     if (homePageVisited) {
       //behind scenes work
@@ -138,7 +138,7 @@ const CartPage = () => {
     //behind scenes work
     // save cart data to the backend
     // navigate to home page
-    navigateToPage(Paths.HOME);
+    navigate(-1);
   };
 
   return (

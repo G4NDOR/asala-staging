@@ -39,7 +39,11 @@ const UNBAN_DISCOUNT = 'orderManager/unbanDiscount';
 const SET_NAME = 'orderManager/setName';
 const SET_EMAIL = 'orderManager/setEmail';
 const SET_PHONE = 'orderManager/setPhone';
-
+const SET_DELIVERY_FEE = 'orderManager/setDeliveryFee';
+const SET_ITEMS_OBJECT = 'orderManager/setItemsObject';
+const SET_TOTAL_PRICE = 'orderManager/setTotalPrice';
+const SET_FINAL_SELECTED_DISCOUNTS = 'orderManager/setFinalSelectedDiscounts';
+const SET_PRODUCERS = 'orderManager/setProducers';
 
 
 const initialState = {
@@ -63,6 +67,7 @@ const initialState = {
         [`${Paths.CART}`]:[],
         [`${Paths.PRODUCT}`]:[]
     },
+    finalSelectedDiscounts: [],
     bannedDiscountsIds: [],
     discountMessage: {
         [`${Paths.CART}`]:'',
@@ -76,6 +81,10 @@ const initialState = {
     name: '',
     email: '',
     phone: '',
+    deliveryFee: 0,
+    itemsObject: {},
+    totalPrice: 0,
+    producers: [],
 }
 
 export default function orderManager(state = initialState, action) {
@@ -340,6 +349,31 @@ export default function orderManager(state = initialState, action) {
                ...state,
                 phone: action.phone
             };
+        case SET_DELIVERY_FEE:
+            return { 
+               ...state,
+                deliveryFee: action.deliveryFee
+            };
+        case SET_ITEMS_OBJECT:
+            return { 
+               ...state,
+                itemsObject: action.itemsObject
+            };
+        case SET_TOTAL_PRICE:
+            return { 
+               ...state,
+                totalPrice: action.totalPrice
+            };
+        case SET_FINAL_SELECTED_DISCOUNTS:
+            return { 
+               ...state,
+                finalSelectedDiscounts: action.finalSelectedDiscounts
+            };
+        case SET_PRODUCERS:
+            return { 
+               ...state,
+                producers: action.producers
+            };
         default:
             return state;
     }
@@ -529,5 +563,30 @@ export const setEmail = (email) => ({
 export const setPhone = (phone) => ({
     type: SET_PHONE,
     phone
+})
+
+export const setDeliveryFee = (deliveryFee) => ({
+    type: SET_DELIVERY_FEE,
+    deliveryFee
+})
+
+export const setItemsObject = (items) => ({
+    type: SET_ITEMS_OBJECT,
+    items
+})
+
+export const setTotalPrice = (totalPrice) => ({
+    type: SET_TOTAL_PRICE,
+    totalPrice
+})
+
+export const setFinalSelectedDiscounts = (finalSelectedDiscounts) => ({
+    type: SET_FINAL_SELECTED_DISCOUNTS,
+    finalSelectedDiscounts
+})
+
+export const setProducers = (producers) => ({
+    type: SET_PRODUCERS,
+    producers
 })
 
