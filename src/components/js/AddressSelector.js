@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
-import { useJsApiLoader } from '@react-google-maps/api';
+import { useJsApiLoader, LoadScript } from '@react-google-maps/api';
 import { useDispatch, useSelector } from 'react-redux';
 import CONSTANTS from '../../constants/appConstants';
 import DEFAULT_VALUES from '../../constants/defaultValues';
@@ -64,19 +64,24 @@ const AddressSelector = ({visible=true}) => {
 
   const geocodeAddress = (address) => {
     return new Promise((resolve, reject) => {
-      const geocoder = new window.google.maps.Geocoder();
+      if(window.google) {
+        const geocoder = new window.google.maps.Geocoder();
       
-      geocoder.geocode({ address }, (results, status) => {
-        if (status === window.google.maps.GeocoderStatus.OK) {
-          const location = results[0].geometry.location;
-          const _lat = location.lat();
-          const _long = location.lng();
-          resolve({ _lat, _long });
-        } else {
-          console.error('Geocoding failed:', status);
-          reject(new Error('Geocoding failed'));
-        }
-      });
+        geocoder.geocode({ address }, (results, status) => {
+          if (status === window.google.maps.GeocoderStatus.OK) {
+            const location = results[0].geometry.location;
+            const _lat = location.lat();
+            const _long = location.lng();
+            resolve({ _lat, _long });
+          } else {
+            console.error('Geocoding failed:', status);
+            reject(new Error('Geocoding failed'));
+          }
+        });
+      }else {
+        console.error('Google Maps API is not loaded');
+        reject(new Error('Google Maps API is not loaded'));
+      }
     });
   };
 
@@ -88,32 +93,33 @@ const AddressSelector = ({visible=true}) => {
 
   return (
     <div className={`address-selector ${visible? '':'invisible'}`}>
-      <GooglePlacesAutocomplete
-        apiKey={apiKey}
-        autocompletionRequest={{
-          ...rangeObj
-        }}        
-        selectProps={{
-          value: address,
-          label: 'Current Address',
-          onChange: (address) =>onAddresschanged(address.label),
-          placeholder: ".  Enter delivery address",
-          styles: {
-            input: (provided) => ({
-              ...provided,
-              padding: '10px',
-              borderRadius: '5px',
-              border: '1px solid #ddd',
-              fontSize: '1rem',
-            }),
-            control: (provided) => ({
-              ...provided,
-              marginBottom: '10px',
-            }),
-          },
-        }}
-      />
-      <MapComponent onLocationSelect={(geopoint, address)=>{onAddresschanged(address)}} />
+      
+        <GooglePlacesAutocomplete
+          apiKey={apiKey}
+          autocompletionRequest={{
+            ...rangeObj
+          }}        
+          selectProps={{
+            value: address,
+            label: 'Current Address',
+            onChange: (address) =>onAddresschanged(address.label),
+            placeholder: ".  Enter delivery address",
+            styles: {
+              input: (provided) => ({
+                ...provided,
+                padding: '10px',
+                borderRadius: '5px',
+                border: '1px solid #ddd',
+                fontSize: '1rem',
+              }),
+              control: (provided) => ({
+                ...provided,
+                marginBottom: '10px',
+              }),
+            },
+          }}
+        />
+        <MapComponent onLocationSelect={(geopoint, address)=>{onAddresschanged(address)}} />
       {address && (
         <textarea
           className="address-notes"

@@ -162,6 +162,7 @@ export default function orderManager(state = initialState, action) {
                 };
             }
         case SET_CART:
+            console.log('SET_CART: state cart: ', state.cart, 'action cart: ', action.cart);
             return { 
                 ...state, 
                 cart: action.cart,

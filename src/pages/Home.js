@@ -110,6 +110,7 @@ const Home = () => {
     dispatch(setCustomerId(data.customerId));
     dispatch(setCustomerDetails(data.customer));
     //if there's cart data from previous session show that to visitor
+    console.log('cart data from previous session: ', data.cart);
     if (data.cart.length > 0) showUnseenChangesIndicator();
     dispatch(setCart(data.cart));
     dispatch(setCartLoadedFromStorage(true));

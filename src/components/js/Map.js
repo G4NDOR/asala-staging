@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import '../css/Map.css'; // Make sure this path matches your project structure
 import DEFAULT_VALUES from '../../constants/defaultValues';
 import ButtonsContainer from './ButtonsContainer';
 import CONSTANTS from '../../constants/appConstants';
 import { addMessage } from '../../redux/ducks/appVars';
-import { useDispatch } from'react-redux';
+import { useDispatch, useSelector } from'react-redux';
 import { MdMyLocation } from "react-icons/md";
 
 const containerStyle = {
@@ -19,26 +19,29 @@ const defaultCenter = {
 };
 
 function MapComponent({ onLocationSelect }) {
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const geopoint = useSelector(state => state.productPageManager.geopoint);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [address, setAddress] = useState('');
   const [mapCenter, setMapCenter] = useState(defaultCenter);
 
   // Geocode the selected location to get address
   const geocodeLatLng = async (latLng) => {
-    const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ location: latLng }, (results, status) => {
-      if (status === 'OK') {
-        if (results[0]) {
-          setAddress(results[0].formatted_address);
-          onLocationSelect(latLng, results[0].formatted_address);
+    if(window.google) {
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ location: latLng }, (results, status) => {
+        if (status === 'OK') {
+          if (results[0]) {
+            setAddress(results[0].formatted_address);
+            onLocationSelect(latLng, results[0].formatted_address);
+          } else {
+            setAddress('No address found');
+          }
         } else {
-          setAddress('No address found');
+          setAddress('Geocoder failed due to: ' + status);
         }
-      } else {
-        setAddress('Geocoder failed due to: ' + status);
-      }
-    });
+      });      
+    }
   };
 
   const onMapClick = useCallback((event) => {
@@ -68,7 +71,18 @@ function MapComponent({ onLocationSelect }) {
         }
       );
     }
-  };  
+  }; 
+  
+  useEffect(() => {
+    console.log("geopoint", geopoint)
+
+    if (geopoint._lat && geopoint._long) setMapCenter({lat: geopoint._lat, lng: geopoint._long  });
+  
+    return () => {
+      
+    }
+  }, [geopoint])
+  
 
   const getCurrentLocationButton = {
     activeContent: "Get Current Location",
@@ -82,11 +96,11 @@ function MapComponent({ onLocationSelect }) {
 
   return (
     <div className="map-container">
-      <LoadScript googleMapsApiKey={DEFAULT_VALUES.API_KEY}>
         <ButtonsContainer buttonsDetails={buttonsDetails}/>
         {
             // <MdMyLocation />
         }
+        <LoadScript googleMapsApiKey={DEFAULT_VALUES.API_KEY} libraries={['places']} >
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={mapCenter}
@@ -95,7 +109,7 @@ function MapComponent({ onLocationSelect }) {
         >
           {selectedLocation && <Marker position={selectedLocation} />}
         </GoogleMap>
-      </LoadScript>
+        </LoadScript>
       <div className="location-details">
         {selectedLocation && false && (
           <>

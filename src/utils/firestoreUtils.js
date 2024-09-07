@@ -798,7 +798,9 @@ const loadCartItemsFromFirebaseAndLocalStorage = async (customerId) => {
   const itemsListFromLocalStorageCart = getItemsListFromLocalStorageCart(cartFromLocalStorage);//returns [{id:itemId, quantity: itemQuantity},...]
   console.log('itemsListFromLocalStorageCart:', itemsListFromLocalStorageCart);
   const productObjListFromLocalStorage = await getProductsListFromFirebaseUsingItemsListInCartObj(itemsListFromLocalStorageCart);//returns [productObj1, productObj2, ...]
-  if (!customerId) return defaultCart;
+  console.log('productObjListFromLocalStorage:', productObjListFromLocalStorage);
+  console.log('customerId:', customerId);
+  if (!customerId) return defaultCartItems;
   const docPath = `${FIREBASE_CLLECTIONS_NAMES.CARTS}/${customerId}`;
   // if there's cart info in local storage, use it instead of default value: []
   if (productObjListFromLocalStorage && productObjListFromLocalStorage.length > 0) {
@@ -828,7 +830,7 @@ const loadCartItemsFromFirebaseAndLocalStorage = async (customerId) => {
       await updateCartItemsInFirebaseFromProductObjList(productObjListFromLocalStorage, false)
       //const dataToSave = {...defaultCart, [`${itemsListFeildNameInCartObj}`]: itemsListFromLocalStorageCart};
       //await setDocument(docPath, dataToSave);
-    }else if (JSON.stringify(itemsListInCartObjFromFirebase)!== JSON.stringify(itemsListFromLocalStorageCart)) {
+    }else if (true){//(fetchedCart['updated-at']!== JSON.parse(localStorage.getItem('updated-at'))) {
       //cart exists in firebase but not equivilant to cart in local storage, update firebase with cart from local storage,
       // since it is more up to date, (updated on each cart change) 
       //const updates = {[`${itemsListFeildNameInCartObj}`]: itemsListFromLocalStorageCart};       
@@ -937,7 +939,7 @@ const getUpdatedVariantsProductObj = (productObj, variantsIds) => {
   //variants in the possibly updated product, fetched from firebase
   const productVariants = productObj.variants;
   //fields that concern the variant model objects, that need to be skipped
-  const initialFields = CONSTANTS.VARIANT_OBJ_DEFAULT_KEYS//['id', 'active', 'price', 'add-by-default'];
+  const initialFields = CONSTANTS.VARIANT_KEYS//['id', 'active', 'price', 'add-by-default'];
   //fields that will be updated in the product obj based on the selected variants
   const { id, name, price, variants } = variantsIds.reduce((accumulator, variantId) => {
     //loop through the saved old variantsIds and look if that variant still exists in the updated product, AND has not been set to not active
@@ -949,6 +951,7 @@ const getUpdatedVariantsProductObj = (productObj, variantsIds) => {
       variantDoesNotExist = true;
       return accumulator;
     }
+    console.log('accumulator: ', accumulator)
     //if it exists, look for the field that it controlls in the product obj
     const field = Object.keys(variant).find((key) => !accumulator.fields.includes(key));
     //add the variant id to the product id
@@ -1027,6 +1030,7 @@ const getProductsListFromFirebaseUsingItemsListInCartObj = async (itemsListInCar
       return null; // Return null on error
     }
   }));  
+  console.log('itemsListFromFirebase:', itemsListFromFirebase);
   const items = itemsListFromFirebase.filter(item => item!== null); //filter out the not found items
   //TO DO: remove duplicates from items (if any)
   return items;
@@ -1071,16 +1075,19 @@ const getCartItemModelsFromProductObjs = (productList) => {
 //returns nothing
 export const saveOrUpdateCartItemToLocalStorage = (cart, merge = false) => {
   const key = CONSTANTS.LOCAL_STORAGE.KEYS.CART_KEY;
+  const updatedAtKey = 'updated-at';
 
   const newCart = getCartItemModelsFromProductObjs(cart);
   if (!merge){
     localStorage.setItem(key, JSON.stringify(newCart));//{'cart': {itemId1: quantity1, itemId2: quantity2,...}}
+    localStorage.setItem(updatedAtKey, JSON.stringify(Timestamp.now())); 
     console.log('updated local cart: ', newCart)
     return;
   }
   const cartLocalStorage = getCartFromLocalStorage();//{itemId1: quantity1, itemId2: quantity2,...}
   
   localStorage.setItem(key, JSON.stringify({...cartLocalStorage,...newCart}));//{'cart': {itemId1: quantity1, itemId2: quantity2,...}}
+  localStorage.setItem(updatedAtKey, JSON.stringify(Timestamp.now())); 
   return;
 }
 
