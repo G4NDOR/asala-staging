@@ -436,7 +436,7 @@ function ProductForm() {
   }, [])
 
   const uploadDocuments = async () => {
-    const keywords = getAllSubstrings(product['full-name'])
+    const keywords = getAllSubstrings(fullName)
     const collectionName = "products";
     const docData = {
       data: {

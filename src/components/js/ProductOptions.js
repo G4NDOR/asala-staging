@@ -273,6 +273,7 @@ export default function ProductOptions({variants = [], optionalAdditions = []}) 
             for (let i = startIndex; i < endIndex; i++) {
                 //only get the fierst field of the not sused fields which is the only one that is not used
                 const parentProductField = usedFields.length >0? usedFields[usedFields.length - 1] : null;
+                // console.log('productFieldsObj: ', productFieldsObj)
                 const productField = productFieldsObj[i].filter(field=>(!usedFields.includes(field)))[0];
                 dispatch(setVariantField(productField, i));
                 usedFields.push(productField);
