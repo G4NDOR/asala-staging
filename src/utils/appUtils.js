@@ -263,10 +263,19 @@ export const generateButtonDetails = ({
   export const findDiscountsForProduct = (discounts, productId) => {
     const cleanedProductId = getCleanedProductId(productId);
     const discountsThatBelongToThisProduct = discounts.filter(discount => {
-      const discountBelongsToThisProduct = discount.product === cleanedProductId;
+      const cleanedDiscountProductId = getCleanedProductId(discount.product);
+      const discountBelongsToThisProduct = cleanedDiscountProductId === cleanedProductId;
       return discountBelongsToThisProduct;
     });
     return discountsThatBelongToThisProduct;
+  }
+
+
+  export const isSameProduct = (product1Id, product2Id) => {
+    const cleanedProduct1Id = getCleanedProductId(product1Id);
+    const cleanedProduct2Id = getCleanedProductId(product2Id);
+    const areProductsSame = cleanedProduct1Id === cleanedProduct2Id;
+    return areProductsSame;
   }
 
   //checks if the discount should be applied based on the quantity of the item purchased.

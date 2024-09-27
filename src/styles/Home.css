@@ -24,8 +24,8 @@
     overflow-x: hidden;
     position: relative;
     background-color: #f8f9fa;
-    width: 90vw;
-    max-width: 1000px;
+    width: 100vw;
+    max-width: 1500px;
     
   }
   
@@ -38,6 +38,7 @@ ul {
   position: relative;
   width: 100%;
   height: auto; /* Full screen height */
+  max-height: 90vh;
   overflow: hidden;
 }
 

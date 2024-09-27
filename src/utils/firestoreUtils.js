@@ -1,5 +1,5 @@
 // firestoreUtils.js
-import { database, db, storage } from './firebaseConfig'; // Import your Firebase configuration
+import { auth, database, db, storage } from './firebaseConfig'; // Import your Firebase configuration
 import {
   addDoc,
   collection,
@@ -27,8 +27,9 @@ import { getIpAddress } from './retreiveIP_Address';
 import DEFAULT_VALUES from '../constants/defaultValues';
 import CONSTANTS from '../constants/appConstants';
 import { calculateTotalDistance, getCleanedProductId, getCleanedProductsIds, getTimeEstimateBasedOnDistance, getVariantsIdsAndOptionalAdditionsIdsFromProductId, isLocationInRange, isOperatingTime, isSubset } from './appUtils';
-import { push, ref, set } from 'firebase/database';
+import { push, ref, set, get } from 'firebase/database';
 import { ref as storageRef, deleteObject, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 
 // Common process to handle errors
 const handleError = (error) => {
@@ -1409,6 +1410,187 @@ export const getUpdatedProducts = async (productIds) => {
 };
 
 
+const getOrderById = async (orderId) => {
+  try {
+    const orderRef = ref(database, `orders/${orderId}`);
+    const snapshot = await get(orderRef);
+
+    if (snapshot.exists()) {
+      return snapshot.val(); // Return the order object
+    } else {
+      console.log('Order not found');
+      return null; // Order not found
+    }
+  } catch (error) {
+    console.error('Error fetching order:', error.message);
+    handleError(error); // Rethrow the error to be handled by the caller
+    return null;
+  }
+};
+
+
+const makeOnlinePayment = async (order, itemsListMini) => {
+  //create an order in realtime database using the appropriate structore
+  const orderId = await createOrder(order);
+  if (!orderId) return null;
+  //status is 'pending'
+  // get payment link
+  const squareOrderObj = generateSquarePaymentObject(itemsListMini, order.discounts)
+  const paymentLinkGenerationResponse = await getOnlinePaymentLink({...squareOrderObj, notes: order.notes, id: orderId})
+  if (!paymentLinkGenerationResponse || paymentLinkGenerationResponse.statusCode !== 200) return null;
+  console.log('paymentResponse: ', paymentLinkGenerationResponse)
+  const paymentLink = paymentLinkGenerationResponse.url;
+  return {
+    orderId,
+    paymentLink
+  }
+}
+
+const makeInpersonPayment = async (order) => {
+  //create an order in realtime database using the appropriate structore
+  const orderId = await createOrder({...order, status: 'placed'});
+  return {orderId}
+}
+
+const getOnlinePaymentLink = async (order) => {
+  const rawData = {
+    idempotencyKey: window.crypto.randomUUID(),
+    description: "description ...",
+    locationId:DEFAULT_VALUES.SAND_BOX_LOCATION_ID,
+    lineItems: order.lineItems,
+    discounts: order.discounts,
+    paymentNote: order.notes,
+    orderId: order.id
+  }    
+
+  console.log("getting payment link")
+  const body = JSON.stringify(rawData);
+  const productionLink = '/get-payment-link'
+  const local = 'http://localhost:5001/asala-staging/us-central1/getPaymentLink'
+  const development = 'https://us-central1-asala-staging.cloudfunctions.net/getPaymentLink'
+  const paymentResponse = await fetch( productionLink, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body,
+  });
+  if (paymentResponse.ok) {
+    const res = await paymentResponse.json()
+    console.log('Payment response:', res);
+    return {...res, statusCode: 200};
+  }
+  //const paymentResponse2 = await fetch('http://localhost:5001/asala-staging/us-central1/hello-world', {
+  //  method: 'POST',
+  //  headers: {
+  //    'Content-Type': 'application/json',
+  //  },
+  //  body,
+  //});
+  //if (paymentResponse2.ok) {
+  //  console.log('Payment response:', await paymentResponse2.json());
+  //  // return paymentResponse2.json();
+  //}    
+  console.log('Failed to get payment response', paymentResponse);
+  return null;
+}
+
+export async function checkPaymentStatus(paymentId) {
+  try {
+    const response = await fetch(`/check-payment-status?paymentId=${paymentId}`);
+    const paymentResult = await response.json();
+
+    if (paymentResult.status === 'COMPLETED') {
+      // Payment was successful
+      console.log('Payment successful!: ', paymentResult);
+      return {...paymentResult, success: true};
+    } else {
+      // Payment was not successful
+      console.log('Payment failed or incomplete: ', paymentResult);
+      return {...paymentResult, success: false};
+    }
+  } catch (error) {
+    console.error('Error checking payment status:', error);
+    handleError(error);
+    return null;
+  }
+}
+
+export const checkOrderStatus = async (orderId) => {
+  const order = await getOrderById(orderId);
+  if (!order) return null;
+  return order;
+}
+
+function generateSquarePaymentObject(items, discounts) {
+  const paymentObject = {
+    lineItems: [],
+    discounts: []
+  };
+
+  const discountMap = {};
+
+  // Process discounts
+  discounts.forEach(discount => {
+    // Store discounts by their associated product ID
+    discountMap[discount.product] = discount;
+
+    // If it's a collective discount, add it to the discounts array
+    if (discount.quantity === 0) {
+      paymentObject.discounts.push({
+        uid: discount.id,
+        name: discount.name,
+        type: discount.type.toUpperCase(),
+        percentage: discount.type === 'percentage' ? discount.value.toFixed(2) : undefined,
+        amountMoney: discount.type === 'fixed' ? { amount: discount.value * 100, currency: 'USD' } : undefined,
+        scope: 'ORDER'
+      });
+    }
+  });
+
+  // Process items
+  Object.values(items).flat().forEach(item => {
+    const lineItem = {
+      name: item.name,
+      quantity: item.quantity.toString(),
+      basePriceMoney: {
+        amount: item.price * 100, // Convert price to cents
+        currency: 'USD'
+      }
+    };
+
+    // Check if there's a discount for this item
+    const discount = discountMap[item.id];
+    if (discount) {
+      // Apply discount only if item quantity meets or exceeds the discount quantity requirement
+      if (item.quantity >= discount.quantity || discount.quantity === 1 || discount.type === 'percentage') {
+        lineItem.appliedDiscounts = [{
+          uid: discount.id,
+          discountUid: discount.id
+        }];
+
+        // Add discount to paymentObject.discounts if not already added
+        if (!paymentObject.discounts.some(d => d.uid === discount.id)) {
+          paymentObject.discounts.push({
+            uid: discount.id,
+            name: discount.name,
+            type: discount.type.toUpperCase(),
+            percentage: discount.type === 'percentage' ? discount.value.toFixed(2) : undefined,
+            amountMoney: discount.type === 'fixed' ? { amount: discount.value * 100, currency: 'USD' } : undefined,
+            scope: 'LINE_ITEM'
+          });
+        }
+      }
+    }
+
+    paymentObject.lineItems.push(lineItem);
+  });
+
+  return paymentObject;
+}
+
+
+
 export const createOrder = async (order) => {
     //receipt-url set it in fireUtils.js
     //delivery-commission set it in fireUtils.js
@@ -1446,6 +1628,7 @@ export const createOrder = async (order) => {
 
 // Perform validation and check if all firestore data is matching with the current order object.
 export const tryPlacingOrder = async (order) => {
+  console.log("Trying to place order...: ", order);
   if (!order ||!order.items ||!order.destination) return null;
   const items = order.items
   const destination = order.destination;
@@ -1565,6 +1748,7 @@ export const tryPlacingOrder = async (order) => {
       const product = await getDocument(path);
       console.log('itemsListMini: ', itemsListMini);
       const range = ranges[product[_range]];
+      console.log('ranges: ', ranges, 'range: ', product[_range]);
       if (!product) {
         const reason = PLACING_ORDER.REASONS.PRODUCT_NOT_FOUND;
         return {
@@ -1678,11 +1862,31 @@ export const tryPlacingOrder = async (order) => {
     if (rejectedProductsResults.length > 0) {
       return {status: PLACING_ORDER.STATUS.REJECTED, data: rejectedProductsResults}
     }
+    //make either online or cash payment
+    const isOnlinePayment = order['payment-method'] == CONSTANTS.PAYMENT_METHODS.ONLINE
+    //let paymentLink = null;
+    //if (isOnlinePayment) {
+    //  const squareOrderObj = generateSquarePaymentObject(itemsListMini, order.discounts)
+    //  const paymentLinkGenerationResponse = await getOnlinePaymentLink({...squareOrderObj, notes: order.notes})
+    //  if (paymentLinkGenerationResponse.statusCode == 200) {
+    //    console.log('paymentResponse: ', paymentLinkGenerationResponse)
+    //    paymentLink = paymentLinkGenerationResponse.url;
+    //  }
+    //}    
+    //if (!paymentLink) {
+    //  const reason = PLACING_ORDER.REASONS.PAYMENT_LINK_GENERATION_FAILED;
+    //  return {
+    //    status: rejected,
+    //    reason,
+    //  }        
+    //}
     //if everything is good, finish placing the order
+    //make the order structure to be stored in realtime database
     const { items: _, ...DatabaseOrder} = {...order, ...merchantsSpecificOrder, deliverers};
-    const response = await createOrder(DatabaseOrder);
+    console.log('Placing order: ', DatabaseOrder);
+    const response = (isOnlinePayment)? (await makeOnlinePayment(DatabaseOrder, itemsListMini)): (await makeInpersonPayment(DatabaseOrder));
     if (!response) return null;
-    return {status: PLACING_ORDER.STATUS.ACCEPTED, response}
+    return {status: PLACING_ORDER.STATUS.ACCEPTED, response: response };
   } catch (error) {
     console.error('Error checking placing order: ', error);
     handleError(error);
@@ -1797,6 +2001,12 @@ export const deleteImages = async (imagesPaths) => {
 };
 
 
+export const getUser = async (id) => {
+  const docPath = `users/${id}`;
+  console.log('docPath: ', docPath)
+  const user = await getDocument(docPath);
+  return user;
+} 
 
 /*
 

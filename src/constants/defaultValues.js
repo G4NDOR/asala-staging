@@ -1,7 +1,7 @@
 // src/constants/defaultValues.js
 
 const DEFAULT_VALUES = {
-    COMMIT_NUMBER: 5,
+    COMMIT_NUMBER: 6,
     PRODUCT:   {
       "id": "",
       "is-default-value": true,
@@ -396,6 +396,10 @@ const DEFAULT_VALUES = {
       },
       "is-default-value": true
     },
+    PRODUCTION_APP_ID: "sq0idp-hwBOwcbbDUrKwy6R9GN_EA",
+    SAND_BOX_APP_ID: "sandbox-sq0idb-WGcuZcvhR5h0eXr-ojQG-A",
+    PRODUCTION_LOCATION_ID: "LHHDME78ZS6PA",
+    SAND_BOX_LOCATION_ID: "LHFTKYSPV89H2",
     API_KEY: "AIzaSyCRJxYr_MhIKXIg-uIOsaMv64T2RzN4DEI",
     GENERAL_RANGE: {
       ID: "wCCf8rhZ2pO844DJv0ac",

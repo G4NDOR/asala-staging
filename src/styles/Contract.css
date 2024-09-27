@@ -1,0 +1,113 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 10px;
+    padding: 0;
+    background-color: #f0f2f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Contract Container */
+.contract-container {
+    width: 8.27in;
+    margin: 40px auto;
+    padding: 0.75in;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    position: relative;
+    page-break-after: always;
+}
+
+/* Typography */
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+
+h2 {
+    font-size: 1.4em;
+    color: #333;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #555;
+    padding-bottom: 5px;
+}
+
+p, ul {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+ul {
+    list-style: disc;
+    padding-left: 20px;
+}
+
+.section-title {
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #555;
+}
+
+/* Signature Section */
+.signatures {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.signature {
+    width: 45%;
+}
+
+
+/* Buttons and Links */
+a, button {
+    display: inline-block;
+    font-size: 1.1em;
+    color: #0074D9;
+    background-color: #fff;
+    border: 2px solid #0074D9;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+a:hover, button:hover {
+    background-color: #0074D9;
+    color: white;
+}
+
+
+.contract-container input {
+    all:unset;
+    min-width: 1ch;  /* Ensures a minimal width */
+}
+
+
+.contract-container input:focus {
+    outline: none; /* Remove focus outline */
+}
+
+
+.hidden-span {
+    visibility: hidden;
+    position: absolute;
+    white-space: nowrap;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.editable {
+    border-bottom:1px solid red !important;
+    background-color: aquamarine;
+}
+
+.list-input{
+    display: flex;
+    margin-bottom: 1.1rem;
+}
+

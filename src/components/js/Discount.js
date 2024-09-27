@@ -35,6 +35,7 @@ export default function Discount({visible=true, parent}) {
 
     const productsIds = getCleanedProductsIds(products);
     const selectedDiscountsIds = selectedDiscounts.map(discount => discount.id);
+    console.log('discounts', discounts);
     const options = discounts.map(discount => ({ value: discount.id, label: discount.name }));
     const customer = useSelector(state => state.appVars.customerDetails);
     const credit = customer.credit || null;
@@ -66,6 +67,7 @@ export default function Discount({visible=true, parent}) {
         //it is a general discount => it can apply on any product
         //remove it from discounts array and add variants of it based on each product to the discounts array
         dispatch(removeDiscount(discount, parent));
+        console.log('discounts: ', discounts)
         //the new discounts that gets created out of the general discount for each item in the cart
         //newDiscountsUnrestricted the new discounts without the 'opposing-discounts' field
         const newDiscountsUnrestricted = [];
@@ -92,6 +94,7 @@ export default function Discount({visible=true, parent}) {
         // and will update the opposing-discounts field with:
         // the opposing discounts from the general discount + the opposing discounts from the list it created
         //and adds them to the discounts array that displays to the user to select from
+        console.log('newDiscountsUnrestricted: ', newDiscountsUnrestricted)
         newDiscountsUnrestricted.forEach(discount => {
             const opposingDiscountsIds = newDiscountsIds.filter(id => id!== discount.id);
             const newDiscount = {
@@ -101,6 +104,7 @@ export default function Discount({visible=true, parent}) {
                     ...opposingDiscountsIds
                 ] 
             }
+            console.log('newDiscount: ', newDiscount)
             dispatch(addDiscount(newDiscount, parent))
         });
 
@@ -142,9 +146,14 @@ export default function Discount({visible=true, parent}) {
                 //show message what quantity it applies on
                 const quantity = discount.quantity;
                 const isQuantitySpecific = quantity > 1;
-                const message = { content: `Discount applied${isQuantitySpecific? ` (applies on x${quantity} or more)`: ''}`, severity: CONSTANTS.SEVERITIES.INFO };
-                dispatch(addMessage(message))                
-                dispatch(selectDiscount(discount, parent));                
+                const product = products.find(product => product.id === discount.product);
+                if (isQuantitySpecific && product.quantity < quantity) {
+                    const message = { content: `Discount applied${isQuantitySpecific? ` (applies on x${quantity} or more)`: ''}`, severity: CONSTANTS.SEVERITIES.WARNING };
+                    dispatch(addMessage(message)) 
+                } else {
+                    dispatch(selectDiscount(discount, parent));                
+
+                }
             }
             
         }

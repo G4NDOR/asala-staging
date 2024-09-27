@@ -27,6 +27,30 @@
       {
         "source": "**",
         "destination": "/index.html"
+      },
+      {
+        "source": "/get-payment-link",
+        "function": {
+          "functionId": "getPaymentLink"
+        }
+      },
+      {
+        "source": "/square-webhook",
+        "function": {
+          "functionId": "squareWebhook"
+        }
+      },
+      {
+        "source": "/square-webhook-sandbox",
+        "function": {
+          "functionId": "squareWebhookSandbox"
+        }
+      },
+      {
+        "source": "/test",
+        "function": {
+          "functionId": "testFunction"
+        }
       }
     ]
   },
@@ -53,5 +77,8 @@
       "enabled": true
     },
     "singleProjectMode": true
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

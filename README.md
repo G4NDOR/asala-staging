@@ -1,3 +1,7 @@
+# temp
+so I think I will, once the user try to place an order, do my checking for the product availability, create an order in the realtime database, with a placed status if the order is a in person payment , so that it will be placed and the producer can then see it and make it and get payment upon delivery, but when it is an online payment the order will be created with a pending status until it is paid, and producers can't see orders that are pending, so that when I get the payment link, I have the redirected page is my confirmation page with the order id param, and then once the confirmation page load, it will check if the order id is provided, if not then the user navigated there improperly if there;s an order id, then I retrieve the order, if the order doesn't exist or there was an error retreiving I will show an error occured retreiving the data, if there's an order then I check if the order status says pending, if it does then the online payment was not complete (since the in--person payment gets placed right away) and the order was not placed untill it gets paid. if the order status says anything else other than pending then it is placed, since the status starts with pending then placed, then accepted when the producer accept it, then the ready , then picked up then delivered. and the webhook will be updating the order in the database to a placed status if the payment was complete
+
+
 # suggestion to improve product model
     //AND the customer is logged in
     //AND the customer is a premium user

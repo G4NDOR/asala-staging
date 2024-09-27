@@ -11,7 +11,7 @@ import ButtonsContainer from "./ButtonsContainer";
 import SwipeConfirmation from "./SwipeConfirmation";
 import CONSTANTS from "../../constants/appConstants";
 import { calculatePriceForItem, calculateTotalListPriceWithAppliedDiscountsAndUsedCredit, calculateTotalListPriceWithoutDiscounts, findAppliedDiscount, formatPhoneNumberStyle2, getDeliveryFee, getPriceWithDiscountApplied } from "../../utils/appUtils";
-import { FIREBASE_DOCUMENTS_FEILDS_UNITS } from "../../constants/firebase";
+import { FIREBASE_DOCUMENTS_FEILDS_UNITS, PLACING_ORDER } from "../../constants/firebase";
 import PaymentForm from "./PaymentForm";
 import ConfirmationInfo from "./ConfirmationInfo";
 import { tryPlacingOrder } from "../../utils/firestoreUtils";
@@ -196,17 +196,26 @@ const OrderButton = ({test, parent}) => {
 
   const onConfirm = async () => {
     // The order has been confirmed
-    console.log('************************************************************************************=======')
+    dispatch(triggerLoading());
+    dispatch(resetIntentToPay());
     const result = await tryPlacingOrder(order);
-    console.log('================================================================')
-    console.log('result',result);
+    console.log('================================')
+    console.log('result: ',result);
     const isOnlinePayment = paymentMethod == CONSTANTS.PAYMENT_METHODS.ONLINE;
     const isCashPayment = paymentMethod == CONSTANTS.PAYMENT_METHODS.CASH;
-    if (isOnlinePayment) {
-      makeOnlinePayment()
-    }else if (isCashPayment) {
-      makeCashPayment()
+    if (!result || result.status !== PLACING_ORDER.STATUS.ACCEPTED) {
+      console.log('failed to place the order');//TODO:show message to the user 
+      return
     }
+    if (isOnlinePayment) {
+      const link = result.response.paymentLink
+      console.log('payment method:', paymentMethod,'navigating to payment link: ', link)
+      window.open(link, '_self'); // Opens in a new tab
+      // window.location.href = 'https://sandbox.square.link/u/qjO2S6OM'//result.response.paymentLink; // Redirect user to Square's payment link
+      return;
+    }
+    console.log("it is cash payment")
+    // navigate('/confirmation?orderId=none');
     return;
   }
 
@@ -393,7 +402,7 @@ const OrderButton = ({test, parent}) => {
     visible:  visible && payClicked && isNotMobileScreen,
     generalContent: `Confirm $${total.toFixed(2)} ${paymentMethod}`,
     generalClassName: "home-page-and-product-page-in-person-payment-confirmation-button",
-    activeAction: proceedWithPayment,
+    activeAction: onConfirm,
   }
 
   const cancelPaymentButtonDetails = {

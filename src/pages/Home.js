@@ -144,6 +144,86 @@ const Home = () => {
     }, 10000);
   }
 
+  const test = async () => {
+    // window.open('https://sandbox.square.link/u/qjO2S6OM', '_blank');
+    const rawData = {
+      idempotencyKey: window.crypto.randomUUID(),
+      description: "description ...",
+      locationId:DEFAULT_VALUES.SAND_BOX_LOCATION_ID,
+      lineItems:[
+        {
+          name: 'wa',
+          quantity: '3',
+          basePriceMoney: {
+            amount: 200,
+            currency: 'USD'
+          }
+        },
+        {
+          name: 'fa',
+          quantity: '2',
+          appliedDiscounts: [
+            {
+              uid: '00001',
+              discountUid: '0000'
+            }
+          ],
+          basePriceMoney: {
+            amount: 500,
+            currency: 'USD'
+          }
+        }
+      ],
+      discounts:[
+        {
+          uid: '0000',
+          name: 'out Of Stock Discount',
+          type: 'FIXED_PERCENTAGE',
+          percentage: '10.00',
+          scope: 'LINE_ITEM'
+        }
+      ],
+      paymentNote: "payment notes ...",
+    }    
+    const body = JSON.stringify({post: 'yes'});
+    // const paymentResponse = await fetch('/test', {
+      // method: 'GET',
+      // headers: {
+        // 'Content-Type': 'application/json',
+      // },
+    // }).then(response=> response.json());
+    const localLink = 'http://localhost:5001/asala-staging/us-central1/testFunction'
+    const developement = 'https://us-central1-asala-staging.cloudfunctions.net/testFunction'
+    const production = '/test'
+    const paymentResponse = await fetch(developement, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body,
+    });
+    // console.log('paymentResponse: ', paymentResponse);
+    // console.log('paymentResponse.body: ', paymentResponse.body);
+    if (paymentResponse.ok) {
+      const res = await paymentResponse.json();
+      console.log('Payment response:', res);
+      return //paymentResponse.json();
+    }
+    //const paymentResponse2 = await fetch('http://localhost:5001/asala-staging/us-central1/hello-world', {
+    //  method: 'POST',
+    //  headers: {
+    //    'Content-Type': 'application/json',
+    //  },
+    //  body,
+    //});
+    //if (paymentResponse2.ok) {
+    //  console.log('Payment response:', await paymentResponse2.json());
+    //  // return paymentResponse2.json();
+    //}    
+    console.log('Failed to get payment response', paymentResponse);
+    // return null;
+  }
+
   //util functions for buttons
   
 
@@ -197,7 +277,9 @@ const Home = () => {
       
       <div className="container">
         
-        
+      {
+        //<button onClick={test}>Test</button>
+      }
         <SearchItem />
         <Cart />
         <div className="image-slider-wrapper">

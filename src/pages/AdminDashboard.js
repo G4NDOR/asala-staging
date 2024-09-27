@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DiscountForm from '../components/js/DiscountForm';
+import PhoneAuth from '../components/js/PhoneAuth';
 import ProducerForm from '../components/js/ProducerForm';
 import ProductForm from '../components/js/ProductForm';
 import SelectInput from '../components/js/SelectInput';
@@ -47,12 +48,24 @@ function AdminDashboard() {
   
     const handleSubmit = (e) => {
       e.preventDefault();
+      /*
       if (password === CORRECT_PASSWORD) {
         dispatch(setAccessGranted(true));
       } else {
         alert('Incorrect password');
       }
+      */
+     
     };
+
+    useEffect(() => {
+      if (accessGranted) console.log('true');
+    
+      return () => {
+        
+      }
+    }, [accessGranted])
+    
 
     const showForm = () => {
         switch (selectedCollection) {
@@ -93,8 +106,10 @@ function AdminDashboard() {
                 onChange={handlePasswordChange}
                 placeholder="Enter admin password"
                 />
-                <button type="submit">Submit</button>
-            </form>        
+                <button id='sign-in-button' type="submit">Submit</button>
+            </form>  
+            <PhoneAuth />
+
         </div>
   );
 }

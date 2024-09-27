@@ -57,13 +57,14 @@ const CartItem = ({ item, parent }) => {
   
 
   const selectedDiscounts = useSelector(state => state.orderManager.selectedDiscounts[parent]);
-  
+  console.log('selectedDiscounts: ', selectedDiscounts, 'id: ', id);
   const thisProductSelectedDiscounts = findDiscountsForProduct( selectedDiscounts, id);
   const discounts = thisProductSelectedDiscounts;
   const optionalAdditions = item['optional-additions'] || [];
-  
+  console.log('discounts: ',discounts, 'quantity: ', quantity);
   const appliedDiscount = findAppliedDiscount(discounts, quantity);
   const appliedDiscountDoesNotExist = !appliedDiscount;
+  console.log('appliedDiscount', appliedDiscount)
   //name of a field of a feild, name of a nested feild
   
 

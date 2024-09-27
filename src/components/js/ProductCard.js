@@ -129,7 +129,7 @@ const ProductCard = ({product}) => {
     activeContent: "Add to Cart",
     generalClassName: "home-page-product-card-add-to-cart-button",
     activeAction: ({product, selectedOptionalAdditions}) => {
-      const properties = CONSTANTS.VARIANT_KEYS;
+      const properties = [...CONSTANTS.VARIANT_OBJ_DEFAULT_KEYSS];
       const selectedVariantsObj = {};
       const selectedVariants = product.variants.filter(variant => (variant.active && variant['add-by-default'])).sort((a, b) => Object.keys(a) - Object.keys(b));
       console.log('selectedVariants: ', selectedVariants)

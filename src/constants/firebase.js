@@ -212,6 +212,12 @@ export const FIREBASE_ADMIN_VARS = {
     PLACING_ORDER_ALLOWED: 'placing-order-allowed',
 }
 
+export const DOMAIN = {
+    PRODUCTION: 'https://asala-staging.web.app/',
+    DEVELOPEMENT:'http://127.0.0.1:5000/',
+    LOCAL: 'http://localhost:3000/',
+}
+
 export const PLACING_ORDER = {
     STATUS: {
         REJECTED: 'rejected',
@@ -229,6 +235,8 @@ export const PLACING_ORDER = {
         OUT_OF_RANGE: 'out-of-range',
         VARIANTS_NOT_FOUND: 'variants-not-found',
         OPTIONAL_ADDITIONS_NOT_FOUND: 'optional-additions-not-found',
+        ONLINE_PAYMENT_FAILED: 'online-payment-failed',
+        PAYMENT_LINK_GENERATION_FAILED: 'payment-link-generation-failed',
     }
 }
 

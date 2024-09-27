@@ -8,6 +8,7 @@ const Paths = {
     SEARCH: '/search',
     ERROR: '/error',
     ADMIN: '/admin',
+    CONTRACT: '/contract',
     // Add more paths as needed
   };
   

@@ -17,6 +17,7 @@ import Paths from './constants/navigationPages';
 import ConfirmationPage from './pages/ConfirmationPage';
 import SearchPage from './pages/SearchPage';
 import AdminDashboard from './pages/AdminDashboard';
+import Contract from './pages/Contract';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -29,6 +30,7 @@ root.render(
         <Route path={Paths.CONFIRMATION} element={<ConfirmationPage/>} />
         <Route path={Paths.SEARCH} element={<SearchPage/>} /> 
         <Route path={Paths.ADMIN} element={<AdminDashboard/>} /> 
+        <Route path={Paths.CONTRACT} element={<Contract/>} /> 
         {/* You can add more routes here */}
         {/* <Route path="/another-page" element={AnotherPage} /> */}
       </Routes >

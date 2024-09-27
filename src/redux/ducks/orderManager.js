@@ -1,4 +1,5 @@
 import Paths from "../../constants/navigationPages";
+import { isSameProduct } from "../../utils/appUtils";
 import { saveOrUpdateCartItemToLocalStorage } from "../../utils/firestoreUtils";
 
 const SET_CART_IS_OPEN= 'orderManager/setCartIsOpen'
@@ -93,8 +94,13 @@ export default function orderManager(state = initialState, action) {
             return { ...state, cartIsOpen: action.cartIsOpen };
         case REMOVE_ITEM:
             const newCartRemove = state.cart.filter(item => item.id !== action.id);
+            const newCartSelectedDiscounts = state.selectedDiscounts[Paths.CART].filter(discount => discount.product !== action.id);
             return { 
                 ...state, 
+                selectedDiscounts: {
+                    ...state.selectedDiscounts,
+                    [Paths.CART]: newCartSelectedDiscounts,
+                },
                 cart: newCartRemove,
                 cartIsEmpty: newCartRemove.length === 0 
             };
@@ -109,6 +115,18 @@ export default function orderManager(state = initialState, action) {
                 cartIsEmpty: updatedCartIncrease.length === 0 
             };
         case DECREASE_QUANTITY:
+            const cartSelectedDiscountsAfterDecrease = [...state.selectedDiscounts[Paths.CART]]; // Create a copy for immutability
+            const discountToBeRemoved = cartSelectedDiscountsAfterDecrease.find(discount => isSameProduct(discount.product, action.id));
+            
+            // Remove the discount if needed
+            if (discountToBeRemoved && state.cart.find(item => item.id === action.id)?.quantity === discountToBeRemoved.quantity) {
+                const index = cartSelectedDiscountsAfterDecrease.indexOf(discountToBeRemoved);
+                if (index > -1) {
+                    cartSelectedDiscountsAfterDecrease.splice(index, 1); // Removes 1 item at the found index
+                }
+            }
+            
+            // Update cart items and handle quantity
             const updatedCartDecrease = state.cart.map(item => {
                 if (item.id === action.id) {
                     if (item.quantity > 1) {
@@ -119,16 +137,26 @@ export default function orderManager(state = initialState, action) {
                 }
                 return item;
             }).filter(item => item !== null); // Remove marked items
+            
             saveOrUpdateCartItemToLocalStorage(updatedCartDecrease);
+            
             return { 
                 ...state, 
+                selectedDiscounts: {
+                    ...state.selectedDiscounts,
+                    [Paths.CART]: cartSelectedDiscountsAfterDecrease,
+                },
                 cart: updatedCartDecrease,
                 cartIsEmpty: updatedCartDecrease.length === 0 
-            };
+            };            
         case CLEAR_CART:
             saveOrUpdateCartItemToLocalStorage([]);
             return { 
                 ...state, 
+                selectedDiscounts: {
+                    ...state.selectedDiscounts,
+                    [Paths.CART]: [],
+                },
                 cart: [],
                 cartIsEmpty: true  // Cart is empty after clearing
             };
@@ -176,6 +204,10 @@ export default function orderManager(state = initialState, action) {
         case CLEAR_ONE_ITEM_CHECKOUT:
             return { 
                 ...state, 
+                selectedDiscounts: {
+                    ...state.selectedDiscounts,
+                    [Paths.PRODUCT]: [],
+                },
                 oneItemCheckout: [],
             };            
         case ADD_ONE_ITEM_CHECKOUT:
@@ -215,7 +247,8 @@ export default function orderManager(state = initialState, action) {
                 };
             }
         case REMOVE_ONE_ITEM_CHECKOUT:
-            const _updatedCartDecrease = state.oneItemCheckout.map(item => {
+        const oneItemCheckoutAfterRemoval = state.oneItemCheckout.filter(item => item.id!== action.id);    
+        const _updatedCartDecrease = state.oneItemCheckout.map(item => {
                 if (item.id === action.id) {
                     if (item.quantity > 1) {
                         return { ...item, quantity: item.quantity - 1 };
@@ -227,6 +260,10 @@ export default function orderManager(state = initialState, action) {
             }).filter(item => item !== null); // Remove marked items
             return { 
                 ...state, 
+                selectedDiscounts: {
+                    ...state.selectedDiscounts,
+                    [Paths.PRODUCT]: oneItemCheckoutAfterRemoval,
+                },
                 oneItemCheckout: _updatedCartDecrease,
             };
         case INCREASE_ONE_ITEM_QUANTITY:
@@ -239,29 +276,39 @@ export default function orderManager(state = initialState, action) {
             };
         case DECREASE_ONE_ITEM_QUANTITY:
             const updatedOneItemCheckoutDecrease = state.oneItemCheckout.map(item => {
-                //console.log("state.oneItemCheckout: ", state.oneItemCheckout);
-                //console.log("state.oneItemCheckout: ", state.mainOneItemCheckoutId);
                 if (item.id === action.id) {
                     if (item.quantity > 1) {
-                        //console.log("quantity more than 2, decreasing");
+                        // Decrease quantity if more than 1
                         return { ...item, quantity: item.quantity - 1 };
-                    } else if (action.id != state.mainOneItemCheckoutId) {
-                        //console.log("action.id: ", action.id);
-                        //console.log("state.mainOneItemCheckoutId: ", state.mainOneItemCheckoutId);
-                        //console.log("quantity less than 2 and not main item, removing");
+                    } else if (action.id !== state.mainOneItemCheckoutId) {
+                        // If quantity is 1 and not the main item, mark for removal
                         return null; // Mark item for removal
-                    }else {
-                        //console.log("main item, not removing")
-                        //return null; // Mark item for removal
-                        return { ...item, quantity: item.quantity};
+                    } else {
+                        // If it's the main item, do not remove it
+                        return { ...item, quantity: item.quantity };
                     }
                 }
                 return item;
             }).filter(item => item !== null); // Remove marked items
+            
+            // Check if the discount needs to be unselected
+            const discountToUnselect = state.selectedDiscounts[Paths.PRODUCT].find(discount => 
+                isSameProduct(discount.product, action.id) && discount.quantity === 1
+            );
+            
+            const updatedSelectedDiscounts = discountToUnselect ? 
+                state.selectedDiscounts[Paths.PRODUCT].filter(discount => discount !== discountToUnselect) 
+                : state.selectedDiscounts[Paths.PRODUCT];
+            
+            // Save updated state
             return { 
                 ...state, 
                 oneItemCheckout: updatedOneItemCheckoutDecrease,
-            };
+                selectedDiscounts: {
+                    ...state.selectedDiscounts,
+                    [Paths.PRODUCT]: updatedSelectedDiscounts,
+                },
+            };            
         case TRIGGER_UNSEEN_CHANGES:
             return { ...state, unseenChanges: true };
         case RESET_UNSEEN_CHANGES:
@@ -287,7 +334,7 @@ export default function orderManager(state = initialState, action) {
         case ADD_DISCOUNT:
             return { 
                ...state,
-                discounts: {...state.discounts, [action.parent]: [...state.discounts[action.parent], action.discounts]}
+                discounts: {...state.discounts, [action.parent]: [...state.discounts[action.parent], action.discount]}
             };
         case REMOVE_DISCOUNT:
             return { 
