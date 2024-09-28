@@ -21,9 +21,9 @@ import RadioGroup from '../components/js/RadioGroup';
  * @param {JSX.Element} content - The content of the section.
  * @returns {JSX.Element}
  */
-const Section = ({ title, content }) => (
-  <section>
-    <h2>{title}</h2>
+const Section = ({ title, content, _ref }) => (
+  <section ref={_ref}>
+    <h2 style={title? {}: {display:'none'}} >{title}</h2>
     {content}
   </section>
 );
@@ -43,7 +43,7 @@ const SignatureBlock = ({ role }) => (
   </div>
 );
 
-const Input =  ({ initialValue = "", className = "" , set=()=>{}, placeHolder = "place holder",  editable=true}) => {
+const Input =  ({ initialValue = "", className = "" , set=()=>{}, placeHolder = "place holder",  editable=true, setReady=()=>{}}) => {
     const [inputValue, setInputValue] = useState(initialValue);
     const inputRef = useRef(null);
     const spanRef = useRef(null);
@@ -60,7 +60,8 @@ const Input =  ({ initialValue = "", className = "" , set=()=>{}, placeHolder = 
             inputRef.current.style.width = `${spanWidth}px`; // Add some padding
             // console.log('width: ', spanWidth);
         }
-    }, [inputValue]);
+    }, [inputValue, spanRef.current, inputRef.current]);
+    
 
     const handleInputChange = (e) => {
         // if (e.tagert.value[e.target.value?.length - 1] == '\n') return;
@@ -82,6 +83,8 @@ const Input =  ({ initialValue = "", className = "" , set=()=>{}, placeHolder = 
         }
     }
     console.log('editable: ', editable);
+
+    if(!editable) return <span>{inputValue}</span>;
     return (<>
         <input 
             style={editable?{ textDecoration: 'underline rgb(70,150,250) dashed 2px', textUnderlineOffset: '4px'}: {display: 'none'}}
@@ -134,6 +137,8 @@ const Contract = () => {
     const [accessGranted, setAccessGranted] = useState(false);
     const [editable, setEditable] = useState(true);
     const [dpi, setDpi] = useState(96);
+    const [ready, setReady] = useState(false);
+    const refs = useRef([...Array(15)].map(() => React.createRef()));
     const [sections, setSections] = useState([]);
     const [listContent, setListContent] = useState(" ");
     const [selectedList, setSelectedList] = useState(0);
@@ -190,11 +195,26 @@ const Contract = () => {
 
     useEffect(() => {
       if(!editable) save();
-    }, [editable])
+    }, [sections])
 
     useEffect(() => {
     // List of sections with titles and content
     const sections = [
+        {
+            title: null,
+            content: (
+                <>
+                {/* Contract Effective Date */}
+                <p>This Contract is made effective as of <strong><Input setReady={setReady} editable={editable} initialValue={"00/00/2024"} className={"contract-start-date"} /></strong>, by and between:</p>
+
+                {/* Freelancer Details */}
+                <p><strong>Freelancer:</strong> Abderrahmane RHANDOURI, located at 115 NE Conifer Blvd Apt C, Corvallis, OR, 97330.</p>
+
+                {/* Client Details */}
+                <p><strong>Client:</strong> <Input editable={editable} initialValue={"Client Name"} className={"client-name"} />, located at <Input editable={editable} initialValue={"[Client Address]"} className={"client-address"} />.</p>
+                </>
+            )
+        },
         {
         title: '1. Scope of Work',
         content: (
@@ -330,7 +350,7 @@ const Contract = () => {
     ];
 
     setSections(sections);
-    }, [servicesList, payments])
+    }, [editable, servicesList, payments])
     
     
 
@@ -362,26 +382,60 @@ const Contract = () => {
 
   
   const save = async () => {
-    const canvas = await html2canvas(printRef.current, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
+      // const canvas = await html2canvas(printRef.current, { scale: 2 });
+    //   const canvasList = [];
+      const getCanvasList = refs.current.map((ref, i) => {
+          // Using map to process each ref and return a promise that resolves with a canvas
+          console.log('ref: ', ref)
+          return html2canvas(ref.current, { scale: 2 });
+        //   const canvas = await html2canvas(ref.current, { scale: 2 });
+        //   canvasList.push(canvas);
+        });
+        
+        // Wait for all promises to resolve and return the canvases
+        const canvasList = await Promise.all(getCanvasList);
+        
+    // Now `canvasList` is an array of canvases, each corresponding to the `refs.current`
+    
+    // const imgData = canvas.toDataURL('image/png');
 
     const mmToPixels = dpi / 25.4; // Conversion factor from mm to pixels
 
     const verticalMarginPx = 202;
+    const marginMm = 19.05;
 
-    const imgWidth = 210; // A4 width in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width; // Calculate image height
+    const imgWidth = 210 - marginMm*2; // A4 width in mm
+    // const imgHeight = (canvas.height * imgWidth) / canvas.width; // Calculate image height
 
     // Define how many images you want to split the large image into
-    const splitHeight = 2650.4 - verticalMarginPx*2; // Height for each split image (adjust as needed)
-    const totalHeight = imgHeight; // Total height of the original image
+    const splitHeight = 297 - marginMm*2 ;//2650.4 - verticalMarginPx*2; // Height for each split image (adjust as needed)
+    // const totalHeight = imgHeight; // Total height of the original image
 
     // Number of splits
-    const numberOfSplits = Math.ceil((canvas.height - 2*verticalMarginPx) / splitHeight);
+    // const numberOfSplits = Math.ceil((canvas.height - 2*verticalMarginPx) / splitHeight);
 
     // Create a new jsPDF instance
     const pdf = new jsPDF('p', 'mm', 'a4');
 
+    let currPageHeight = 0;
+    let yOffset = marginMm;
+    console.log('canvasList: ', canvasList);
+    canvasList.map((canvas,i) => {
+        const imgData = canvas.toDataURL('image/png');
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        console.log(`cond ${(splitHeight - currPageHeight) < imgHeight} currPageHeight ${currPageHeight}, yOffset ${yOffset}, imgHeight ${imgHeight} canvas h ${canvas.height}, canvas w ${canvas.width}, splitHeight ${splitHeight}`);
+        if ((splitHeight - currPageHeight) < imgHeight) {
+            pdf.addPage();
+            yOffset = marginMm;
+            currPageHeight = 0;
+        };
+        pdf.addImage(imgData, 'PNG', marginMm, yOffset, imgWidth, imgHeight);
+        yOffset += imgHeight;
+        currPageHeight += imgHeight;
+
+    });
+
+    /*
     // Loop through and create each split image
     for (let i = 0; i < numberOfSplits; i++) {
         const yOffset = i * splitHeight + verticalMarginPx;
@@ -408,10 +462,11 @@ const Contract = () => {
             pdf.addPage();
         }
     }
-
+    */
     // Save the PDF
     pdf.save('contract.pdf');
     setEditable(true)
+    setReady(false)
 };
 
 
@@ -437,24 +492,14 @@ const Contract = () => {
         position: "absolute",
         visibility: "hidden"}} />
     <div ref={printRef} className="contract-container">
-      <h1><Input initialValue={"Freelance Services Agreement"} className={"contract-title"} editable={editable} /></h1>
+      <h1 ref={refs.current[0]}><Input initialValue={"Freelance Services Agreement"} className={"contract-title"} editable={editable} /></h1>
 
-      {/* Contract Effective Date */}
-      <p>This Contract is made effective as of <strong><Input editable={editable} initialValue={"00/00/2024"} className={"contract-start-date"} /></strong>, by and between:</p>
-
-      {/* Freelancer Details */}
-      <p><strong>Freelancer:</strong> Abderrahmane RHANDOURI, located at 115 NE Conifer Blvd Apt C, Corvallis, OR, 97330.</p>
-
-      {/* Client Details */}
-      <p><strong>Client:</strong> <Input editable={editable} initialValue={"Client Name"} className={"client-name"} />, located at <Input editable={editable} initialValue={"[Client Address]"} className={"client-address"} />.</p>
 
       {/* Loop through the sections array to render each section */}
-      {sections.map((section, index) => (
-        <Section key={index} title={section.title} content={section.content} />
-      ))}
+      {sections.map((section, index) =>  <Section _ref={refs.current[index+1]} key={index} title={section.title} content={section.content} />)}
 
       {/* Signatures Section */}
-      <div className="signatures">
+      <div ref={refs.current[14]} className="signatures">
         <SignatureBlock role="Client" />
         <SignatureBlock role="Developer" />
       </div>

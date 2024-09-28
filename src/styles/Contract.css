@@ -23,21 +23,26 @@ body {
 h1 {
     text-align: center;
     color: #333;
+    padding-bottom: 20px;
+    margin: 0;
 }
 
 
 h2 {
     font-size: 1.4em;
     color: #333;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     border-bottom: 2px solid #555;
     padding-bottom: 5px;
+    padding-top: 0.83em;
+    margin-top: 0;
 }
 
 p, ul {
     font-size: 1.1em;
-    margin-bottom: 20px;
     color: #444;
+    padding: 0.7em 0;
+    margin: 0;
 }
 
 ul {
@@ -55,7 +60,7 @@ ul {
 .signatures {
     display: flex;
     justify-content: space-between;
-    margin-top: 30px;
+    padding-top: 30px;
 }
 
 .signature {
