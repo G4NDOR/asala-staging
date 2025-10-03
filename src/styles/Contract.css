@@ -92,6 +92,10 @@ a:hover, button:hover {
     min-width: 1ch;  /* Ensures a minimal width */
 }
 
+.contract-container  .dynamic-input {
+    background-color: #0074D9;
+}
+
 
 .contract-container input:focus {
     outline: none; /* Remove focus outline */
@@ -114,5 +118,7 @@ a:hover, button:hover {
 .list-input{
     display: flex;
     margin-bottom: 1.1rem;
+    width: 100%;
+    max-width: 8.7in;
 }
 

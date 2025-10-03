@@ -507,7 +507,7 @@ const Contract = () => {
     <button type="button" className="save-button" onClick={()=>{setEditable(false)}} >Save as PDF</button>
     <div className="list-input">
         <RadioGroup label={"List"} name={"list"} options={lists} value={selectedList} onChange={setSelectedList} />
-        <textarea name="list-content" placeholder="List content" value={listContent} onChange={(e)=>setListContent(e.target.value)} />
+        <textarea style={{flexGrow:'4'}} name="list-content" placeholder="List content" value={listContent} onChange={(e)=>setListContent(e.target.value)} />
         <button type="button" onClick={saveList}>Save List</button>
     </div>
     </>

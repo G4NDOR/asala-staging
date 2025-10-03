@@ -1102,9 +1102,11 @@ export const loadHomeData = async () => {
     //++++++++++++++++++++++++++++++++++++++++++++++++
     //load welcome section images
     const welcomeImagesData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_IMAGES}`);//array of images
+    console.log("welcomeImagesData: ", welcomeImagesData)
     const welcomeImagesPaths = welcomeImagesData? welcomeImagesData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`].map(image => {
       return image['image-ref'];
     }): null;
+    console.log("welcomeImagesPaths: ", welcomeImagesPaths)
     const welcomeImagesSrcs = welcomeImagesPaths? (await getImages(welcomeImagesPaths)): null;
     //sample image object
     //image = {
@@ -1116,13 +1118,16 @@ export const loadHomeData = async () => {
     //++++++++++++++++++++++++++++++++++++++++++++++++
     //Load welcome section title
     const welcomeSectionTitleData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_TITLE}`);
+    console.log("welcomeSectionTitleData: ", welcomeSectionTitleData)
     const titleDefaultValue = DEFAULT_VALUES.TITLE;
     const welcomeSectionTitle = welcomeSectionTitleData? welcomeSectionTitleData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`]: titleDefaultValue;
     //++++++++++++++++++++++++++++++++++++++++++++++++
     //Load welcome section content
     const welcomeSectionContentData = await getDocument(`${FIREBASE_CLLECTIONS_NAMES.DYNAMIC_OUTPUT}/${FIREBASE_DYNAMIC_OUTPUT_NAMES.HOME_PAGE_WELCOME_SECTION_CONTENT}`);
+    console.log("welcomeSectionContentData: ", welcomeSectionContentData)
     const contentDefaultValue = DEFAULT_VALUES.CONTENT;
     const welcomeSectionContent = welcomeSectionContentData? welcomeSectionContentData[`${FIREBASE_DOCUMENTS_FEILDS_NAMES.DYNAMIC_OUTPUT.CONTENT}`]: contentDefaultValue;
+    console.log("welcomeSectionContent: ", welcomeSectionContent)
 
 
 
@@ -1195,6 +1200,7 @@ export const loadHomeData = async () => {
       // Add more data as needed
     };
     //console.log('returning home data: ', homeData);
+    console.log(" returning homeData");
     return homeData;
 } catch (error) {
   // Handle any errors that occur during the query
@@ -1216,6 +1222,7 @@ export const loadProducts = async (lastDoc=null) => {
   whereClauses.push({field: availableFieldName, operation: "==", value: true});
   let retreivedData = await queryAndOrderWithPagination(collectionName, whereClauses, orderByField, limitNum, ordered, limited, lastDoc);
   let products = retreivedData.data;
+  console.log("Products: ", products)
   if (!products)
     products = [];
   return {products, lastDoc: retreivedData.lastDoc};
@@ -1902,6 +1909,7 @@ export const getImages = async (imagesPaths) => {
     const fileRef = storageRef(storage, `${path}`);
 
     try {
+      console.log("trying")
       const url = await getDownloadURL(fileRef);
       console.log('File URL:', url);
       return url;

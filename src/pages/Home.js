@@ -105,6 +105,7 @@ const Home = () => {
     dispatch(setItems(data.products));
     dispatch(setLastDoc(data.productsLastDoc));
     dispatch(setAnnouncements(data.announcements));
+    console.log("data.welcomeSectionContent: ", data.welcomeSectionContent)
     dispatch(setWelcomeSectionContent(data.welcomeSectionContent));
     dispatch(setWelcomeSectionTitle(data.welcomeSectionTitle));
     dispatch(setCustomerId(data.customerId));
